@@ -1,0 +1,64 @@
+grammar iit.dsl.KinDsl with org.eclipse.xtext.common.Terminals
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate kinDsl "dsl.iit/KinDsl"
+
+Robot:
+	links  += Link+
+	joints += Joint+;
+
+Link:
+    'link' name=ID '{'
+    mass = LinkMass
+    successors = SuccessorsList
+    refFrame = RefFrame
+    '}';
+
+LinkMass:
+    'mass' ':' value=FLOAT;
+
+
+Joint:
+    'joint' name=ID '{'
+    position = JointPosition
+ //   predecessor = JointPredecessor
+
+    '}';
+
+JointPosition:
+    'position' ':' Vector3;
+
+JointPredecessor:
+    'predecessor' ':' link = [Link];
+
+SuccessorsList:
+    'successors' ':' '{'
+      (successors += SuccessorSpec)*
+    '}';
+/*
+SuccessorsList:
+    'successors' ':' '{'
+      links += [Link]
+      (','links += [Link])* // how can I add the constraint that no link is repeated??
+    '}';
+*/
+SuccessorSpec :
+    joint=[Joint] ',' link=[Link];
+
+RefFrame:
+    'ref_frame' name=ID '{' //TODO
+    'translation' ':' translation = Translation
+    'rotation' ':' rotation = Rotation
+    '}';
+
+Translation:
+    Vector3;
+Rotation:
+    Vector3;
+    
+    
+Vector3:
+    '('FLOAT','FLOAT','FLOAT')';
+
+terminal FLOAT returns ecore::EFloat : ('0'..'9')*'.'('0'..'9')+;
