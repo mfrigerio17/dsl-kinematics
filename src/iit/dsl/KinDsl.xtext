@@ -5,8 +5,33 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate kinDsl "dsl.iit/KinDsl"
 
 Robot:
+    base = RobotBase
 	links  += Link+
 	joints += Joint+;
+
+AbstractLink:
+    Link | RobotBase;
+
+RobotBase:
+    FixedRobotBase | FloatingRobotBase;
+
+FixedRobotBase:
+    'RobotBase' name=ID
+    '{'
+    mass = LinkMass
+    successors = SuccessorsList
+    refFrame = RefFrame
+    '}';
+
+/* For a floating base it does not make sense to specify the transform for
+   its reference frame, so the 'refFrame' property is omitted.
+*/
+FloatingRobotBase:
+    'RobotBase' name=ID 'floating'
+   '{'
+    mass = LinkMass
+    successors = SuccessorsList
+    '}';
 
 Link:
     'link' name=ID '{'
@@ -18,36 +43,24 @@ Link:
 LinkMass:
     'mass' ':' value=FLOAT;
 
-
 Joint:
     'joint' name=ID '{'
-    position = JointPosition
- //   predecessor = JointPredecessor
-
+    refFrame = RefFrame
     '}';
-
-JointPosition:
-    'position' ':' Vector3;
-
-JointPredecessor:
-    'predecessor' ':' link = [Link];
 
 SuccessorsList:
     'successors' ':' '{'
       (successors += SuccessorSpec)*
     '}';
-/*
-SuccessorsList:
-    'successors' ':' '{'
-      links += [Link]
-      (','links += [Link])* // how can I add the constraint that no link is repeated??
-    '}';
-*/
-SuccessorSpec :
-    joint=[Joint] ',' link=[Link];
 
+SuccessorSpec :
+    link=[Link] 'via' joint=[Joint];
+
+/* A reference frame basically exists in terms of the roto-translation
+   with respect to some other frame.
+*/
 RefFrame:
-    'ref_frame' name=ID '{' //TODO
+    'ref_frame' '{'
     'translation' ':' translation = Translation
     'rotation' ':' rotation = Rotation
     '}';
