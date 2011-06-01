@@ -44,7 +44,15 @@ LinkMass:
     'mass' ':' value=FLOAT;
 
 Joint:
-    'joint' name=ID '{'
+    RevoluteJoint | PrismaticJoint;
+
+RevoluteJoint:
+    'r_joint' name=ID '{'
+    refFrame = RefFrame
+    '}';
+
+PrismaticJoint:
+    'p_joint' name=ID '{'
     refFrame = RefFrame
     '}';
 
