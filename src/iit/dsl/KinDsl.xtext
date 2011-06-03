@@ -18,7 +18,7 @@ RobotBase:
 FixedRobotBase:
     'RobotBase' name=ID
     '{'
-    mass = LinkMass
+    //mass = LinkMass // if the base is fixed mass does not matter, does it?
     successors = SuccessorsList
     refFrame = RefFrame
     '}';
@@ -41,7 +41,7 @@ Link:
     '}';
 
 LinkMass:
-    'mass' ':' value=FLOAT;
+    'mass' '=' value=FLOAT;
 
 Joint:
     RevoluteJoint | PrismaticJoint;
@@ -57,7 +57,7 @@ PrismaticJoint:
     '}';
 
 SuccessorsList:
-    'successors' ':' '{'
+    'successors' '{'
       (successors += SuccessorSpec)*
     '}';
 
@@ -82,4 +82,5 @@ Rotation:
 Vector3:
     '('FLOAT','FLOAT','FLOAT')';
 
-terminal FLOAT returns ecore::EFloat : ('0'..'9')*'.'('0'..'9')+;
+terminal FLOAT returns ecore::EFloat : ('+'?|'-')('0'..'9')*'.'('0'..'9')+;
+//TODO add terminals for the link and joint IDs (numbering scheme)
