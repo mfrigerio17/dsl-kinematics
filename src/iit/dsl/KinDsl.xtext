@@ -5,9 +5,11 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate kinDsl "dsl.iit/KinDsl"
 
 Robot:
+    'Robot' name = ID '{'
     base = RobotBase
 	links  += Link+
-	joints += Joint+;
+	joints += Joint+
+	'}';
 
 AbstractLink:
     Link | RobotBase;
@@ -35,6 +37,7 @@ FloatingRobotBase:
 
 Link:
     'link' name=ID '{'
+    'id' '=' num = MY_ID
     mass = LinkMass
     successors = SuccessorsList
     refFrame = RefFrame
@@ -48,11 +51,13 @@ Joint:
 
 RevoluteJoint:
     'r_joint' name=ID '{'
+    'id' '=' num = MY_ID
     refFrame = RefFrame
     '}';
 
 PrismaticJoint:
     'p_joint' name=ID '{'
+    'id' '=' num = MY_ID
     refFrame = RefFrame
     '}';
 
@@ -83,4 +88,10 @@ Vector3:
     '('FLOAT','FLOAT','FLOAT')';
 
 terminal FLOAT returns ecore::EFloat : ('+'?|'-')('0'..'9')*'.'('0'..'9')+;
-//TODO add terminals for the link and joint IDs (numbering scheme)
+
+// Link '0' is always the robot base.
+// So the numbering for other links should start from 1, as for joints.
+// TODO: with a floating base, the robot base itself should be '1' (with the virtual
+//   link representing the world being '0', and the virtual 6DOFs joint being
+//   '1'), and subsequent links and joints should be 2, 3, ...
+terminal MY_ID returns ecore::EInt: ('1'..'9')('0'..'9')*;
