@@ -21,7 +21,7 @@ FixedRobotBase:
     'RobotBase' name=ID
     '{'
     //mass = LinkMass // if the base is fixed mass does not matter, does it?
-    successors = SuccessorsList
+    childrenList = ChildrenList
     refFrame = RefFrame
     '}';
 
@@ -32,14 +32,14 @@ FloatingRobotBase:
     'RobotBase' name=ID 'floating'
    '{'
     mass = LinkMass
-    successors = SuccessorsList
+    childrenList = ChildrenList
     '}';
 
 Link:
     'link' name=ID '{'
     'id' '=' num = MY_ID
     mass = LinkMass
-    successors = SuccessorsList
+    childrenList = ChildrenList
     refFrame = RefFrame
     '}';
 
@@ -61,12 +61,12 @@ PrismaticJoint:
     refFrame = RefFrame
     '}';
 
-SuccessorsList:
-    'successors' '{'
-      (successors += SuccessorSpec)*
+ChildrenList:
+    'children' '{'
+      (children += ChildSpec)*
     '}';
 
-SuccessorSpec :
+ChildSpec :
     link=[Link] 'via' joint=[Joint];
 
 /* A reference frame basically exists in terms of the roto-translation
