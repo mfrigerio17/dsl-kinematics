@@ -61,7 +61,11 @@ PrismaticJoint:
     refFrame = RefFrame
     '}';
 
-ChildrenList:
+/* The explicit action {.} ensures object creation, in order to
+   have an empty list when there are no children (instead of having
+   no list at all)
+*/
+ChildrenList: {ChildrenList}
     'children' '{'
       (children += ChildSpec)*
     '}';
