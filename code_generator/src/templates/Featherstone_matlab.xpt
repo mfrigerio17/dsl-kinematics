@@ -1,0 +1,43 @@
+«REM»
+This template aims at generating a matlab file with the initialization of
+a structure describing the robot kinematics, according to the model described
+in "A beginner's guide to &-D vectors (part 2)" by Roy Featherstone.
+«ENDREM»
+
+«IMPORT iit::dsl::kinDsl»
+
+«EXTENSION templates::Featherstone_matlab»
+
+«DEFINE main FOR Robot»
+«FILE name+".m"»
+%%This is an example of a generated file.
+
+
+model.Robotname = '«name»'
+model.N = «links.size + 1»
+model.parent = zeros(1, «links.size»);
+
+«IF FloatingRobotBase.isInstance(base)»
+model.parent(«base.getID()») = 0;
+«ENDIF»
+«FOREACH links AS l»
+model.parent(«l.getID()») = «l.getParent().getID()»
+«ENDFOREACH» 
+
+
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE jointPitch FOR Joint»
+## WARNING ## no specific DEFINE block 'jointPitch' defined for type " «this.metaType.name»
+«ENDDEFINE»
+«DEFINE jointPitch FOR RevoluteJoint»
+0
+«ENDDEFINE»
+«DEFINE jointPitch FOR PrismaticJoint»
+inf
+«ENDDEFINE»
+
+«REM»
+«ENDREM»

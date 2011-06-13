@@ -1,0 +1,28 @@
+import iit::dsl::kinDsl;
+
+create List[AbstractLink] abstractLinks(Robot robot) :
+    this.addAll(robot.links) ->
+    this.add(robot.base)
+;
+
+/* Returns whether the ChildrenList contains the specified link
+*/
+Boolean contains(ChildrenList this, AbstractLink link) :
+    (this.children.select(child | child.link == link)).size != 0
+;
+
+AbstractLink getParent(AbstractLink link) :
+    abstractLinks( (Robot)link.eContainer() )
+        .select(l| l.childrenList.contains(link))
+            .first()
+;
+
+getID(AbstractLink this) :
+    "Warning, no implementation of getID() for AbstractLink";
+getID(Link this) :
+    this.num;
+getID(FixedRobotBase this) :
+    0;
+getID(FloatingRobotBase this) :
+    1;
+
