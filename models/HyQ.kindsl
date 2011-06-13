@@ -1,0 +1,121 @@
+Robot HyQ {
+RobotBase trunk floating {
+	mass = 10.0
+	children {
+		LF_hip via LF_jHAA
+		RF_hip via RF_jHAA
+		LH_hip via LH_jHAA
+		RH_hip via RH_jHAA
+	}
+}
+
+link LF_hip {
+	id = 2
+	mass =    1.0
+	children {
+		leg via jHFE
+	}
+	ref_frame {
+		translation : (1.0, 1.0, 1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+link RF_hip {
+	id = 3
+	mass =    1.0
+	children {}
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+link LH_hip {
+	id = 4
+	mass =    1.0
+	children {}
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+link RH_hip {
+	id = 5
+	mass =    1.0
+	children {}
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+link leg {
+	id = 6
+	mass = 2.0
+	children {
+		foreleg via jKFE
+	}
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+link foreleg {
+	id = 7
+	mass = 1.5
+	children {}
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+r_joint LF_jHAA {
+	id = 2
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+r_joint RF_jHAA {
+	id = 3
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+r_joint LH_jHAA {
+	id = 4
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+r_joint RH_jHAA {
+	id = 5
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+r_joint jHFE {
+	id = 6
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+r_joint jKFE {
+	id = 7
+	ref_frame {
+		translation : (1.0,1.0,1.0)
+		rotation : (0.0,0.0,0.0)
+	}
+}
+
+}
