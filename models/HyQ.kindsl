@@ -1,6 +1,10 @@
 Robot HyQ {
 RobotBase trunk floating {
-	mass = 10.0
+	inertia_params {
+		mass = 10.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {
 		LF_hip via LF_jHAA
 		RF_hip via RF_jHAA
@@ -11,7 +15,11 @@ RobotBase trunk floating {
 
 link LF_hip {
 	id = 2
-	mass =    1.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {
 		leg via jHFE
 	}
@@ -23,7 +31,11 @@ link LF_hip {
 
 link RF_hip {
 	id = 3
-	mass =    1.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {}
 	ref_frame {
 		translation : (1.0,1.0,1.0)
@@ -33,7 +45,11 @@ link RF_hip {
 
 link LH_hip {
 	id = 4
-	mass =    1.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {}
 	ref_frame {
 		translation : (1.0,1.0,1.0)
@@ -43,7 +59,11 @@ link LH_hip {
 
 link RH_hip {
 	id = 5
-	mass =    1.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {}
 	ref_frame {
 		translation : (1.0,1.0,1.0)
@@ -53,7 +73,11 @@ link RH_hip {
 
 link leg {
 	id = 6
-	mass = 2.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {
 		foreleg via jKFE
 	}
@@ -65,7 +89,11 @@ link leg {
 
 link foreleg {
 	id = 7
-	mass = 1.5
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {}
 	ref_frame {
 		translation : (1.0,1.0,1.0)

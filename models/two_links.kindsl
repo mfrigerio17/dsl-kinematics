@@ -12,7 +12,12 @@ RobotBase MyBeatifulBase {
 
 link myLink {
 	id = 1
-	mass = 2.0
+	inertia_params {
+		mass = 2.0
+		CoM = (.0, .0, .0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
+
 	children {}
 	ref_frame {
 		translation :(.2, .0, .0)

@@ -31,20 +31,25 @@ FixedRobotBase:
 FloatingRobotBase:
     'RobotBase' name=ID 'floating'
    '{'
-    mass = LinkMass
+    inertiaParams = InertiaParams
     childrenList = ChildrenList
     '}';
 
 Link:
     'link' name=ID '{'
     'id' '=' num = MY_ID
-    mass = LinkMass
+    inertiaParams = InertiaParams
     childrenList = ChildrenList
     refFrame = RefFrame
     '}';
 
-LinkMass:
-    'mass' '=' value=FLOAT;
+InertiaParams:
+    'inertia_params' '{'
+        'mass' '=' mass = FLOAT
+        'CoM'  '=' com  = Vector3
+        'moments' '=' Ix=FLOAT ',' Iy = FLOAT',' Iz = FLOAT',' Ixy = FLOAT',' Ixz = FLOAT',' Iyz = FLOAT
+        '}'
+;
 
 Joint:
     RevoluteJoint | PrismaticJoint;
