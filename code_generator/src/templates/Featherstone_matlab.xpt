@@ -22,22 +22,18 @@ model.parent(«base.getID()») = 0;
 «ENDIF»
 «FOREACH links AS l»
 model.parent(«l.getID()») = «l.getParent().getID()»
-«ENDFOREACH» 
+«ENDFOREACH»
+
+«FOREACH joints AS j»
+model.pitch(«j.num») = «jointPitch(j)»
+«ENDFOREACH»
 
 
 «ENDFILE»
 «ENDDEFINE»
 
 
-«DEFINE jointPitch FOR Joint»
-## WARNING ## no specific DEFINE block 'jointPitch' defined for type " «this.metaType.name»
-«ENDDEFINE»
-«DEFINE jointPitch FOR RevoluteJoint»
-0
-«ENDDEFINE»
-«DEFINE jointPitch FOR PrismaticJoint»
-inf
-«ENDDEFINE»
+
 
 «REM»
 «ENDREM»

@@ -26,3 +26,13 @@ getID(FixedRobotBase this) :
 getID(FloatingRobotBase this) :
     1;
 
+
+jointPitch(Joint this) :
+    "## WARNING ## no specific DEFINE block 'jointPitch' defined for type " + this.metaType.name
+;
+jointPitch(RevoluteJoint this) :
+    "0.0"
+;
+jointPitch(PrismaticJoint this) :
+    "inf"
+;

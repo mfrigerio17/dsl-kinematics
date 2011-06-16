@@ -27,7 +27,7 @@ r_joint myJoint {
 		rotation : (1.57079, 1.57079, 0.0)
 	}
 }
-
+/*
 p_joint mySecondJoint {
 	id = 2
 	ref_frame {
@@ -35,5 +35,5 @@ p_joint mySecondJoint {
 		rotation : (1.57079, 1.57079, 0.0)
 	}
 }
-
+*/
 }
