@@ -1,6 +1,11 @@
 Robot Goofy {
 
 RobotBase MyBeatifulBase {
+	inertia_params {
+		mass = 100.0
+		CoM = (0.0, 0.0, 0.0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
 	children {
 		myLink via myJoint
 	}
