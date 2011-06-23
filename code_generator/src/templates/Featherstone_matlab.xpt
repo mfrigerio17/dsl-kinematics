@@ -28,6 +28,17 @@ model.parent(«l.getID()») = «l.getParent().getID()»
 model.pitch(«j.num») = «jointPitch(j)»
 «ENDFOREACH»
 
+«FOREACH joints AS j»
+model.Xtree{«j.num»} = «jointTransform(j)»
+«ENDFOREACH»
+
+«REM»
+«links.first().inertiaParams.mass.metaType.name»
+«ENDREM»
+«inertiaParams(base)»
+«FOREACH links AS l»
+«inertiaParams(l)»
+«ENDFOREACH»
 
 «ENDFILE»
 «ENDDEFINE»

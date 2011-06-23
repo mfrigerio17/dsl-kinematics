@@ -28,7 +28,7 @@ getID(FloatingRobotBase this) :
 
 
 jointPitch(Joint this) :
-    "## WARNING ## no specific DEFINE block 'jointPitch' defined for type " + this.metaType.name
+    "## WARNING ## no specific 'jointPitch()' defined for type " + this.metaType.name
 ;
 jointPitch(RevoluteJoint this) :
     "0.0"
@@ -36,3 +36,41 @@ jointPitch(RevoluteJoint this) :
 jointPitch(PrismaticJoint this) :
     "inf"
 ;
+
+jointTransform(Joint this) :
+    "Xrotx(" + refFrame.rotation.items.get(0) + ") * " +
+    "Xroty(" + refFrame.rotation.items.get(1) + ") * " +
+    "Xrotz(" + refFrame.rotation.items.get(2) + ") * " +
+    "Xtrans(" + refFrame.translation.toMatlabVector() + ");"
+;
+
+getInertiaTensor(InertiaParams this) :
+    "[ [" + ix + " -" + ixy + " -" + ixz + "]; [ -" +
+          ixy + " " + iy + " -" + iyz + "]; [ -" +
+          ixz + " -" + iyz + " " + iz + "] ]"
+;
+
+
+inertiaParams(AbstractLink this) :
+    "model.I{" + this.getID() + "} = mcI( " + this.inertiaParams.mass + ", " +
+        toMatlabVector(this.inertiaParams.com) + ", " +
+        getInertiaTensor(this.inertiaParams) + ");"
+;
+
+inertiaParams(FixedRobotBase this) :
+    ""
+    //this prevents from generating anything for a FixedBase,
+    // since its inertia params are irrelevant 
+;
+
+
+toMatlabVector(Vector3 this) :
+    "[" + this.items.get(0) + " " + this.items.get(1) + " " + this.items.get(2) + "]"
+;
+
+
+foo(Link this) :
+    //this.inertiaParams.com.metaType
+    this.refFrame.translation.items.metaType
+;
+
