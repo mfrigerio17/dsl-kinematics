@@ -1,5 +1,19 @@
 import iit::dsl::kinDsl;
 
+Boolean isFloating(RobotBase this) :
+    false
+;
+Boolean isFloating(FloatingRobotBase this) :
+    true
+;
+
+movingBodiesCount(Robot this) :
+    if this.base.isFloating() then
+        this.links.size + 1
+    else
+        this.links.size
+;
+
 create List[AbstractLink] abstractLinks(Robot robot) :
     this.addAll(robot.links) ->
     this.add(robot.base)
@@ -45,8 +59,8 @@ jointTransform(Joint this) :
 ;
 
 getInertiaTensor(InertiaParams this) :
-    "[ [" + ix + " -" + ixy + " -" + ixz + "]; [ -" +
-          ixy + " " + iy + " -" + iyz + "]; [ -" +
+    "[ [" + ix + " -" + ixy + " -" + ixz + "]; [-" +
+          ixy + " " + iy + " -" + iyz + "]; [-" +
           ixz + " -" + iyz + " " + iz + "] ]"
 ;
 

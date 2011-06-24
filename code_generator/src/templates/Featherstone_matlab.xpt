@@ -14,7 +14,7 @@ in "A beginner's guide to &-D vectors (part 2)" by Roy Featherstone.
 
 
 model.Robotname = '«name»'
-model.N = «links.size + 1»
+model.NB = «movingBodiesCount()»
 model.parent = zeros(1, «links.size»);
 
 «IF FloatingRobotBase.isInstance(base)»
