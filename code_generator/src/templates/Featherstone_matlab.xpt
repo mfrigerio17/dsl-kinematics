@@ -13,23 +13,23 @@ in "A beginner's guide to &-D vectors (part 2)" by Roy Featherstone.
 %%This is an example of a generated file.
 
 
-model.Robotname = '«name»'
-model.NB = «movingBodiesCount()»
+model.Robotname = '«name»';
+model.NB = «movingBodiesCount()»;
 model.parent = zeros(1, «links.size»);
 
 «IF FloatingRobotBase.isInstance(base)»
 model.parent(«base.getID()») = 0;
 «ENDIF»
 «FOREACH links AS l»
-model.parent(«l.getID()») = «l.getParent().getID()»
+model.parent(«l.getID()») = «l.getParent().getID()»;
 «ENDFOREACH»
 
 «FOREACH joints AS j»
-model.pitch(«j.num») = «jointPitch(j)»
+model.pitch(«j.num») = «jointPitch(j)»;
 «ENDFOREACH»
 
 «FOREACH joints AS j»
-model.Xtree{«j.num»} = «jointTransform(j)»
+model.Xtree{«j.num»} = «jointTransform(j)»;
 «ENDFOREACH»
 
 «REM»
