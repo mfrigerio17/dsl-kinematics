@@ -24,8 +24,8 @@ link LF_hip {
 		leg via jHFE
 	}
 	ref_frame {
-		translation : (1.0, 1.0, 1.0)
-		rotation : ( 0.0,0.0,0.0)
+		translation = (1.0, 1.0, 1.0)
+		rotation = ( 0.0,0.0,0.0)
 	}
 }
 
@@ -38,8 +38,8 @@ link RF_hip {
 	}
 	children {}
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation : (0.0, 0.0, 0.0)
+		translation = (1.0,1.0,1.0)
+		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
@@ -52,8 +52,8 @@ link LH_hip {
 	}
 	children {}
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
@@ -66,8 +66,8 @@ link RH_hip {
 	}
 	children {}
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
@@ -82,8 +82,8 @@ link leg {
 		foreleg via jKFE
 	}
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
@@ -96,53 +96,53 @@ link foreleg {
 	}
 	children {}
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
 r_joint LF_jHAA {
 	id = 2
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 r_joint RF_jHAA {
 	id = 3
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 r_joint LH_jHAA {
 	id = 4
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 r_joint RH_jHAA {
 	id = 5
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
 r_joint jHFE {
 	id = 6
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 
 r_joint jKFE {
 	id = 7
 	ref_frame {
-		translation : (1.0,1.0,1.0)
-		rotation :  (0.0,0.0,0.0)
+		translation = (1.0,1.0,1.0)
+		rotation =  (0.0,0.0,0.0)
 	}
 }
 

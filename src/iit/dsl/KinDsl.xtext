@@ -83,8 +83,8 @@ ChildSpec :
 */
 RefFrame:
     'ref_frame' '{'
-    'translation' ':' translation = Vector3
-    'rotation' ':' rotation = Vector3
+    'translation' '=' translation = Vector3
+    'rotation' '=' rotation = Vector3
     '}';
 
     

@@ -10,8 +10,8 @@ RobotBase MyBeatifulBase {
 		myLink via myJoint
 	}
 	ref_frame {
-		translation : (.0,.0,.0)
-		rotation :  (.0,.0,.0)
+		translation = (.0,.0,.0)
+		rotation =  (.0,.0,.0)
 	}
 }
 
@@ -25,24 +25,24 @@ link myLink {
 
 	children {}
 	ref_frame {
-		translation :(.2, .0, .0)
-		rotation : (-1.57079, 0.0, -1.57079)
+		translation =(.2, .0, .0)
+		rotation = (-1.57079, 0.0, -1.57079)
 	}
 }
 
 r_joint myJoint {
 	id = 1
 	ref_frame {
-		translation : (0.0, 0.3, 0.0)
-		rotation : (1.57079, 1.57079, 0.0)
+		translation = (0.0, 0.3, 0.0)
+		rotation = (1.57079, 1.57079, 0.0)
 	}
 }
 /*
 p_joint mySecondJoint {
 	id = 2
 	ref_frame {
-		translation : (0.0, 0.3, 0.0)
-		rotation : (1.57079, 1.57079, 0.0)
+		translation = (0.0, 0.3, 0.0)
+		rotation = (1.57079, 1.57079, 0.0)
 	}
 }
 */

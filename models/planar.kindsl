@@ -10,8 +10,8 @@ RobotBase MyBeatifulBase {
 		link1 via joint1
 	}
 	ref_frame {
-		translation : (.0,.0,.0)
-		rotation :  (.0,.0,.0)
+		translation = (.0,.0,.0)
+		rotation =  (.0,.0,.0)
 	}
 }
 
@@ -27,8 +27,8 @@ link link1 {
 		link2 via joint2
 	}
 	ref_frame {
-		translation :(.0, .0, .0)
-		rotation : (1.0, 1.0, 1.0)
+		translation =(.0, .0, .0)
+		rotation = (1.0, 1.0, 1.0)
 	}
 }
 
@@ -45,8 +45,8 @@ link link2 {
 		link3 via joint3
 	}
 	ref_frame {
-		translation :(1.0, 0.0, 0.0)
-		rotation : (0.0, 0.0, 0.0)
+		translation =(1.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
@@ -61,32 +61,32 @@ link link3 {
 
 	children {}
 	ref_frame {
-        translation :(1.0, 0.0, 0.0)
-        rotation : (0.0, 0.0, 0.0)
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
 	}
 }
 
 r_joint joint1 {
 	id = 1
 	ref_frame {
-		translation : (0.0, 0.0, 0.0)
-		rotation : (0.0, 0.0, 0.0)
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
 r_joint joint2 {
 	id = 2
 	ref_frame {
-		translation : (1.0, 0.0, 0.0)
-		rotation : (0.0, 0.0, 0.0)
+		translation = (1.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
 r_joint joint3 {
 	id = 3
 	ref_frame {
-		translation : (1.0, 0.0, 0.0)
-		rotation : (0.0, 0.0, 0.0)
+		translation = (1.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
