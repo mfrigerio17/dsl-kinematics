@@ -21,7 +21,8 @@ Workflow {
 	}
     // This component is a facade to the Xpand language
 	component = org.eclipse.xpand2.Generator {
-		expand = "templates::Featherstone_matlab::main FOREACH robot"
+		//expand = "templates::Featherstone_matlab::main FOREACH robot"
+		expand = "templates::my_eigen_plain::main FOREACH robot"
 		outlet = {
 			path = targetDir
 		}

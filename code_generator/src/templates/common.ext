@@ -13,9 +13,13 @@ subspaceMxName(Joint this) :
 ;
 
 childToParentMxName(Link child) :
-    child.name + "X" + child.getParent().name
+    child.name + "_X_" + child.getParent().name
 ;
 
+velocityName(AbstractLink this) :
+    this.name + "_v";
+accelerationName(AbstractLink this) :
+    this.name + "_a";
 
 Boolean isFloating(RobotBase this) :
     false
@@ -58,3 +62,5 @@ getID(FixedRobotBase this) :
     0;
 getID(FloatingRobotBase this) :
     1;
+getID(Joint this) :
+    this.num;
