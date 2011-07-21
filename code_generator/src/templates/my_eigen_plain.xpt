@@ -1,16 +1,17 @@
 «IMPORT iit::dsl::kinDsl»
 
 «EXTENSION templates::common»
+«EXTENSION templates::my_eigen_plain»
 
 «DEFINE main FOR Robot»
 «REM»
 ======================================
 File .h
 ======================================«ENDREM»
-«FILE "id_" + name + "_constants.h"»
+«FILE this.baseFileName() + ".h"»
 
-#ifndef IIT_RBD_«name.toUpperCase()»_CONSTANTS_H_
-#define IIT_RBD_«name.toUpperCase()»_CONSTANTS_H_
+#ifndef IIT_RBD_«this.baseFileName().toUpperCase()»_H_
+#define IIT_RBD_«this.baseFileName().toUpperCase()»_H_
 
 #include <Eigen/Dense>
 #include <iit/rbd/rbd.h>
@@ -32,30 +33,30 @@ typedef iit::rbd::SparseColumnd JointVelocity;
 typedef iit::rbd::Column6d MotionVector;
 
 
-class RBDConstants {
+class «className()» {
 public:
-    static StateVector id(const StateVector& q, const StateVector& qd, const StateVector& qdd);
+    Dynamics();
+    StateVector id(const StateVector& q, const StateVector& qd, const StateVector& qdd);
 public:
-    static iit::rbd::SparseColumnd gravity; 
+     iit::rbd::SparseColumnd gravity;
+
 private:
-    static void init();
-private:
-    static CoordinateTransform XJ;
-    static JointVelocity vJ;
-    static iit::rbd::Matrix66d spareMx;
+     CoordinateTransform XJ;
+     JointVelocity vJ;
+     iit::rbd::Matrix66d spareMx;
 «FOREACH joints AS j»
-    static CoordinateTransform «coordTransformName(j)»;
+     CoordinateTransform «coordTransformName(j)»;
 «ENDFOREACH»
 
 «FOREACH joints AS j»
-    static SubspaceMx «subspaceMxName(j)»;
+     SubspaceMx «subspaceMxName(j)»;
 «ENDFOREACH»
 
 «FOREACH links AS l»
-    static InertiaMatrix «inertiaMxName(l)»;
-    static CoordinateTransform «childToParentMxName(l)»;
-    static MotionVector «velocityName(l)»;
-    static MotionVector «accelerationName(l)»;
+     InertiaMatrix «inertiaMxName(l)»;
+     CoordinateTransform «childToParentMxName(l)»;
+     MotionVector «velocityName(l)»;
+     MotionVector «accelerationName(l)»;
 «ENDFOREACH»
 
 };
@@ -71,15 +72,29 @@ private:
 ======================================
 File .cpp
 ======================================«ENDREM»
-«FILE "id_" + name + "_constants.cpp"»
+«FILE this.baseFileName() + ".cpp"»
 #include <cmath>
+#include <iostream>
+using namespace std;
 
-#include "id_«name»_constants.h"
+#include "«this.baseFileName()».h"
 
 using namespace iit::«name»;
 using namespace iit::rbd;
 
-void RBDConstants::init() {
+int main() {
+    StateVector q, qd, qdd;
+    q.setOnes();
+    qd.setOnes();
+    qdd.setOnes();
+
+    «className()» foo;
+
+    foo.id(q,qd,qdd*3);
+    return 0;
+}
+
+«className()»::«className()»() {
     gravity.insert(5) = 9.81;
 
 «FOREACH joints AS j»
@@ -97,7 +112,7 @@ void RBDConstants::init() {
 «ENDFOREACH»
 }
 
-StateVector RBDConstants::id(const StateVector& q, const StateVector& qd, const StateVector& qdd) {
+StateVector Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector& qdd) {
 «FOREACH links AS l»    
     «EXPAND algoStep FOR l»
 «ENDFOREACH»

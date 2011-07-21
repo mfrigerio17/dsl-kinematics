@@ -1,0 +1,9 @@
+import iit::dsl::kinDsl;
+
+String baseFileName(Robot rob) :
+    rob.name + "_dynamics"
+;
+
+String className() :
+    "Dynamics"
+;
