@@ -28,4 +28,11 @@ Workflow {
 		}
 		fileEncoding = fileEncoding
 	}
+	component = org.eclipse.xpand2.Generator {
+	    expand = "templates::Featherstone_matlab::main FOREACH robot"
+	    outlet = {
+	        path = targetDir
+	    }
+	    fileEncoding = fileEncoding
+	}
 }
