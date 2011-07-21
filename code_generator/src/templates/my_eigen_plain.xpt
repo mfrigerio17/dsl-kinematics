@@ -44,15 +44,15 @@ private:
      CoordinateTransform XJ;
      JointVelocity vJ;
      iit::rbd::Matrix66d spareMx;
-«FOREACH joints AS j»
+«FOREACH joints AS j-»
      CoordinateTransform «coordTransformName(j)»;
 «ENDFOREACH»
 
-«FOREACH joints AS j»
+«FOREACH joints AS j-»
      SubspaceMx «subspaceMxName(j)»;
 «ENDFOREACH»
 
-«FOREACH links AS l»
+«FOREACH links AS l-»
      InertiaMatrix «inertiaMxName(l)»;
      CoordinateTransform «childToParentMxName(l)»;
      MotionVector «velocityName(l)»;
@@ -95,26 +95,28 @@ int main() {
 }
 
 «className()»::«className()»() {
+    gravity.resize(6);
     gravity.insert(5) = 9.81;
+    vJ.resize(6);
 
-«FOREACH joints AS j»
+«FOREACH joints AS j-»
     «coordTransformName(j)».fillAsMotionTransform(
         Vector3d(«j.refFrame.translation.items.toString(", ")»),
         «j.refFrame.rotation.items.toString(", ")»
         );
 «ENDFOREACH»
-«FOREACH joints AS j»
+«FOREACH joints AS j-»
     «EXPAND jointSubspaceMx FOR j»
 «ENDFOREACH»
-«FOREACH links AS l»
+«FOREACH links AS l-»
     «inertiaMxName(l)».fill(«l.inertiaParams.mass», Vector3d(«l.inertiaParams.com.items.toString(", ")»),
               Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
 «ENDFOREACH»
 }
 
 StateVector Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector& qdd) {
-«FOREACH links AS l»    
-    «EXPAND algoStep FOR l»
+«FOREACH links AS l-»
+    «EXPAND algoStep FOR l-»
 «ENDFOREACH»
 } 
 «ENDFILE»
@@ -133,10 +135,12 @@ Motion subspace matrix, for each joint
     «ERROR "No subspace matrix defined for an abstract joint"»
 «ENDDEFINE»
 «DEFINE jointSubspaceMx FOR PrismaticJoint-»
-    «subspaceMxName(this)».insert(5) = 1.0;
+    «subspaceMxName()».resize(6);
+    «subspaceMxName()».insert(5) = 1.0;
 «ENDDEFINE»
 «DEFINE jointSubspaceMx FOR RevoluteJoint-»
-    «subspaceMxName(this)».insert(2) = 1.0;
+    «subspaceMxName()».resize(6);
+    «subspaceMxName()».insert(2) = 1.0;
 «ENDDEFINE»
 
 
@@ -155,17 +159,17 @@ A step of the forward pass of the inverse dynamics algorithm, for each link
     «LET this.getParent() AS parentLink»
     «REM»The following obscure line gets the joint which connects the parent to this child «ENDREM»
     «LET (parentLink.childrenList.children.select(child | child.link == this)).first().joint AS myJoint»
-    «EXPAND jCalc FOR myJoint-»
+    «EXPAND jCalc FOR myJoint»
     «this.childToParentMxName()» = XJ * «myJoint.coordTransformName()»;
-    vJ = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»);
     «IF parentLink.getID() == 0»
-    «this.velocityName()» = vJ;
-    «this.accelerationName()» = («this.childToParentMxName()» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1»));
+    «this.velocityName()» = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»); // «this.velocityName()» = vJ, for the first link
+    «this.accelerationName()» = («this.childToParentMxName()» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1»)).toDense();
     «ELSE»
-    «this.velocityName()» = («this.childToParentMxName()» * «parentLink.velocityName()») + vJ;
+    vJ = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»);
+    «this.velocityName()» = («this.childToParentMxName()» * «parentLink.velocityName()») + vJ.toDense();
     Utils::fillAsMotionCrossProductMx(«this.velocityName()», spareMx);
     «this.accelerationName()» = («this.childToParentMxName()» * «parentLink.accelerationName()-») +
-             («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1-»)) +
+             («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1-»)).toDense() +
              (spareMx * vJ);
     «ENDIF»
     
