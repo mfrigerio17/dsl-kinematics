@@ -20,6 +20,8 @@ velocityName(AbstractLink this) :
     this.name + "_v";
 accelerationName(AbstractLink this) :
     this.name + "_a";
+forceName(AbstractLink this) :
+    this.name + "_f";
 
 Boolean isFloating(RobotBase this) :
     false

@@ -6,7 +6,7 @@
 «DEFINE main FOR Robot»
 «REM»
 ======================================
-File .h
+HEADER FILE
 ======================================«ENDREM»
 «FILE this.baseFileName() + ".h"»
 
@@ -31,32 +31,32 @@ typedef iit::rbd::CoordinateTransformDense CoordinateTransform;
 typedef iit::rbd::MotionSubspaceMxSparse SubspaceMx;
 typedef iit::rbd::SparseColumnd JointVelocity;
 typedef iit::rbd::Column6d MotionVector;
+typedef iit::rbd::Column6d ForceVector;
 
 
 class «className()» {
 public:
     Dynamics();
-    StateVector id(const StateVector& q, const StateVector& qd, const StateVector& qdd);
+    void id(const StateVector& q, const StateVector& qd, const StateVector& qdd, StateVector& torques);
 public:
-     iit::rbd::SparseColumnd gravity;
+    iit::rbd::SparseColumnd gravity;
 
 private:
-     CoordinateTransform XJ;
-     JointVelocity vJ;
-     iit::rbd::Matrix66d spareMx;
+    iit::rbd::Matrix66d spareMx; // support variable
+    CoordinateTransform XJ;
+    JointVelocity vJ;
 «FOREACH joints AS j-»
-     CoordinateTransform «coordTransformName(j)»;
+    // Joint '«j.name»' :
+    SubspaceMx «subspaceMxName(j)»;
+    CoordinateTransform «coordTransformName(j)»;
 «ENDFOREACH»
-
-«FOREACH joints AS j-»
-     SubspaceMx «subspaceMxName(j)»;
-«ENDFOREACH»
-
 «FOREACH links AS l-»
-     InertiaMatrix «inertiaMxName(l)»;
-     CoordinateTransform «childToParentMxName(l)»;
-     MotionVector «velocityName(l)»;
-     MotionVector «accelerationName(l)»;
+    // Link '«l.name»' :
+    InertiaMatrix «inertiaMxName(l)»;
+    CoordinateTransform «childToParentMxName(l)»;
+    MotionVector «velocityName(l)»;
+    MotionVector «accelerationName(l)»;
+    ForceVector  «forceName(l)»;
 «ENDFOREACH»
 
 };
@@ -82,15 +82,18 @@ using namespace std;
 using namespace iit::«name»;
 using namespace iit::rbd;
 
-int main() {
-    StateVector q, qd, qdd;
-    q.setOnes();
-    qd.setOnes();
-    qdd.setOnes();
+int main(int argc, char** argv) {
+    StateVector q, qd, qdd, tau;
+«FOREACH joints AS j-»
+    q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
+    qd(«j.getID()-1»)  = std::atof(argv[«j.getID() + joints.size»]);
+    qdd(«j.getID()-1») = std::atof(argv[«j.getID() + joints.size + joints.size»]);
+«ENDFOREACH»
 
     «className()» foo;
 
-    foo.id(q,qd,qdd*3);
+    foo.id(q,qd,qdd,tau);
+    std::cout << tau << std::endl;
     return 0;
 }
 
@@ -114,9 +117,12 @@ int main() {
 «ENDFOREACH»
 }
 
-StateVector Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector& qdd) {
-«FOREACH links AS l-»
-    «EXPAND algoStep FOR l-»
+void Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector& qdd, StateVector& torques) {
+«FOREACH links.sortBy( link | link.getID()) AS l-»
+    «EXPAND algoFirstPass FOR l-»
+«ENDFOREACH»
+«FOREACH (links.sortBy( link | link.getID())).reverse() AS l-»
+    «EXPAND algoSecondPass FOR l-»
 «ENDFOREACH»
 } 
 «ENDFILE»
@@ -130,7 +136,7 @@ Helper defines
 
 «REM»
 Motion subspace matrix, for each joint
-«ENDREM»
+-------------------------------------- «ENDREM»
 «DEFINE jointSubspaceMx FOR Joint-»
     «ERROR "No subspace matrix defined for an abstract joint"»
 «ENDDEFINE»
@@ -145,35 +151,59 @@ Motion subspace matrix, for each joint
 
 
 «REM»
-A step of the forward pass of the inverse dynamics algorithm, for each link
-«ENDREM»
-«DEFINE algoStep FOR AbstractLink-»
+A step of the FIRST pass of the inverse dynamics algorithm, for each link
+------------------------------------------------------------------------- «ENDREM»
+«DEFINE algoFirstPass FOR AbstractLink-»
     «ERROR "This is just a place holder"»
 «ENDDEFINE»
-«DEFINE algoStep FOR FloatingRobotBase-»
+«DEFINE algoFirstPass FOR FloatingRobotBase-»
     //TODO TODO TODO
 «ENDDEFINE»
-«DEFINE algoStep FOR FixedRobotBase-»
+«DEFINE algoFirstPass FOR FixedRobotBase-»
 «ENDDEFINE»
-«DEFINE algoStep FOR Link-»
-    «LET this.getParent() AS parentLink»
+«DEFINE algoFirstPass FOR Link-»
+    // First pass, link '«name»'
+    «LET getParent() AS parentLink-»
     «REM»The following obscure line gets the joint which connects the parent to this child «ENDREM»
-    «LET (parentLink.childrenList.children.select(child | child.link == this)).first().joint AS myJoint»
-    «EXPAND jCalc FOR myJoint»
-    «this.childToParentMxName()» = XJ * «myJoint.coordTransformName()»;
+    «LET (parentLink.childrenList.children.select(child | child.link == this)).first().joint AS myJoint-»
+    «EXPAND jCalc FOR myJoint-»
+    «childToParentMxName()» = XJ * «myJoint.coordTransformName()»;
     «IF parentLink.getID() == 0»
-    «this.velocityName()» = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»); // «this.velocityName()» = vJ, for the first link
-    «this.accelerationName()» = («this.childToParentMxName()» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1»)).toDense();
+    «velocityName()» = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»); // «velocityName()» = vJ, for the first link
+    «accelerationName()» = («childToParentMxName()» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1»)).toDense();
     «ELSE»
     vJ = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»);
-    «this.velocityName()» = («this.childToParentMxName()» * «parentLink.velocityName()») + vJ.toDense();
-    Utils::fillAsMotionCrossProductMx(«this.velocityName()», spareMx);
-    «this.accelerationName()» = («this.childToParentMxName()» * «parentLink.accelerationName()-») +
+    «velocityName()» = («childToParentMxName()» * «parentLink.velocityName()») + vJ.toDense();
+    Utils::fillAsMotionCrossProductMx(«velocityName()», spareMx);
+    «accelerationName()» = («childToParentMxName()» * «parentLink.accelerationName()-») +
              («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1-»)).toDense() +
              (spareMx * vJ);
     «ENDIF»
-    
-    
+    «forceName()» = «inertiaMxName()» * «accelerationName()» + (-spareMx.transpose() * «inertiaMxName()» * «velocityName()»);
+     «ENDLET»
+    «ENDLET»
+«ENDDEFINE»
+«REM»
+A step of the SECOND pass of the inverse dynamics algorithm, for each link
+«ENDREM»
+«DEFINE algoSecondPass FOR AbstractLink-»
+    «ERROR "This is just a place holder"»
+«ENDDEFINE»
+«DEFINE algoSecondPass FOR FloatingRobotBase-»
+    //TODO TODO TODO
+«ENDDEFINE»
+«DEFINE algoSecondPass FOR FixedRobotBase-»
+«ENDDEFINE»
+«DEFINE algoSecondPass FOR Link-»
+    // Second pass, link '«name»'
+    «LET getParent() AS parentLink-»
+    «REM»The following obscure line gets the joint which connects the parent to this child «ENDREM»
+    «LET (parentLink.childrenList.children.select(child | child.link == this)).first().joint AS myJoint-»
+    torques(«getID()-1») = «myJoint.subspaceMxName()».transpose().dot(«forceName()»);
+    «IF parentLink.getID() != 0»
+    // Compute the contribution on the force acting on the parent link
+    «parentLink.forceName()» = «parentLink.forceName()» + «childToParentMxName()».transpose() * «forceName()»;
+    «ENDIF»
     «ENDLET»
     «ENDLET»
 «ENDDEFINE»
