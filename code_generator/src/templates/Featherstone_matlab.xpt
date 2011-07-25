@@ -9,35 +9,34 @@ in "A beginner's guide to &-D vectors (part 2)" by Roy Featherstone.
 «EXTENSION templates::Featherstone_matlab»
 
 «DEFINE main FOR Robot»
-«FILE name+".m"»
+«FILE name+"_model.m"»
 %%This is an example of a generated file.
 
 
-model.Robotname = '«name»';
-model.NB = «movingBodiesCount()»;
-model.parent = zeros(1, «links.size»);
+«name».NB = «movingBodiesCount()»;
+«name».parent = zeros(1, «links.size»);
 
 «IF FloatingRobotBase.isInstance(base)»
-model.parent(«base.getID()») = 0;
+«name».parent(«base.getID()») = 0;
 «ENDIF»
 «FOREACH links AS l»
-model.parent(«l.getID()») = «l.getParent().getID()»;
+«name».parent(«l.getID()») = «l.getParent().getID()»;
 «ENDFOREACH»
 
 «FOREACH joints AS j»
-model.pitch(«j.num») = «jointPitch(j)»;
+«name».pitch(«j.num») = «jointPitch(j)»;
 «ENDFOREACH»
 
 «FOREACH joints AS j»
-model.Xtree{«j.num»} = «jointTransform(j)»;
+«name».Xtree{«j.num»} = «jointTransform(j)»;
 «ENDFOREACH»
 
 «REM»
 «links.first().inertiaParams.mass.metaType.name»
 «ENDREM»
-«inertiaParams(base)»
+«name»«inertiaParams(base)»
 «FOREACH links AS l»
-«inertiaParams(l)»
+«name»«inertiaParams(l)»
 «ENDFOREACH»
 
 «ENDFILE»
