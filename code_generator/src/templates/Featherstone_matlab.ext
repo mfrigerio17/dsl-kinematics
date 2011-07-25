@@ -52,9 +52,9 @@ jointPitch(PrismaticJoint this) :
 ;
 
 jointTransform(Joint this) :
-    "Xrotx(" + refFrame.rotation.items.get(0) + ") * " +
-    "Xroty(" + refFrame.rotation.items.get(1) + ") * " +
     "Xrotz(" + refFrame.rotation.items.get(2) + ") * " +
+    "Xroty(" + refFrame.rotation.items.get(1) + ") * " +
+    "Xrotx(" + refFrame.rotation.items.get(0) + ") * " +
     "Xtrans(" + refFrame.translation.toMatlabVector() + ");"
 ;
 
