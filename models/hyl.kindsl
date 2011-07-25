@@ -1,0 +1,90 @@
+Robot HyL {
+	RobotBase base {
+	inertia_params {
+		mass = 100.0
+		CoM = (0.0, 0.0, 0.0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
+	children {
+		hip via jHAA
+	}
+	ref_frame {
+		translation = (.0,.0,.0)
+		rotation =  (.0,.0,.0)
+	}
+}
+
+link hip {
+	id = 1
+	inertia_params {
+		mass = 2.482
+		CoM = (0.0806, 0.0007, 0.3534)
+		//            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
+		moments = 0.0956126, 0.1012626, 0.0006758, 0.00, 0.00, 0.00
+	}
+
+	children {
+		leg via jHFE
+	}
+	ref_frame {
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link leg {
+	id = 2
+	inertia_params {
+		mass = 2.1605
+		CoM = (0.3196, -0.0639, 0.00)
+		moments = 0.004785, 0.076166, 0.078576, 0.0071588, 0.0, 0.0
+	}
+
+	children {
+		foreleg via jKFE
+	}
+	ref_frame {
+		translation =(0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link foreleg {
+	id = 3
+	inertia_params {
+		mass = 1.6
+		CoM = (0.1949, 0.0009, -0.0002)
+		moments = 0.004235, 0.220327, 0.218435, 0.0, 0.0, 0.0
+	}
+
+	children {}
+	ref_frame {
+		translation =(0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+r_joint jHAA {
+	id = 1
+	ref_frame {
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, -1.57079632, -3.141592)// 0, -pi/2, -pi
+	}
+}
+
+r_joint jHFE {
+	id = 2
+	ref_frame {
+		translation = (0.08, 0.0, 0.0)
+		rotation = (1.57079632, 0.0, 0.0)// pi/2, 0, 0
+	}
+}
+
+r_joint jKFE {
+	id = 3
+	ref_frame {
+		translation = (0.35, 0.0, 0.0) // (P1P2, 0, 0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+}
