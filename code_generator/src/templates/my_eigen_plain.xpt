@@ -72,7 +72,7 @@ private:
 ======================================
 File .cpp
 ======================================«ENDREM»
-«FILE this.baseFileName() + ".cpp"»
+«FILE this.name + "_main.cpp"»
 #include <cmath>
 #include <iostream>
 using namespace std;
@@ -97,6 +97,19 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+«ENDFILE»
+
+
+«FILE this.baseFileName() + ".cpp"»
+#include <cmath>
+#include <iostream>
+using namespace std;
+
+#include "«this.baseFileName()».h"
+
+using namespace iit::«name»;
+using namespace iit::rbd;
+
 «className()»::«className()»() {
     gravity.resize(6);
     gravity.insert(5) = 9.81;
@@ -118,12 +131,14 @@ int main(int argc, char** argv) {
 }
 
 void Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector& qdd, StateVector& torques) {
-«FOREACH links.sortBy( link | link.getID()) AS l-»
+«LET links.sortBy( link | link.getID()) AS sortedLinks»
+«FOREACH sortedLinks AS l-»
     «EXPAND algoFirstPass FOR l-»
 «ENDFOREACH»
-«FOREACH (links.sortBy( link | link.getID())).reverse() AS l-»
+«FOREACH sortedLinks.reverse() AS l-»
     «EXPAND algoSecondPass FOR l-»
 «ENDFOREACH»
+«ENDLET»
 } 
 «ENDFILE»
 «ENDDEFINE»
@@ -169,18 +184,20 @@ A step of the FIRST pass of the inverse dynamics algorithm, for each link
     «EXPAND jCalc FOR myJoint-»
     «childToParentMxName()» = XJ * «myJoint.coordTransformName()»;
     «IF parentLink.getID() == 0»
-    «velocityName()» = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»); // «velocityName()» = vJ, for the first link
+    «velocityName()» = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»); // «velocityName()» = vJ, for the first link of a fixed base robot
     «accelerationName()» = («childToParentMxName()» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1»)).toDense();
+    Utils::fillAsForceCrossProductMx(«velocityName()», spareMx); // this could be optimized..
+    «forceName()» = «inertiaMxName()» * «accelerationName()» + (spareMx * «inertiaMxName()» * «velocityName()»);
     «ELSE»
     vJ = «myJoint.subspaceMxName()» * qd(«myJoint.getID()-1»);
     «velocityName()» = («childToParentMxName()» * «parentLink.velocityName()») + vJ.toDense();
-    Utils::fillAsMotionCrossProductMx(«velocityName()», spareMx);
+    Utils::fillAsMotionCrossProductMx(«velocityName()», spareMx); // this could be optimized..
     «accelerationName()» = («childToParentMxName()» * «parentLink.accelerationName()-») +
              («myJoint.subspaceMxName()» * qdd(«myJoint.getID()-1-»)).toDense() +
              (spareMx * vJ);
-    «ENDIF»
     «forceName()» = «inertiaMxName()» * «accelerationName()» + (-spareMx.transpose() * «inertiaMxName()» * «velocityName()»);
-     «ENDLET»
+    «ENDIF»
+    «ENDLET»
     «ENDLET»
 «ENDDEFINE»
 «REM»
