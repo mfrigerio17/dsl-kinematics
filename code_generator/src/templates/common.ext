@@ -39,8 +39,8 @@ movingBodiesCount(Robot this) :
 
 
 create List[AbstractLink] abstractLinks(Robot robot) :
-    this.addAll(robot.links) ->
-    this.add(robot.base)
+    this.add(robot.base) ->
+    this.addAll(robot.links)
 ;
 
 /* Returns whether the ChildrenList contains the specified link
@@ -56,13 +56,13 @@ AbstractLink getParent(AbstractLink link) :
 ;
 
 
-getID(AbstractLink this) :
-    "Warning, no implementation of getID() for AbstractLink";
-getID(Link this) :
+Integer getID(AbstractLink this) :
+    -1;//"Warning, no implementation of getID() for AbstractLink";
+Integer getID(Link this) :
     this.num;
-getID(FixedRobotBase this) :
+Integer getID(FixedRobotBase this) :
     0;
-getID(FloatingRobotBase this) :
+Integer getID(FloatingRobotBase this) :
     1;
-getID(Joint this) :
+Integer getID(Joint this) :
     this.num;
