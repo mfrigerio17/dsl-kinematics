@@ -111,6 +111,10 @@ using namespace iit::«name»;
 using namespace iit::rbd;
 
 «className()»::«className()»() {
+#ifndef EIGEN_NO_DEBUG
+    std::cout << "Robot «name», «className()»::«className()»()" << std::endl;
+    std::cout << "Compiled with Eigen debug active" << std::endl;
+#endif
     gravity.resize(6);
     gravity.insert(5) = 9.81;
     vJ.resize(6);
