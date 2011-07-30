@@ -12,7 +12,7 @@ in "A beginner's guide to &-D vectors (part 2)" by Roy Featherstone.
 «FILE name+"_model.m"»
 %%This is an example of a generated file.
 
-
+«name».robotname = '«name»';
 «name».NB = «movingBodiesCount()»;
 «name».parent = zeros(1, «links.size»);
 
