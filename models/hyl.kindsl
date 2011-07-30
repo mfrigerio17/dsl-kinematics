@@ -6,7 +6,7 @@ Robot HyL {
 		moments = .0, .0, .0, .0, .0, .0
 	}
 	children {
-		hip via jHAA
+		slider via jSLIDE
 	}
 	ref_frame {
 		translation = (.0,.0,.0)
@@ -14,8 +14,25 @@ Robot HyL {
 	}
 }
 
-link hip {
+link slider {
 	id = 1
+	inertia_params {
+		mass = 10.0
+		CoM = (0.0, 0.00, 0.0)
+		moments = 1.0, 1.0, 1.0, 0.00, 0.00, 0.00
+	}
+
+	children {
+		hip via jHAA
+	}
+	ref_frame {
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link hip {
+	id = 2
 	inertia_params {
 		mass = 2.482
 		CoM = (0.0325, 0.0003, 0.1424)
@@ -33,7 +50,7 @@ link hip {
 }
 
 link leg {
-	id = 2
+	id = 3
 	inertia_params {
 		mass = 2.1605
 		CoM = (0.1479, -0.0296, 0.0)
@@ -50,7 +67,7 @@ link leg {
 }
 
 link lowerleg {
-	id = 3
+	id = 4
 	inertia_params {
 		mass = 1.6
 		CoM = (0.1218, 0.0006, -0.0001)
@@ -64,8 +81,16 @@ link lowerleg {
 	}
 }
 
-r_joint jHAA {
+p_joint jSLIDE {
 	id = 1
+	ref_frame {
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+r_joint jHAA {
+	id = 2
 	ref_frame {
 		translation = (0.0, 0.0, 0.0)
 		rotation = (0.0, -1.57079632, -3.141592)// 0, -pi/2, -pi
@@ -73,7 +98,7 @@ r_joint jHAA {
 }
 
 r_joint jHFE {
-	id = 2
+	id = 3
 	ref_frame {
 		translation = (0.08, 0.0, 0.0)
 		rotation = (1.57079632, 0.0, 0.0)// pi/2, 0, 0
@@ -81,7 +106,7 @@ r_joint jHFE {
 }
 
 r_joint jKFE {
-	id = 3
+	id = 4
 	ref_frame {
 		translation = (0.35, 0.0, 0.0) // (P1P2, 0, 0)
 		rotation = (0.0, 0.0, 0.0)
