@@ -1,0 +1,192 @@
+Robot Fancybranch {
+
+RobotBase FancyBase {
+	inertia_params {
+		mass = 1.0
+		CoM = (0.0, 0.0, 0.0)
+		moments = .0, .0, .0, .0, .0, .0
+	}
+	children {
+		link1 via jA
+	}
+	ref_frame {
+		translation = (.0,.0,.0)
+		rotation =  (.0,.0,.0)
+	}
+}
+
+link link1 {
+	id = 1
+	inertia_params {
+		mass = 1.0
+		CoM = (0.5, .0, .0)
+		moments = 0.0025, 0.08458, 0.08458, .0, .0, .0
+	}
+
+	children {
+		link2 via jB
+	}
+	ref_frame {
+		translation =(.0, .0, .0)
+		rotation = (1.0, 1.0, 1.0)
+	}
+}
+
+
+link link2 {
+	id = 2
+	inertia_params {
+		mass = 1.0
+		CoM = (0.0, 0.0, 0.5)
+		moments = 0.08458, 0.08458, 0.0025, .0, .0, .0
+	}
+
+	children {
+		link3 via jC
+	}
+	ref_frame {
+		translation =(1.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+
+link link3 {
+	id = 3
+	inertia_params {
+		mass = 1.0
+		CoM = (0.5, .0, .0)
+		moments = 0.0025, 0.08458, 0.08458, .0, .0, .0
+	}
+
+	children {
+		link4 via jD
+		link6 via jF
+	}
+	ref_frame {
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link link4 {
+	id = 4
+	inertia_params {
+		mass = 1.0
+		CoM = (0.0, 0.0, 0.5)
+		moments = 0.08458, 0.08458, 0.0025, .0, .0, .0
+	}
+
+	children {
+		link5 via jE
+	}
+	ref_frame {
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link link5 {
+	id = 5
+	inertia_params {
+		mass = 1.0
+		CoM = (0.5, .0, .0)
+		moments = 0.0025, 0.08458, 0.08458, .0, .0, .0
+	}
+
+	children {}
+	ref_frame {
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link link6 {
+	id = 6
+	inertia_params {
+		mass = 1.0
+		CoM = (0.0, 0.0, 0.5)
+		moments = 0.08458, 0.08458, 0.0025, .0, .0, .0
+	}
+
+	children {
+		link7 via jG
+	}
+	ref_frame {
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+link link7 {
+	id = 7
+	inertia_params {
+		mass = 1.0
+		CoM = (0.5, .0, .0)
+		moments = 0.0025, 0.08458, 0.08458, .0, .0, .0
+	}
+
+	children {}
+	ref_frame {
+        translation =(1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+r_joint jA {
+	id = 1
+	ref_frame {
+		translation = (0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+p_joint jB {
+	id = 2
+	ref_frame {
+		translation = (1.0, 0.0, 0.0)
+		rotation = (-1.5708, 0.0, 0.0) // -PI/2
+	}
+}
+
+r_joint jC {
+	id = 3
+	ref_frame {
+		translation = (0.0, 0.0, 1.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+p_joint jD {
+	id = 4
+	ref_frame {
+		translation = (1.0, 0.0, 0.0)
+		rotation = (1.5708, 0.0, 0.0)
+	}
+}
+
+r_joint jE {
+	id = 5
+	ref_frame {
+		translation = (0.0, 0.0, 1.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+p_joint jF {
+	id = 6
+	ref_frame {
+		translation = (0.5, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+r_joint jG {
+	id = 7
+	ref_frame {
+		translation = (0.0, 0.0, 1.0)
+		rotation = (0.0, 0.0, -3.14)
+	}
+}
+
+
+}

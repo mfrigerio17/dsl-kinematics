@@ -238,8 +238,8 @@ int main(int argc, char**argv)
 //    cout << tau << endl;
 //    return 1;
 
-    ofstream out("testdata.m");
-    out << "test.iterations = [";
+    ofstream out("«name»_testdata.m");
+    out << "«name»_test.iterations = [";
 
     for(t=0; t<numOfTests; t++) {
         sl_total = 0;
@@ -267,13 +267,13 @@ int main(int argc, char**argv)
 
     out << "];" << endl;
     // SL times
-    out << "test.sl = [";
+    out << "«name»_test.sl = [";
     for(t=0; t<numOfTests; t++) {
         out << sl[t] << " ";
     }
     out << "];" << endl;
     // My times
-    out << "test.me = [";
+    out << "«name»_test.me = [";
     for(t=0; t<numOfTests; t++) {
         out << me[t] << " ";
     }
