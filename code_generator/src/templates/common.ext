@@ -55,7 +55,6 @@ AbstractLink getParent(AbstractLink link) :
             .first()
 ;
 
-
 Integer getID(AbstractLink this) :
     -1;//"Warning, no implementation of getID() for AbstractLink";
 Integer getID(Link this) :

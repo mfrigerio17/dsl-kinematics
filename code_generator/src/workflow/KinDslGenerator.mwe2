@@ -1,6 +1,7 @@
 module workflow.KinDslGenerator
 
 import org.eclipse.emf.mwe.utils.*
+//import org.eclipse.xpand.support.cdt.CppBeautifier
 
 var targetDir = "src-gen"
 var fileEncoding = "UTF-8"
@@ -25,14 +26,25 @@ Workflow {
 		expand = "templates::my_eigen_plain::main FOREACH robot"
 		outlet = {
 			path = targetDir
+			postprocessor = org.eclipse.xpand.support.cdt.CppBeautifier {}
 		}
 		fileEncoding = fileEncoding
 	}
-	component = org.eclipse.xpand2.Generator {
-	    expand = "templates::Featherstone_matlab::main FOREACH robot"
-	    outlet = {
-	        path = targetDir
-	    }
-	    fileEncoding = fileEncoding
-	}
+
+//	component = org.eclipse.xpand2.Generator {
+//        expand = "templates::main_for_SL::main FOREACH robot"
+//        outlet = {
+//            path = targetDir
+//            postprocessor = org.eclipse.xpand.support.cdt.CppBeautifier {}
+//        }
+//        fileEncoding = fileEncoding
+//    }
+
+//	component = org.eclipse.xpand2.Generator {
+//	    expand = "templates::Featherstone_matlab::main FOREACH robot"
+//	    outlet = {
+//	        path = targetDir
+//	    }
+//	    fileEncoding = fileEncoding
+//	}
 }

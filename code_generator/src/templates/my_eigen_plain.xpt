@@ -7,7 +7,8 @@
 «REM»
 ======================================
 HEADER FILE
-======================================«ENDREM»
+======================================
+«ENDREM»
 «FILE this.baseFileName() + ".h"»
 
 #ifndef IIT_RBD_«this.baseFileName().toUpperCase()»_H_
@@ -70,8 +71,9 @@ private:
 
 «REM»
 ======================================
-File .cpp
-======================================«ENDREM»
+CPP FILE WITH main()
+======================================
+«ENDREM»
 «FILE this.name + "_main.cpp"»
 #include <cmath>
 #include <iostream>
@@ -96,10 +98,13 @@ int main(int argc, char** argv) {
     std::cout << tau << std::endl;
     return 0;
 }
-
 «ENDFILE»
 
-
+«REM»
+======================================
+CPP FILE WITH THE ALGORITHM
+======================================
+«ENDREM»
 «FILE this.baseFileName() + ".cpp"»
 #include <cmath>
 #include <iostream>
@@ -147,200 +152,18 @@ void Dynamics::id(const StateVector& q, const StateVector& qd, const StateVector
 «ENDFILE»
 
 
-«FILE this.name + "_mainforSL.cpp"»
-#include <iostream>
-#include <fstream>
-#include <ctime>
-
-#include "«name»_dynamics.h"
-
-#include "SL.h"
-#include "SL_kinematics.h"
-#include "SL_dynamics.h"
-
-#include "SL_user.h"
-
-using namespace std;
-using namespace iit::«name»;
-
-static void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* desiredState);
-
-/* This main is supposed to be used to test the inverse kinematics routines */
-int main(int argc, char**argv)
-{
-    int numOfIterations =0;//= std::atoi(argv[1]);
-    int numOfTests = std::atoi(argv[1]);
-    double sl[numOfTests];
-    double me[numOfTests];
-
-    double t0, duration, sl_total, my_total;
-    sl_total = 0;
-    my_total = 0;
-
-    iit::«name»::StateVector q, qd, qdd, tau;
-    iit::«name»::Dynamics myDynamics;
-
-    int t=0,i=0;
-
-    SL_Jstate currentState[N_ROBOT_DOFS];
-    SL_DJstate desiredState[N_ROBOT_DOFS];
-    SL_endeff endeffector[N_ROBOT_ENDEFFECTORS];
-    SL_Cstate basePosition;
-    SL_quat baseOrient;
-
-    init_kinematics();
-    if( ! init_dynamics() ) {
-        cerr << "Error in init_dynamics()" << endl;
-        exit(-1);
-    }
-
-    for(i=0; i<N_ROBOT_DOFS; i++) {
-        currentState[i].th   = 0;
-        currentState[i].thd  = 0;
-        currentState[i].thdd = 0;
-
-        desiredState[i].th   = 0;
-        desiredState[i].thd  = 0;
-        desiredState[i].thdd = 0;
-
-        desiredState[i].uff  = 0;
-        desiredState[i].uex  = 0;
-    }
-
-    endeffector[LF_LEG].m = 0; // zero mass -> no endeffector
-    for(i=0; i<=N_CART; i++) {
-        basePosition.x[i]   = 0;
-        basePosition.xd[i]  = 0;
-        basePosition.xdd[i] = 0;
-
-        endeffector[LF_LEG].mcm[i] = 0;
-        endeffector[LF_LEG].cf[i]  = 0;
-        endeffector[LF_LEG].ct[i]  = 0;
-        endeffector[LF_LEG].x[i]   = 0;
-        endeffector[LF_LEG].a[i]   = 0;
-    }
-    baseOrient.q[_Q0_] = 1;
-    baseOrient.q[_Q1_] = 0;
-    baseOrient.q[_Q2_] = 0;
-    baseOrient.q[_Q3_] = 0;
-
-
-    std::srand(std::time(NULL)); // initialize random number generator
-
-
-//    // Prints numerical results, for comparison
-//    fillState(q, qd, qdd, desiredState);
-//    SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
-//    myDynamics.id(q, qd, qdd, tau);
-//
-//    printf("%f\n %f\n %f\n %f\n \n", desiredState[SLIDER_Z].uff,
-//            desiredState[LF_HAA].uff, desiredState[LF_HFE].uff, desiredState[LF_KFE].uff);
-//    cout << tau << endl;
-//    return 1;
-
-    ofstream out("«name»_testdata.m");
-    out << "«name»_test.iterations = [";
-
-    for(t=0; t<numOfTests; t++) {
-        sl_total = 0;
-        my_total = 0;
-        numOfIterations = std::pow(10,t+1);
-        out << numOfIterations << " ";
-
-        for(i=0; i<numOfIterations; i++) {
-            fillState(q, qd, qdd, desiredState);
-
-            t0 = std::clock();
-            SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
-            duration = std::clock() - t0;
-            sl_total += duration;
-
-            t0 = std::clock();
-            myDynamics.id(q, qd, qdd, tau);
-            duration = std::clock() - t0;
-            my_total += duration;
-        }
-        sl[t] = sl_total/CLOCKS_PER_SEC;
-        me[t] = my_total/CLOCKS_PER_SEC;
-    }
-
-
-    out << "];" << endl;
-    // SL times
-    out << "«name»_test.sl = [";
-    for(t=0; t<numOfTests; t++) {
-        out << sl[t] << " ";
-    }
-    out << "];" << endl;
-    // My times
-    out << "«name»_test.me = [";
-    for(t=0; t<numOfTests; t++) {
-        out << me[t] << " ";
-    }
-    out << "];" << endl;
-
-    for(t=0; t<numOfTests; t++) {
-        cout << "SL: " << sl[t] << "\t Me: " << me[t] << endl;
-    }
-
-    return TRUE;
-}
-
-
-void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* desiredState) {
-    static const double max = 12.3;
-«FOREACH joints AS j-»
-    q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;
-    qd(«j.getID()-1»)  = ( ((double)std::rand()) / RAND_MAX) * max;
-    qdd(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
-«ENDFOREACH»
-    //TODO this part needs manual adaption!!
-    desiredState[SLIDER_Z].th   = q(0);
-    desiredState[SLIDER_Z].thd  = qd(0);
-    desiredState[SLIDER_Z].thdd = qdd(0);
-    desiredState[LF_HAA].th   = q(1);
-    desiredState[LF_HAA].thd  = qd(1);
-    desiredState[LF_HAA].thdd = qdd(1);
-    desiredState[LF_HFE].th   = q(2);
-    desiredState[LF_HFE].thd  = qd(2);
-    desiredState[LF_HFE].thdd = qdd(2);
-    desiredState[LF_KFE].th   = q(3);
-    desiredState[LF_KFE].thd  = qd(3);
-    desiredState[LF_KFE].thdd = qdd(3);
-}
-
-«ENDFILE»
-
 «ENDDEFINE»«REM» Main «ENDREM»
-
-
-
 
 
 «REM»
 ======================================
-Helper defines
-======================================«ENDREM»
-
-«REM»
-Motion subspace matrix, for each joint
--------------------------------------- «ENDREM»
-«DEFINE jointSubspaceMx FOR Joint-»
-    «ERROR "No subspace matrix defined for an abstract joint"»
-«ENDDEFINE»
-«DEFINE jointSubspaceMx FOR PrismaticJoint-»
-    «subspaceMxName()».resize(6);
-    «subspaceMxName()».insert(5) = 1.0;
-«ENDDEFINE»
-«DEFINE jointSubspaceMx FOR RevoluteJoint-»
-    «subspaceMxName()».resize(6);
-    «subspaceMxName()».insert(2) = 1.0;
-«ENDDEFINE»
-
-
+INVERSE DYNAMICS ALGORITHM STEPS
+======================================
+«ENDREM»
 «REM»
 A step of the FIRST pass of the inverse dynamics algorithm, for each link
-------------------------------------------------------------------------- «ENDREM»
+-------------------------------------------------------------------------
+«ENDREM»
 «DEFINE algoFirstPass FOR AbstractLink-»
     «ERROR "This is just a place holder"»
 «ENDDEFINE»
@@ -373,6 +196,7 @@ A step of the FIRST pass of the inverse dynamics algorithm, for each link
     «ENDLET»
     «ENDLET»
 «ENDDEFINE»
+
 «REM»
 A step of the SECOND pass of the inverse dynamics algorithm, for each link
 «ENDREM»
@@ -399,8 +223,33 @@ A step of the SECOND pass of the inverse dynamics algorithm, for each link
 «ENDDEFINE»
 
 «REM»
+======================================
+Helper defines
+======================================
+«ENDREM»
+
+«REM»
+--------------------------------------
+Motion subspace matrix, for each joint
+--------------------------------------
+«ENDREM»
+«DEFINE jointSubspaceMx FOR Joint-»
+    «ERROR "No subspace matrix defined for an abstract joint"»
+«ENDDEFINE»
+«DEFINE jointSubspaceMx FOR PrismaticJoint-»
+    «subspaceMxName()».resize(6);
+    «subspaceMxName()».insert(5) = 1.0;
+«ENDDEFINE»
+«DEFINE jointSubspaceMx FOR RevoluteJoint-»
+    «subspaceMxName()».resize(6);
+    «subspaceMxName()».insert(2) = 1.0;
+«ENDDEFINE»
+
+«REM»
+-------------------------------------------------------------
 The motion transform that depends on the state of the joint.
 This can be optimized removing the call to the fill function
+-------------------------------------------------------------
 «ENDREM»
 «DEFINE jCalc FOR Joint-»
     «ERROR "This is just a place holder"»
