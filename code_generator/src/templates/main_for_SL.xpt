@@ -25,6 +25,10 @@ static void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJst
 /* This main is supposed to be used to test the inverse dynamics routines */
 int main(int argc, char**argv)
 {
+    if(argc < 2) {
+        cerr << "Please provide the number of tests to perform" << endl;
+        return -1;
+    }
     int numOfIterations =0;//= std::atoi(argv[1]);
     int numOfTests = std::atoi(argv[1]);
     double sl[numOfTests];
