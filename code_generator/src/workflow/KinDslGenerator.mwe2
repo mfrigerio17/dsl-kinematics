@@ -4,6 +4,7 @@ import org.eclipse.emf.mwe.utils.*
 //import org.eclipse.xpand.support.cdt.CppBeautifier
 
 var targetDir = "src-gen"
+var targetDirSL = "src-gen/SL"
 var fileEncoding = "UTF-8"
 var modelPath = "mysrc/model"
 
@@ -21,15 +22,15 @@ Workflow {
 		}
 	}
     // This component is a facade to the Xpand language
-	component = org.eclipse.xpand2.Generator {
-		//expand = "templates::Featherstone_matlab::main FOREACH robot"
-		expand = "templates::my_eigen_plain::main FOREACH robot"
-		outlet = {
-			path = targetDir
-			postprocessor = org.eclipse.xpand.support.cdt.CppBeautifier {}
-		}
-		fileEncoding = fileEncoding
-	}
+//	component = org.eclipse.xpand2.Generator {
+//		//expand = "templates::Featherstone_matlab::main FOREACH robot"
+//		expand = "templates::my_eigen_plain::main FOREACH robot"
+//		outlet = {
+//			path = targetDir
+//			postprocessor = org.eclipse.xpand.support.cdt.CppBeautifier {}
+//		}
+//		fileEncoding = fileEncoding
+//	}
 
 //	component = org.eclipse.xpand2.Generator {
 //        expand = "templates::main_for_SL::main FOREACH robot"
@@ -47,4 +48,12 @@ Workflow {
 //	    }
 //	    fileEncoding = fileEncoding
 //	}
+
+  component = org.eclipse.xpand2.Generator {
+      expand = "templates::SL_model_file::main FOREACH robot"
+      outlet = {
+          path = targetDirSL
+      }
+      fileEncoding = fileEncoding
+  }
 }

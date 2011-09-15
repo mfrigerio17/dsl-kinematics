@@ -43,10 +43,13 @@ create List[AbstractLink] abstractLinks(Robot robot) :
     this.addAll(robot.links)
 ;
 
-/* Returns whether the ChildrenList contains the specified link
-*/
+/* Returns whether the ChildrenList contains the specified link */
 Boolean contains(ChildrenList this, AbstractLink link) :
     (this.children.select(child | child.link == link)).size != 0
+;
+/* Returns whether the ChildrenList contains the specified joint */
+Boolean contains(ChildrenList this, Joint joint) :
+    (this.children.select(child | child.joint == joint)).size != 0
 ;
 
 AbstractLink getParent(AbstractLink link) :
@@ -65,3 +68,17 @@ Integer getID(FloatingRobotBase this) :
     1;
 Integer getID(Joint this) :
     this.num;
+//This is a duplicate of the previous, to avoid a stupid bug: I call getID(Joint)
+// and it complains about ambiguity for getID(Fixed/FloatingRobotBase) !??!
+Integer getMyID(Joint this) :
+    this.num;
+
+//This returns the successor link of this joint
+AbstractLink getSuccessorLink(Joint j) :
+    (
+    ((Robot)j.eContainer()).abstractLinks(). // for all links of the robot...
+        select(link | link.childrenList.contains(j)).first(). // ... find the predecessor link of this joint ...
+           childrenList.children.select(child | child.joint == j) // ... and select the good successor
+                ).link
+;
+

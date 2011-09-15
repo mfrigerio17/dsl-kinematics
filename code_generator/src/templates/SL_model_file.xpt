@@ -1,0 +1,77 @@
+«IMPORT iit::dsl::kinDsl»
+
+«EXTENSION templates::common»
+
+«DEFINE main FOR Robot»
+«REM»
+======================================
+HEADER FILE
+======================================
+«ENDREM»
+«FILE name+"/math/" + name+".dyn"»
+
+{ (* Base Coordinate System *)
+{jointID,{ID=0}},
+{floatingBase,{«IF base.isFloating()»1«ELSE»0«ENDIF»}},
+{notUsed,{}},
+{notUsed,{}},
+{successors,{1}},
+{inertia,GenInertiaMatrixS["links",ID,1]},
+{massCenterMass,GenMCMVectorS["links",ID,1]},
+{mass,GenMassS["links",ID]},
+{baseVariables,GenBaseVariablesS["basec","baseo",ID]},
+{extForce,GenExtForceS["uex",ID]}
+}
+«FOREACH joints AS j-»
+«EXPAND jointBlock FOR j-»
+«ENDFOREACH-»
+«ENDFILE»
+
+
+«FILE name+"/LinkParameters.cf"»
+«LET base.inertiaParams AS params»
+BASE  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  TODO !!!!
+«ENDLET»
+
+TODO !!!!
+«ENDFILE»
+
+
+«ENDDEFINE»
+
+
+«DEFINE jointBlock FOR Joint-»
+{ (* Joint «name» *)
+{jointID,{ID=«getID()»}},
+«EXPAND jointAxis FOR this-»
+{translation,{«refFrame.translation.items.get(0)»,«refFrame.translation.items.get(1)»,«refFrame.translation.items.get(2)»}},
+{rotationMatrix,{«refFrame.rotation.items.get(0)»,«refFrame.rotation.items.get(1)»,«refFrame.rotation.items.get(2)»}},
+{successors,{«EXPAND getSuccessors FOR this-»}},
+{inertia,GenInertiaMatrixS["links",ID,1]},
+{massCenterMass,GenMCMVectorS["links",ID,1]},
+{mass,GenMassS["links",ID]},
+{jointVariables,GenVariablesS["state",ID]},
+{extForce,GenExtForceS["uex",ID]}
+}
+«ENDDEFINE»
+
+«DEFINE jointAxis FOR Joint-»
+«ENDDEFINE»
+«DEFINE jointAxis FOR PrismaticJoint-»
+{jointAxis,{0,0,0,0,0,1}},
+«ENDDEFINE»
+«DEFINE jointAxis FOR RevoluteJoint-»
+{jointAxis,{0,0,1}},
+«ENDDEFINE»
+
+«DEFINE getSuccessors FOR Joint-»
+«LET getSuccessorLink().childrenList.children AS children-»
+«FOREACH children.withoutLast() AS child-»
+«child.joint.getID()-»,
+«ENDFOREACH-»
+«children.last().joint.getMyID()-»
+«ENDLET-»
+«ENDDEFINE»
+
+
+
