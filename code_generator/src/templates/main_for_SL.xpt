@@ -68,17 +68,17 @@ int main(int argc, char**argv)
         desiredState[i].uex  = 0;
     }
 
-    endeffector[LF_LEG].m = 0; // zero mass -> no endeffector
+    endeffector[ENDEFF].m = 0; // zero mass -> no endeffector
     for(i=0; i<=N_CART; i++) {
         basePosition.x[i]   = 0;
         basePosition.xd[i]  = 0;
         basePosition.xdd[i] = 0;
 
-        endeffector[LF_LEG].mcm[i] = 0;
-        endeffector[LF_LEG].cf[i]  = 0;
-        endeffector[LF_LEG].ct[i]  = 0;
-        endeffector[LF_LEG].x[i]   = 0;
-        endeffector[LF_LEG].a[i]   = 0;
+        endeffector[ENDEFF].mcm[i] = 0;
+        endeffector[ENDEFF].cf[i]  = 0;
+        endeffector[ENDEFF].ct[i]  = 0;
+        endeffector[ENDEFF].x[i]   = 0;
+        endeffector[ENDEFF].a[i]   = 0;
     }
     baseOrient.q[_Q0_] = 1;
     baseOrient.q[_Q1_] = 0;
@@ -94,8 +94,11 @@ int main(int argc, char**argv)
 //    SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
 //    myDynamics.id(q, qd, qdd, tau);
 //
-//    printf("%f\n %f\n %f\n %f\n \n", desiredState[SLIDER_Z].uff,
-//            desiredState[LF_HAA].uff, desiredState[LF_HFE].uff, desiredState[LF_KFE].uff);
+//    printf("%f\n %f\n %f\n %f\n \n",
+«FOREACH joints.withoutLast() AS j-»
+//       desiredState[«j.name»].uff,
+«ENDFOREACH-»
+//       desiredState[«joints.last().name»].uff);
 //    cout << tau << endl;
 //    return 1;
 
@@ -154,20 +157,12 @@ void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* de
     q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;
     qd(«j.getID()-1»)  = ( ((double)std::rand()) / RAND_MAX) * max;
     qdd(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+
+    desiredState[«j.name»].th   = q(0);
+    desiredState[«j.name»].thd  = qd(0);
+    desiredState[«j.name»].thdd = qdd(0);
+
 «ENDFOREACH»
-    //TODO this part needs manual adaption!!
-    desiredState[SLIDER_Z].th   = q(0);
-    desiredState[SLIDER_Z].thd  = qd(0);
-    desiredState[SLIDER_Z].thdd = qdd(0);
-    desiredState[LF_HAA].th   = q(1);
-    desiredState[LF_HAA].thd  = qd(1);
-    desiredState[LF_HAA].thdd = qdd(1);
-    desiredState[LF_HFE].th   = q(2);
-    desiredState[LF_HFE].thd  = qd(2);
-    desiredState[LF_HFE].thdd = qdd(2);
-    desiredState[LF_KFE].th   = q(3);
-    desiredState[LF_KFE].thd  = qd(3);
-    desiredState[LF_KFE].thdd = qdd(3);
 }
 
 «ENDFILE»

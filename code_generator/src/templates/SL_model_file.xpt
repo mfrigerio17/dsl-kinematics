@@ -551,4 +551,91 @@ extern double force_biases[N_ENDEFFS+1][N_CART+1];
 «ENDFILE»
 «ENDDEFINE»
 
+«REM»
+==============================================================================
+MISC FILES FOR THE ROBOT USER FOLDER
+=======================================================================«ENDREM»
+«DEFINE User FOR Robot»
+«REM»
+======================================
+Configuration file with Inertia parameters
+======================================«ENDREM»
+«FILE robotUserFolderName()+"/config/LinkParameters.cf"»
+«LET base.inertiaParams AS params-»
+BASE  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
+«ENDLET»
+«FOREACH links AS link-»
+«LET link.inertiaParams AS params-»
+«getConnectingJoint(link).name»  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
+«ENDLET»
+«ENDFOREACH»
+«ENDFILE»
 
+«FILE robotUserFolderName()+"/makefiles/imakefile.unix"»
+INCLUDES = -I../src \
+ -I../include \
+ -I$(MY_INCLUDES) \
+ -I$(LAB_INCLUDES) \
+ -I$(LAB_ROOT)/«name.toLowerCase()»/include \
+ -I$(LAB_ROOT)/«name.toLowerCase()»/math \
+ -I/sw/include \
+ -I/usr/X11/include \
+ -I/usr/local/glut/include \
+ -I$(LAB_ROOT)/common \
+ -I/usr/local/include/eigen3/ \
+
+CFLAGS    = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) -DEIGEN_NO_DEBUG -D$(MACHTYPE)
+SRCDIR    = ../src
+LIBDIR    = $(MY_LIBDIR)/$(MACHTYPE)
+HEADERDIR = $(MY_INCLUDES)
+LDFLAGS   = -L$(MY_LIBDIR)/$(MACHTYPE) $(LAB_LIBDIR)
+LIBRARIES =
+BINDIR    = .
+
+LIB_TASK   = -l«name.toLowerCase()»_task  -l«name.toLowerCase()» -lSLtask -lSLcommon -lutility  -lm
+LIB_OPENGL = -l«name.toLowerCase()»_openGL -l«name.toLowerCase()» -lSLopenGL -lSLcommon -lutility -lm $(OPENGL_LIBRARIES) -lXinerama -lX11
+LIB_SIM    = -l«name.toLowerCase()»_simulation -l«name.toLowerCase()» -lSLsimulation -lSLcommon -lutility $(COMM_LIBRARIES) -lm -llwpr
+
+SRCS_X«name.toUpperCase()»  = \
+    initUserTasks.c \
+    sample_task.c
+OBJS_X«name.toUpperCase()»  = \
+    initUserTasks.o \
+    sample_task.o
+
+SRCS_XOPENGL  = \
+    initUserGraphics.c \
+     userGraphics.c
+
+OBJS_XOPENGL  = \
+    initUserGraphics.o \
+    userGraphics.o \
+
+SRCS_XSIM  = \
+       initUserSimulation.c
+
+OBJS_XSIM  = \
+       initUserSimulation.o
+
+SOURCES = $(SRCS_X«name.toUpperCase()») $(SRCS_XOPENGL) $(SRCS_XSIM)
+OBJECTS = $(OBJS_X«name.toUpperCase()») $(OBJS_XOPENGL) $(OBJS_XSIM) $(MYOBJS)
+
+InstallProgram($(LAB_ROOT)/«name.toLowerCase()»/$(MACHTYPE)/x«name.toLowerCase()»,$(BINDIR))
+InstallProgram($(LAB_ROOT)/«name.toLowerCase()»/$(MACHTYPE)/xmotor,$(BINDIR))
+InstallProgram($(LAB_ROOT)/«name.toLowerCase()»/$(MACHTYPE)/xvision,$(BINDIR))
+
+CPPProgramListTarget( xtask, $(OBJS_X«name.toUpperCase()») $(CPP_OBJS_X«name.toUpperCase()»),$(LIB_TASK) )
+CPPProgramListTarget( xopengl, $(OBJS_XOPENGL), $(LIB_OPENGL) )
+CPPProgramListTarget( xsimulation, $(OBJS_XSIM), $(LIB_SIM) )
+
+NormalObjRule( $(OBJECTS) )
+
+MYSRCS = mymain.cpp «name»_dynamics.cpp
+MYOBJS = mymain.o «name»_dynamics.o
+MYLIB = /usr/local/lib/librbd.a
+
+CPPProgramListTarget(foo, $(MYOBJS) $(OBJS_XSIM)  $(MYLIB), $(LIB_SIM))
+NormalCPPObjRule( $(MYOBJS) )
+«ENDFILE»
+
+«ENDDEFINE»
