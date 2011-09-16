@@ -352,5 +352,203 @@ NormalObjRule( $(OBJECTS) )
 «ENDFILE»
 «ENDDEFINE»
 
+«REM»
+==============================================================================
+GENERATION OF SOURCE FILES
+=======================================================================«ENDREM»
+«DEFINE Sources FOR Robot»
+«REM»
+======================================
+SL_user.h
+======================================«ENDREM»
+«FILE robotFolderName()+"/include/SL_user.h"»
+#ifndef _SL_user_
+#define _SL_user_
+
+/*! the robot name */
+#define ROBOT_NAME "«robotName()»"
+/*! the force bias file */
+#define FORCE_BIAS_FILE "ForceBiases.cf"
+
+/*! links of the robot */
+enum RobotLinks {
+  PLACEHOLDER = 0,
+«FOREACH links AS link-»
+  «link.name.toUpperCase()»,
+«ENDFOREACH-»
+  N_ROBOT_LINKS
+};
+
+/*! endeffector information */
+enum RobotEndeffectors {
+  ENDEFF=1,
+  N_ROBOT_ENDEFFECTORS
+};
+
+/*! vision variables */
+enum VisionCameras {
+  N_VISION_CAMERAS
+};
+
+enum ColorBlobs {
+  BLOB1=1,
+  N_COLOR_BLOBS
+};
+
+/*! define the DOFs of this robot */
+enum RobotDOFs {
+  BASE=0,
+«FOREACH joints AS joint-»
+  «joint.name»,
+«ENDFOREACH-»
+  N_ROBOT_DOFS
+};
+
+/*! define miscellenous sensors of this robot */
+enum RobotMiscSensors {
+  B_Q_0=1,
+  B_Q_1,
+  B_Q_2,
+  B_Q_3,
+
+  B_Qd_0,
+  B_Qd_1,
+  B_Qd_2,
+  B_Qd_3,
+
+  B_Qdd_0,
+  B_Qdd_1,
+  B_Qdd_2,
+  B_Qdd_3,
+
+  B_Ad_A,
+  B_Ad_B,
+  B_Ad_G,
+
+  B_Add_A,
+  B_Add_B,
+  B_Add_G,
+
+  B_X,
+  B_Y,
+  B_Z,
+
+  B_Xd,
+  B_Yd,
+  B_Zd,
+
+  B_Xdd,
+  B_Ydd,
+  B_Zdd,
+
+  TIME_MOTOR,
+
+  N_ROBOT_MISC_SENSORS
+};
+
+/*! number of degrees-of-freedom of robot */
+#define N_DOFS (N_ROBOT_DOFS-1)
+
+/*! N_DOFS + fake DOFS, needed for parameter estimation;
+   fake DOFS come from creating endeffector information */
+#define N_DOFS_EST (N_DOFS+31)
+
+/*! N_DOFS to be excluded from parameter estimation (e.g., eye joints);
+   these DOFS must be the last DOFS in the arrays */
+#define N_DOFS_EST_SKIP 0
+
+/*! number of links of the robot */
+#define N_LINKS    (N_ROBOT_LINKS-1)
+
+/*! number of miscellaneous sensors */
+#define N_MISC_SENSORS   (N_ROBOT_MISC_SENSORS-1)
+
+/*! number of endeffectors */
+#define N_ENDEFFS  (N_ROBOT_ENDEFFECTORS-1)
+
+/*! number of cameras used */
+#define N_CAMERAS (N_VISION_CAMERAS-1)
+
+/*! number of blobs that can be tracked by vision system */
+#define MAX_BLOBS (N_COLOR_BLOBS-1)
+
+/*! vision default post processing */
+#define VISION_DEFAULT_PP "vision_default.pp"
+
+/*! the servo rate used by the I/O with robot: this limits the
+   servo rates of all other servos */
+#define  SERVO_BASE_RATE 1000
+
+/*! divisor to obtain task servo rate (task servo can run slower than
+   base rate, but only in integer fractions */
+#define  TASK_SERVO_RATIO   R1TO4
+//! #define  TASK_SERVO_RATIO   R1TO1
+
+/* settings for D/A debugging information -- see SL_oscilloscope.c */
+#define   D2A_CM      1
+#define   D2A_CT      2
+#define   D2A_CV      3
+#define   D2A_CR      4
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* function prototypes */
+int readTestGoal(void);
+void compute_cog_jacobian(void);
+void compute_cog_velocity(void);
+void worldToBase(double *xw, SL_Cstate *cbase, SL_quat *obase, double *xl);
+void baseToWorld(double *xl, SL_Cstate *cbase, SL_quat *obase, double *xw);
+void checkJointOffsets(int verbose);
+void compute_cog_kinematics(int **status, int flag, int use_z, int use_des,
+               Matrix Jccogp, Matrix NJccog);
+void compute_constraint_cog_kinematics(Matrix NJc, int use_z, int **status, int use_des,
+                  Matrix Jccog,
+                  Matrix Jccogp, Matrix NcJccog,
+                  Matrix NJccog);
+void compute_constraint_kinematics(int **status, int use_des,
+                  Matrix Jc, Matrix Jcp, Matrix NJc);
+void worldToBaseVelocity(double *xw, double *vw,
+            SL_Cstate *cbase, SL_quat *obase, double *vl);
+void dumpTerrain(void);
+void donePlanning(void);
+void setLegForceControlGains(int leg, double **gains);
+void setLegForceControlSetPoints(int leg, double *f_d);
+int  readForceBiases(char *fname);
+void readInitPos(Vector cartPos);
+int  readFootIKCache(void);
+int  footIKCached(int leg, Vector x, Vector q_bf, Vector q_br,
+         double *error_bf, double *error_br, int *rc, double *knee);
+
+void base_error_control(int *leg_status, double *delta_pos, double *delta_orient,
+           int use_des, double *delta_th);
+int  convertTerrainIDtoString(int ID, char *string);
+void inverseDynamicsFloat(double dt, iMatrix status, int use_des, SL_DJstate *joint_ref_state,
+             double *xdd_ref, double *add_ref, Matrix fc);
+void computeAvoidanceTorques(int leg, int use_des, double *f_foot,
+            double *f_knee, double *torque);
+
+/* external variables */
+#define REG_RADIUS 10   //!< (was 20) radius of point to include in terrain regression
+#define REG_DOWN    3   //!< down sampling of points in terrain regression
+#define REG_CRADIUS 2   //!< regression radius for computing the contact normal
+
+extern double test_goal[];
+extern int    no_user_interaction_flag;
+extern int    real_time_flag;
+extern char   initial_task_name[];
+extern double test_mocap_marker[];
+extern SL_Jstate joint_mocap_state[];
+extern double foot_radius;
+extern double force_biases[N_ENDEFFS+1][N_CART+1];
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif  /* _SL_user_ */
+«ENDFILE»
+«ENDDEFINE»
 
 
