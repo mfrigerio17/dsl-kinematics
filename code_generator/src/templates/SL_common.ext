@@ -1,0 +1,8 @@
+import iit::dsl::kinDsl;
+
+String robotFolderName(Robot this) :
+    name.toLowerCase()
+;
+String robotName(Robot this) :
+    name.toLowerCase()
+;
