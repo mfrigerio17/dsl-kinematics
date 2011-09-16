@@ -82,3 +82,9 @@ AbstractLink getSuccessorLink(Joint j) :
                 ).link
 ;
 
+// Returns the Joints which "moves" the link in the argument
+Joint getConnectingJoint(AbstractLink link) :
+    link.getParent().childrenList.children.select(child | child.link==link).
+        first().joint
+;
+
