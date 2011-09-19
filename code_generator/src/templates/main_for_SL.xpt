@@ -1,10 +1,11 @@
 «IMPORT iit::dsl::kinDsl»
 
 «EXTENSION templates::common»
+«EXTENSION templates::SL_common»
 
 «DEFINE main FOR Robot»
 
-«FILE this.name + "_mainforSL.cpp"»
+«FILE robotUserFolderName()+"/src/"+benchmarkFileName()+".cpp"»
 #include <iostream>
 #include <fstream>
 #include <ctime>
@@ -89,18 +90,18 @@ int main(int argc, char**argv)
     std::srand(std::time(NULL)); // initialize random number generator
 
 
-//    // Prints numerical results, for comparison
-//    fillState(q, qd, qdd, desiredState);
-//    SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
-//    myDynamics.id(q, qd, qdd, tau);
-//
-//    printf("%f\n %f\n %f\n %f\n \n",
-«FOREACH joints.withoutLast() AS j-»
-//       desiredState[«j.name»].uff,
+    // Prints numerical results, for comparison
+    fillState(q, qd, qdd, desiredState);
+    SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
+    myDynamics.id(q, qd, qdd, tau);
+
+    cout << "SL:" << endl
+«FOREACH joints AS j-»
+        << desiredState[«j.name»].uff << endl
 «ENDFOREACH-»
-//       desiredState[«joints.last().name»].uff);
-//    cout << tau << endl;
-//    return 1;
+        ;
+   cout << "Me:" << endl << tau << endl;
+   return 1;
 
     ofstream out("«name»_testdata.m");
     out << "«name»_test.iterations = [";
@@ -158,9 +159,9 @@ void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* de
     qd(«j.getID()-1»)  = ( ((double)std::rand()) / RAND_MAX) * max;
     qdd(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
 
-    desiredState[«j.name»].th   = q(0);
-    desiredState[«j.name»].thd  = qd(0);
-    desiredState[«j.name»].thdd = qdd(0);
+    desiredState[«j.name»].th   = q(«j.getID()-1»);
+    desiredState[«j.name»].thd  = qd(«j.getID()-1»);
+    desiredState[«j.name»].thdd = qdd(«j.getID()-1»);
 
 «ENDFOREACH»
 }

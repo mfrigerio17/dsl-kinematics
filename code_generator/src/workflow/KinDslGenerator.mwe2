@@ -34,7 +34,7 @@ Workflow {
 	component = org.eclipse.xpand2.Generator {
         expand = "templates::main_for_SL::main FOREACH robot"
         outlet = {
-            path = targetDir
+            path = targetDirSL
             postprocessor = org.eclipse.xpand.support.cdt.CppBeautifier {}
         }
         fileEncoding = fileEncoding

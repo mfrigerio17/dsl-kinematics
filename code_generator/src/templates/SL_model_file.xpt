@@ -280,7 +280,7 @@ Cell[5063, 149, 340, 5, 31, "Output"]
 MAKEFILES: imakefile.unix
 ======================================
 «ENDREM»
-«FILE name.toLowerCase()+"/makefiles/imakefile.unix"»
+«FILE robotFolderName()+"/makefiles/imakefile.unix"»
 INCLUDES = -I../src -I../include -I../math \
 -I$(MY_INCLUDES) -I/usr/X11/include \
 -I/usr/local/glut/include
@@ -630,8 +630,8 @@ CPPProgramListTarget( xsimulation, $(OBJS_XSIM), $(LIB_SIM) )
 
 NormalObjRule( $(OBJECTS) )
 
-MYSRCS = mymain.cpp «name»_dynamics.cpp
-MYOBJS = mymain.o «name»_dynamics.o
+MYSRCS = «benchmarkFileName()».cpp «name»_dynamics.cpp
+MYOBJS = «benchmarkFileName()».o   «name»_dynamics.o
 MYLIB = /usr/local/lib/librbd.a
 
 CPPProgramListTarget(foo, $(MYOBJS) $(OBJS_XSIM)  $(MYLIB), $(LIB_SIM))

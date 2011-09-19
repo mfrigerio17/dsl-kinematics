@@ -10,3 +10,7 @@ String robotName(Robot this) :
 String robotUserFolderName(Robot this) :
     robotFolderName() + "User"
 ;
+
+String benchmarkFileName(Robot this) :
+    "mymain"
+;
