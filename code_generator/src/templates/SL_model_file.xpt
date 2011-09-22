@@ -543,11 +543,27 @@ extern SL_Jstate joint_mocap_state[];
 extern double foot_radius;
 extern double force_biases[N_ENDEFFS+1][N_CART+1];
 
-
 #ifdef __cplusplus
 }
 #endif
 #endif  /* _SL_user_ */
+«ENDFILE»
+«REM»
+======================================
+SL_user_common.c
+======================================«ENDREM»
+«FILE robotFolderName()+"/src/SL_user_common.c"»
+char joint_names[][20]= {
+   {"BASE"}
+«FOREACH joints AS joint-»
+   ,{"«joint.name»"}
+«ENDFOREACH-»
+};
+
+char cart_names[][20]= {
+  {"dummy"},
+  {"ENDEFF"},
+};
 «ENDFILE»
 «ENDDEFINE»
 
