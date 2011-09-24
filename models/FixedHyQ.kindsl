@@ -13,13 +13,17 @@ RobotBase trunk {
 		LH_hip via LH_HAA
 		RH_hip via RH_HAA
 	}
+	ref_frame {
+	   translation = (0.0, 0.0, 0.0)
+	   rotation = (0.0, 0.0, 0.0)
+	}
 }
 
 link LF_hip {
 	id = 2
 	inertia_params {
 		mass = 2.482
-        CoM = (0.0325, 0.0003, 0.1424)
+        CoM = (0.0131, 0.0001, 0.0573)
         //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
         moments = 0.0956126, 0.1012626, 0.0006758, 0.00, -0.011, 0.00
 	}
@@ -36,7 +40,7 @@ link RF_hip {
 	id = 3
 	inertia_params {
         mass = 2.482
-        CoM = (0.0325, -0.0003, -0.1424)
+        CoM = (0.0131, -0.0001, -0.0573)
         //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
         moments = 0.0956126, 0.1012626, 0.0006758, 0.00,  0.011, 0.00
 	}
@@ -53,7 +57,7 @@ link LH_hip {
 	id = 4
     inertia_params {
         mass = 2.482
-        CoM = (0.0325, -0.0003, -0.1424)
+        CoM = (0.0131, -0.0001, -0.0573)
         //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
         moments = 0.0956126, 0.1012626, 0.0006758, 0.00,  0.011, 0.00
     }
@@ -70,7 +74,7 @@ link RH_hip {
 	id = 5
     inertia_params {
         mass = 2.482
-        CoM = (0.0325, 0.0003, 0.1424)
+        CoM = (0.0131, 0.0001, 0.0573)
         //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
         moments = 0.0956126, 0.1012626, 0.0006758, 0.00, -0.011, 0.00
     }
@@ -126,7 +130,7 @@ link RF_leg {
     inertia_params {
         mass = 2.16
         CoM = ( 0.14796,  -0.02958,   0.00000)
-        moments =  0.004785, 0.076166, 0.078576, 0.0071588, 0.00, 0.00, 
+        moments =  0.004785, 0.076166, 0.078576, 0.0071588, 0.00, 0.00
     }
     children {
         RF_lowerleg via RF_KFE
