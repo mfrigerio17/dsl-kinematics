@@ -7,9 +7,20 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
+import iit.dsl.kinDsl.Robot
+import com.google.inject.Inject
+
+
 class KinDslGenerator implements IGenerator {
-	
+    @Inject extension Common common
+
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		//TODO implment me
+	    val robot = resource.contents.head as Robot;
+		fsa.generateFile(robot.name+".c", generateCode(robot))
 	}
+
+	def generateCode(Robot robot) '''
+        «common.inertiaMxName(robot.links.get(1))»
+        «robot.links.get(2).inertiaMxName()»
+	'''
 }
