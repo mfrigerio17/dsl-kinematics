@@ -34,10 +34,10 @@ link slider {
 link hip {
 	id = 2
 	inertia_params {
-		mass = 2.482
-		CoM = (0.0325, 0.0003, 0.1424)
-		//            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
-		moments = 0.0956126, 0.1012626, 0.0006758, 0.00, 0.00, 0.00
+		mass = 2.9594
+		CoM = (0.041867, 0.00027033, 0.16726)
+		//            Ix,     Iy,     Iz,     Ixy,     Ixz,  Iyz
+		moments = 0.1349, 0.1442, 0.0109, -0.0001, -0.0227,  0.0109
 	}
 
 	children {
@@ -52,9 +52,9 @@ link hip {
 link leg {
 	id = 3
 	inertia_params {
-		mass = 2.1605
-		CoM = (0.1479, -0.0296, 0.0)
-		moments = 0.004785, 0.076166, 0.078576, 0.0071588, 0.0, 0.0
+		mass = 2.6233
+		CoM = (0.1509, -0.0273, 0.0)
+		moments = 0.0057, 0.0871, 0.0901, 0.0079, -0.0000, 0.0
 	}
 
 	children {
@@ -69,9 +69,9 @@ link leg {
 link lowerleg {
 	id = 4
 	inertia_params {
-		mass = 1.6
-		CoM = (0.1218, 0.0006, -0.0001)
-		moments = 0.004235, 0.220327, 0.218435, 0.0, 0.0, 0.0
+		mass = 0.8039
+		CoM = (0.12228, 0.00062197, -0.00012439)
+		moments = 0.0004, 0.0220, 0.0218, 0.0, 0.0, 0.0
 	}
 
 	children {}
