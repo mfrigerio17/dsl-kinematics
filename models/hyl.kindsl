@@ -74,6 +74,24 @@ link lowerleg {
 		moments = 0.0004, 0.0220, 0.0218, 0.0, 0.0, 0.0
 	}
 
+	children {
+		foot via jDummy
+	}
+	ref_frame {
+		translation =(0.0, 0.0, 0.0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
+// A dummy link to simulate a load at the endeffector; it is a small sphere of 5Kg, 2.5 cm of radius
+link foot{
+	id = 5
+	inertia_params {
+		mass = 5.0
+		CoM = (0.025, 0.0, 0.0)
+		moments = 0.0019, 0.0013, 0.0013, 0.0, 0.0, 0.0
+	}
+
 	children {}
 	ref_frame {
 		translation =(0.0, 0.0, 0.0)
@@ -112,4 +130,13 @@ r_joint jKFE {
 		rotation = (0.0, 0.0, 0.0)
 	}
 }
+
+p_joint jDummy {
+	id = 5
+	ref_frame {
+		translation = (0.33, 0.0, 0.0) // (P1P2, 0, 0)
+		rotation = (0.0, 0.0, 0.0)
+	}
+}
+
 }
