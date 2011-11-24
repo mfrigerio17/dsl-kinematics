@@ -59,9 +59,9 @@ jointTransform(Joint this) :
 ;
 
 getInertiaTensor(InertiaParams this) :
-    "[ [" + ix + " -" + ixy + " -" + ixz + "]; [-" +
-          ixy + " " + iy + " -" + iyz + "]; [-" +
-          ixz + " -" + iyz + " " + iz + "] ]"
+    "[ [" + ix + " -(" + ixy + ") -(" + ixz + ")]; [-(" +
+          ixy + ") " + iy + " -(" + iyz + ")]; [-(" +
+          ixz + ") -(" + iyz + ") " + iz + "] ]"
 ;
 
 
