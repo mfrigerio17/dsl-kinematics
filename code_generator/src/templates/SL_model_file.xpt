@@ -575,14 +575,19 @@ MISC FILES FOR THE ROBOT USER FOLDER
 «REM»
 ======================================
 Configuration file with Inertia parameters
-======================================«ENDREM»
+======================================
+It is assumed that the provided moments of inertia strictly follow their definition,
+so that the off-diagonal elements of the inertia tensor have a minus sign. It is also
+assumed that the configuration file for SL expects the inertia tensor elements, so we
+put that minus in front of the values
+«ENDREM»
 «FILE robotUserFolderName()+"/config/LinkParameters.cf"»
 «LET base.inertiaParams AS params-»
-BASE  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
+BASE  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «-params.ixy» «-params.ixz» «params.iy» «-params.iyz» «params.iz» 0.1 0 0 0
 «ENDLET»
 «FOREACH links AS link-»
 «LET link.inertiaParams AS params-»
-«getConnectingJoint(link).name»  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
+«getConnectingJoint(link).name»  «params.mass»  «params.mass*params.com.items.get(0)» «params.mass*params.com.items.get(1)» «params.mass*params.com.items.get(2)»  «params.ix» «-params.ixy» «-params.ixz» «params.iy» «-params.iyz» «params.iz» 0.1 0 0 0
 «ENDLET»
 «ENDFOREACH»
 «ENDFILE»
