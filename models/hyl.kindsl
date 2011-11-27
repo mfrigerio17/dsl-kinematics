@@ -3,7 +3,7 @@ Robot HyL {
 	inertia_params {
 		mass = 100.0
 		CoM = (0.0, 0.0, 0.0)
-		moments = .0, .0, .0, .0, .0, .0
+		Iy=0.0	Ix=0.0	Ixy=0.0	Iz=0.0	Ixz=0.0	Iyz=0.0
 	}
 	children {
 		slider via jSLIDE
@@ -19,7 +19,7 @@ link slider {
 	inertia_params {
 		mass = 10.0
 		CoM = (0.0, 0.00, 0.0)
-		moments = 1.0, 1.0, 1.0, 0.00, 0.00, 0.00
+		Ix=1.0	Iy=1.0	Iz=1.0	Ixy=0.0	Ixz=0.0	Iyz=0.0
 	}
 
 	children {
@@ -36,8 +36,8 @@ link hip {
 	inertia_params {
 		mass = 2.9594
 		CoM = (0.041867, 0.00027033, 0.16726)
-		//            Ix,     Iy,     Iz,    Ixy,    Ixz,  Iyz
-		moments = 0.1349, 0.1442, 0.0109, 0.0001, 0.0227, 0.0001
+		Ix = 0.1349	Iy = 0.1442	Iz = 0.0109
+		Ixy= 0.0001	Ixz= 0.0227	Iyz= 0.0001
 	}
 
 	children {
@@ -54,7 +54,10 @@ link leg {
 	inertia_params {
 		mass = 2.6233
 		CoM = (0.1509, -0.0273, 0.0)
-		moments = 0.0057, 0.0871, 0.0901, -0.0079, 0.0000, -0.0000
+		Ix = 0.0057
+		Iy = 0.0871
+		Iz = 0.0901
+		Ixy= -0.0079	Ixz= 0.0000	Iyz= -0.0000
 	}
 
 	children {
@@ -71,7 +74,10 @@ link lowerleg {
 	inertia_params {
 		mass = 0.8039
 		CoM = (0.12228, 0.00062197, -0.00012439)
-		moments = 0.0004, 0.0220, 0.0218, 0.0, 0.0, 0.0
+		Ix = 0.0004
+		Iy = 0.0220
+		Iz = 0.0218
+		Ixy= 0.0	Ixz= 0.0	Iyz= 0.0
 	}
 
 	children {
@@ -89,7 +95,8 @@ link foot{
 	inertia_params {
 		mass = 5.0
 		CoM = (0.025, 0.0, 0.0)
-		moments = 0.0019, 0.0013, 0.0013, 0.0, 0.0, 0.0
+		Ix = 0.0019	Iy = 0.0013 Iz = 0.0013
+		Ixy = 0.0 Ixz = 0.0 Iyz = 0.0
 	}
 
 	children {}
