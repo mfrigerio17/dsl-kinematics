@@ -6,9 +6,12 @@ import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.RobotBase
 import iit.dsl.kinDsl.FloatingRobotBase
+import iit.dsl.kinDsl.ChildrenList
 
 import java.util.ArrayList
 import java.util.List
+import iit.dsl.kinDsl.ChildSpec
+
 
 class Common {
     
@@ -25,7 +28,7 @@ def subspaceMxName(Joint par) {
 }
 
 def childToParentMxName(Link child) {
-    //child.name + "_X_" + child.getParent().name
+    child.name + "_X_" + child.getParent().name
 }
 
 def velocityName(AbstractLink par) {
@@ -50,6 +53,29 @@ def List<AbstractLink> abstractLinks(Robot robot) {
     list.add(robot.base)
     list.addAll(robot.links)
     return list
+}
+
+/* Returns whether the ChildrenList contains the specified link */
+def boolean contains(ChildrenList list, AbstractLink link) {
+    for(ChildSpec c : list.children) {
+        if(c.link.equals(link)) return true
+    }
+    return false
+}
+/* Returns whether the ChildrenList contains the specified joint */
+def boolean contains(ChildrenList list, Joint joint) {
+    for(ChildSpec c : list.children) {
+        if(c.joint.equals(joint)) return true
+    }
+    return false
+}
+/* Returns the parent of the specified link, null if it does not exist */
+def AbstractLink getParent(AbstractLink link) {
+    val links = abstractLinks(link.eContainer() as Robot)
+    for(AbstractLink l : links) {
+        if(contains(l.childrenList, link)) return l
+    }
+   return null
 }
 
 

@@ -20,7 +20,10 @@ class KinDslGenerator implements IGenerator {
 	}
 
 	def generateCode(Robot robot) '''
-        «common.inertiaMxName(robot.links.get(1))»
-        «robot.links.get(2).inertiaMxName()»
+	    «FOR link : robot.links»
+        «link.getParent().name»
+        «ENDFOR»
 	'''
+	//«common.inertiaMxName(robot.links.get(1))»
+    //«robot.links.get(2).inertiaMxName()»
 }

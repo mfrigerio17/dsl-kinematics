@@ -40,6 +40,8 @@ public class Main {
 	
 	@Inject
 	private IGenerator generator;
+	@Inject
+	private IGenerator maximaGenerator;
 	
 	@Inject 
 	private JavaIoFileSystemAccess fileAccess;
@@ -57,11 +59,15 @@ public class Main {
 			}
 			return;
 		}
+		//maximaGenerator = new MaximaGenerator()
 		
 		// configure and start the generator
-		fileAccess.setOutputPath("src-gen/");
+		fileAccess.setOutputPath("generated_code/");
 		generator.doGenerate(resource, fileAccess);
 		
+		//fileAccess.setOutputPath("src-gen/maxima/");
+		//maximaGenerator.doGenerate(resource, fileAccess);
+
 		System.out.println("Code generation finished.");
 	}
 }
