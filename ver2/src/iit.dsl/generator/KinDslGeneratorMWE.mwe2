@@ -30,5 +30,12 @@ Workflow {
 			path = targetDir
 		}
 	}
+    component = org.eclipse.xtext.generator.GeneratorComponent {
+        register = iit.dsl.KinDslStandaloneSetup_Maxima {}
+        slot = 'robot'
+        outlet = {
+            path = '${targetDir}/maxima'
+        }
+    }
 
 }
