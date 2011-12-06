@@ -9,6 +9,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import iit.dsl.kinDsl.Robot
 import com.google.inject.Inject
+import iit.dsl.kinDsl.InertiaParams
 
 
 class KinDslGenerator implements IGenerator {
@@ -16,12 +17,41 @@ class KinDslGenerator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 	    val robot = resource.contents.head as Robot;
-		fsa.generateFile(robot.name+".c", generateCode(robot))
+		//fsa.generateFile(robot.name+".c", test(robot))
+		fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
 	}
 
-	def generateCode(Robot robot) '''
+    def generateCode(Robot robot) '''
+        «FOR link : robot.links»
+        Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
+        «ENDFOR»
+        «FOR joint : robot.joints»
+        Joint «joint.name» connecting  «joint.successorLink().name»
+        «ENDFOR»
+    '''
+
+    def generateURDFmodel(Robot robot) '''
+    <robot name="«robot.name»">
+    «var InertiaParams inertia»
+    «FOR link : robot.links»
+        «inertia = link.inertiaParams»
+        <link name="«link.name»">
+            <inertial>
+                <origin xyz="«inertia.com.items.get(0)» «inertia.com.items.get(1)» «inertia.com.items.get(2)»"/>
+                <mass value="«inertia.mass»"/>
+                <inertia/>
+            </inertial>
+        </link>
+    «ENDFOR»
+    </robot>
+    '''
+
+	def test(Robot robot) '''
 	    «FOR link : robot.links»
-        «link.getParent().name»
+	    Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
+        «ENDFOR»
+        «FOR joint : robot.joints»
+	    Joint «joint.name» connecting  «joint.successorLink().name»
         «ENDFOR»
 	'''
 	//«common.inertiaMxName(robot.links.get(1))»
