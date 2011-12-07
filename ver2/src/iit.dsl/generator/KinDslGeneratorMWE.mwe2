@@ -27,7 +27,7 @@ Workflow {
 		register = iit.dsl.KinDslStandaloneSetup {}
 		slot = 'robot'
 		outlet = {
-			path = targetDir
+			path = '${targetDir}/misc'
 		}
 	}
     component = org.eclipse.xtext.generator.GeneratorComponent {

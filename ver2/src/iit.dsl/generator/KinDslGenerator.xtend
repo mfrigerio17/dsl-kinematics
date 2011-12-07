@@ -7,9 +7,10 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
-import iit.dsl.kinDsl.Robot
 import com.google.inject.Inject
+import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.InertiaParams
+import iit.dsl.kinDsk.generator.Utilities
 
 
 class KinDslGenerator implements IGenerator {
@@ -19,6 +20,7 @@ class KinDslGenerator implements IGenerator {
 	    val robot = resource.contents.head as Robot;
 		//fsa.generateFile(robot.name+".c", test(robot))
 		fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+		fsa.generateFile(robot.name+".temp", temp(robot))
 	}
 
     def generateCode(Robot robot) '''
@@ -33,27 +35,32 @@ class KinDslGenerator implements IGenerator {
     def generateURDFmodel(Robot robot) '''
     <robot name="«robot.name»">
     «var InertiaParams inertia»
+    «var InertiaParams inertia_trans»
     «FOR link : robot.links»
         «inertia = link.inertiaParams»
+        «inertia_trans = Utilities::translate(inertia, inertia.com)»
         <link name="«link.name»">
             <inertial>
                 <origin xyz="«inertia.com.items.get(0)» «inertia.com.items.get(1)» «inertia.com.items.get(2)»"/>
                 <mass value="«inertia.mass»"/>
-                <inertia/>
+                <inertia ixx="«inertia_trans.ix»" iyy="«inertia_trans.iy»" izz="«inertia_trans.iz»" ixy="«inertia_trans.ixy»" ixz="«inertia_trans.ixz»" iyz="«inertia_trans.iyz»"/>
             </inertial>
         </link>
     «ENDFOR»
     </robot>
     '''
 
-	def test(Robot robot) '''
-	    «FOR link : robot.links»
-	    Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
+    def test(Robot robot) '''
+        «FOR link : robot.links»
+        Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
         «ENDFOR»
         «FOR joint : robot.joints»
-	    Joint «joint.name» connecting  «joint.successorLink().name»
+        Joint «joint.name» connecting  «joint.successorLink().name»
         «ENDFOR»
-	'''
-	//«common.inertiaMxName(robot.links.get(1))»
-    //«robot.links.get(2).inertiaMxName()»
+    '''
+
+    def temp(Robot robot) '''
+    «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
+    «inertia.com»
+    '''
 }
