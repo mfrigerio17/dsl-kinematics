@@ -19,8 +19,8 @@ class KinDslGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         common.init(robot)
-        fsa.generateFile(robot.name+".txt", test(robot))
-        //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        //fsa.generateFile(robot.name+".txt", test(robot))
+        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         //fsa.generateFile(robot.name+".temp", temp(robot))
     }
 
@@ -32,14 +32,16 @@ class KinDslGenerator implements IGenerator {
         Joint «joint.name» connecting  «joint.successorLink().name»
         «ENDFOR»
     '''
-
+//    «var InertiaParams inertia»
+//    «var InertiaParams inertia_trans»
+    /**
+     * Generates and xml URDF description of the robot, as specified in the ROS documentation
+     */
     def generateURDFmodel(Robot robot) '''
     <robot name="«robot.name»">
-    «var InertiaParams inertia»
-    «var InertiaParams inertia_trans»
     «FOR link : robot.links»
-        «inertia = link.inertiaParams»
-        «inertia_trans = Utilities::translate(inertia, inertia.com)»
+        «val inertia = link.inertiaParams»
+        «val inertia_trans = Utilities::translate(inertia, inertia.com)»
         <link name="«link.name»">
             <inertial>
                 <origin xyz="«inertia.com.items.get(0)» «inertia.com.items.get(1)» «inertia.com.items.get(2)»"/>
@@ -48,12 +50,23 @@ class KinDslGenerator implements IGenerator {
             </inertial>
         </link>
     «ENDFOR»
+    «FOR joint : robot.joints»
+        «val frame = joint.refFrame»
+        <joint name="«joint.name»" type="«joint.type»"/>
+            <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.listCoordinates()»"/>
+            <parent link="«joint.predecessorLink.name»"/>
+            <child  link="«joint.successorLink.name»"/>
+        </joint>
+    «ENDFOR»
     </robot>
     '''
 
     def test(Robot robot) '''
+        «FOR link : robot.abstractLinks»
+        Link «link.name» moved by  «link.connectingJoint»
+        «ENDFOR»
         «FOR link : robot.links»
-        Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
+        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint().name»
         «ENDFOR»
         «FOR joint : robot.joints»
         Joint «joint.name» connecting  «joint.successorLink().name»
