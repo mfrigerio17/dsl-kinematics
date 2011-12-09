@@ -12,6 +12,9 @@ import java.util.ArrayList
 import java.util.List
 import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.FixedRobotBase
+import iit.dsl.kinDsl.Vector3
+import iit.dsl.kinDsl.RevoluteJoint
+import iit.dsl.kinDsl.PrismaticJoint
 
 
 class Common {
@@ -117,26 +120,55 @@ def AbstractLink getSuccessor(ChildrenList list, Joint joint) {
     }
     return null
 }
-/** Returns the successor link of this joint */
+/** Returns the successor link of a joint */
 def AbstractLink getSuccessorLink(Joint joint) {
     var AbstractLink found = null
     for(AbstractLink l : allLinks) {
         found = getSuccessor(l.childrenList, joint);
         if(found != null) return found
     }
-    return null // should never get here
+    //should never get here
+    throw new RuntimeException("Joint " + joint.name + " has no successor?!?")
+}
+/** Returns the predecessor link of a joint */
+def AbstractLink getPredecessorLink(Joint joint) {
+    for(AbstractLink l : allLinks) {
+        if(contains(l.childrenList, joint)){
+            return l
+        }
+    }
+    //should never get here
+    throw new RuntimeException("Joint " + joint.name + " has no predecessor?!?")
 }
 
 /** Returns the Joints which "moves" the link in the argument */
-def Joint getConnectingJoint(AbstractLink link) {
+def dispatch Joint getConnectingJoint(RobotBase base) {//specialized funtion for RobotBase
+    if(base.floating) {
+        throw new RuntimeException("The floating base 6DOF virtual joint is not yet implemented, cannot return it")
+    } else {
+        return null
+    }
+}
+def dispatch Joint getConnectingJoint(AbstractLink link) {
     for(ChildSpec c : link.getParent().childrenList.children) {
         if(c.link.equals(link)) {
             return c.joint
         }
     }
-    return null;//should never get here
+    //should never get here
+    throw new RuntimeException("Link " + link.name + " is not connected via any joint?!?")
 }
 
+def listCoordinates(Vector3 vector) {
+    '''«vector.items.get(0)» «vector.items.get(1)» «vector.items.get(2)»'''
+}
+
+def dispatch getType(RevoluteJoint joint) {
+    '''revolute'''
+}
+def dispatch getType(PrismaticJoint joint) {
+    '''revolute'''
+}
 
 }//end of class
 
