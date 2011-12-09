@@ -16,12 +16,13 @@ import iit.dsl.kinDsk.generator.Utilities
 class KinDslGenerator implements IGenerator {
     @Inject extension Common common
 
-	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-	    val robot = resource.contents.head as Robot;
-		//fsa.generateFile(robot.name+".c", test(robot))
-		fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-		fsa.generateFile(robot.name+".temp", temp(robot))
-	}
+    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+        val robot = resource.contents.head as Robot;
+        common.init(robot)
+        fsa.generateFile(robot.name+".txt", test(robot))
+        //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        //fsa.generateFile(robot.name+".temp", temp(robot))
+    }
 
     def generateCode(Robot robot) '''
         «FOR link : robot.links»

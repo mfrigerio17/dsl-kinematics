@@ -16,6 +16,12 @@ import iit.dsl.kinDsl.FixedRobotBase
 
 class Common {
 
+List<AbstractLink> allLinks
+
+def void init(Robot robot) {
+    allLinks = abstractLinks(robot)
+}
+
 def inertiaMxName(Link link) {
     link.name + "_Imx"
 }
@@ -72,8 +78,7 @@ def boolean contains(ChildrenList list, Joint joint) {
 }
 /** Returns the parent of the specified link, null if it does not exist */
 def AbstractLink getParent(AbstractLink link) {
-    val links = abstractLinks(link.eContainer() as Robot)
-    for(AbstractLink l : links) {
+    for(AbstractLink l : allLinks) {
         if(contains(l.childrenList, link)) return l
     }
    return null
@@ -114,9 +119,8 @@ def AbstractLink getSuccessor(ChildrenList list, Joint joint) {
 }
 /** Returns the successor link of this joint */
 def AbstractLink getSuccessorLink(Joint joint) {
-    val links = abstractLinks(joint.eContainer() as Robot)
     var AbstractLink found = null
-    for(AbstractLink l : links) {
+    for(AbstractLink l : allLinks) {
         found = getSuccessor(l.childrenList, joint);
         if(found != null) return found
     }

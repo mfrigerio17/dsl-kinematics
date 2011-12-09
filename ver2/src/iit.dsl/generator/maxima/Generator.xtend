@@ -11,10 +11,11 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
 
 class Generator implements IGenerator {
-        @Inject extension Common common
+    @Inject extension Common common
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        common.init(robot)
         fsa.generateFile(robot.name+"_transforms.maxima", generateCode(robot))
     }
 
