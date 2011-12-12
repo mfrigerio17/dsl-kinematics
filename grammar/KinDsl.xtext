@@ -47,11 +47,8 @@ InertiaParams:
     'inertia_params' '{'
         'mass' '=' mass=FLOAT
         'CoM'  '=' com= Vector3
-        moments=Moments
+        ('Ix''=' ix  = FLOAT & 'Iy''=' iy  = FLOAT & 'Iz''=' iz  = FLOAT & 'Ixy''=' ixy = FLOAT & 'Ixz''=' ixz = FLOAT & 'Iyz''=' iyz = FLOAT)
     '}'
-;
-Moments:
-    'Ix''=' ix  = FLOAT & 'Iy''=' iy  = FLOAT & 'Iz''=' iz  = FLOAT & 'Ixy''=' ixy = FLOAT & 'Ixz''=' ixz = FLOAT & 'Iyz''=' iyz = FLOAT
 ;
 
 Joint:
