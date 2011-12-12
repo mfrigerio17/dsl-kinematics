@@ -52,9 +52,10 @@ link hip {
 link leg {
 	id = 3
 	inertia_params {
-		mass = 2.6233
-		CoM = (0.1509, -0.0273, 0.0)
-		moments = 0.0057, 0.0871, 0.0901, -0.0079, 0.0000, -0.0000
+		mass = 2.06218
+		CoM = (0.14925, -0.02996, -0.00005)
+		//             Ix,      Iy,      Iz,      Ixy,      Ixz,      Iyz
+		moments = 0.00464, 0.07216, 0.07463, -0.00718, -0.00001, -0.00001
 	}
 
 	children {
@@ -69,9 +70,10 @@ link leg {
 link lowerleg {
 	id = 4
 	inertia_params {
-		mass = 0.8039
-		CoM = (0.12228, 0.00062197, -0.00012439)
-		moments = 0.0004, 0.0220, 0.0218, 0.0, 0.0, 0.0
+		mass = 0.80669
+		CoM = (0.12185, 0.00058, -0.00012)
+		//             Ix,      Iy,      Iz,    Ixy,  Ixz,  Iyz
+		moments = 0.00042, 0.02202, 0.02183,    0.0,  0.0,  0.0
 	}
 
 	children {
