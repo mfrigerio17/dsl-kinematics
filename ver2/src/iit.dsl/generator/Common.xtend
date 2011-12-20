@@ -170,5 +170,23 @@ def dispatch getType(PrismaticJoint joint) {
     '''revolute'''
 }
 
+def getVariableName(Joint joint) '''q_«joint.name»'''
+def getFrameName(Joint joint) '''fr_«joint.name»'''
+def getFrameName(AbstractLink link) '''fr_«link.name»'''
+
+def dispatch motionTransform(RevoluteJoint  joint)
+    '''Rz(«joint.variableName»)'''
+def dispatch motionTransform(PrismaticJoint joint)
+    '''Tz(«joint.variableName»)'''
+
+def CharSequence link2jointTransform(Joint joint) {
+    var StringBuffer text = new StringBuffer();
+    text.append('''Tx(«joint.refFrame.translation.items.get(0)») Ty(«joint.refFrame.translation.items.get(1)») Tz(«joint.refFrame.translation.items.get(2)») Rx(«joint.refFrame.rotation.items.get(0)») Ry(«joint.refFrame.rotation.items.get(1)») Rz(«joint.refFrame.rotation.items.get(2)»)''')
+
+    return text
+}
+
+
+
 }//end of class
 
