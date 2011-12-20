@@ -9,8 +9,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.InertiaParams
-import iit.dsl.kinDsk.generator.Utilities
 
 
 class KinDslGenerator implements IGenerator {
@@ -21,15 +19,15 @@ class KinDslGenerator implements IGenerator {
         common.init(robot)
         //fsa.generateFile(robot.name+".txt", test(robot))
         fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        //fsa.generateFile(robot.name+".temp", temp(robot))
+        fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
     }
 
     def generateCode(Robot robot) '''
         «FOR link : robot.links»
-        Link «link.name» connected from  «link.getParent().name»  via  «link.connectingJoint().name»
+        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint.name»
         «ENDFOR»
         «FOR joint : robot.joints»
-        Joint «joint.name» connecting  «joint.successorLink().name»
+        Joint «joint.name» connecting  «joint.successorLink.name»
         «ENDFOR»
     '''
 //    «var InertiaParams inertia»
@@ -66,15 +64,36 @@ class KinDslGenerator implements IGenerator {
         Link «link.name» moved by  «link.connectingJoint»
         «ENDFOR»
         «FOR link : robot.links»
-        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint().name»
+        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint.name»
         «ENDFOR»
         «FOR joint : robot.joints»
-        Joint «joint.name» connecting  «joint.successorLink().name»
+        Joint «joint.name» connecting  «joint.successorLink.name»
         «ENDFOR»
     '''
 
     def temp(Robot robot) '''
     «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
     «inertia.com»
+    '''
+
+    def generateCoordinateTransforms(Robot robot) '''
+    Frames {
+        «robot.base.frameName»
+        «FOR link : robot.abstractLinks.drop(1)»
+            , «link.frameName»
+        «ENDFOR»
+        «FOR joint : robot.joints»
+            , «joint.frameName»
+        «ENDFOR»
+    }
+
+    TransformedFramePos = right
+
+    «FOR link : robot.links»
+        «val joint  = link.connectingJoint»
+        «val parent = link.parent»
+        {«parent.frameName»}_X_{«link.frameName»} = «joint.link2jointTransform» «joint.motionTransform»
+
+    «ENDFOR»
     '''
 }
