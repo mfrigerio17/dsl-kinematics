@@ -5,7 +5,7 @@ RobotBase trunk {
 	inertia_params {
       mass =  53.0
       CoM = (-0.0002, 0.0001, 0.0011)
-      moments =  1.26,6.56,6.69,0.03,-0.06,-0.03
+      Ix=1.26 Iy=6.56 Iz=6.69 Ixy=0.03 Ixz=-0.06 Iyz=-0.03
 	}
 	children {
 		LF_hip via LF_HAA
@@ -24,8 +24,7 @@ link LF_hip {
 	inertia_params {
 		mass = 2.482
         CoM = (0.0131, 0.0001, 0.0573)
-        //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
-        moments = 0.0956126, 0.1012626, 0.0006758, 0.00, -0.011, 0.00
+        Ix=0.0956126 Iy=0.1012626 Iz=0.0006758 Ixy=0.00 Ixz=-0.011 Iyz=0.00
 	}
 	children {
 		LF_leg via LF_HFE
@@ -41,8 +40,7 @@ link RF_hip {
 	inertia_params {
         mass = 2.482
         CoM = (0.0131, -0.0001, -0.0573)
-        //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
-        moments = 0.0956126, 0.1012626, 0.0006758, 0.00,  0.011, 0.00
+        Ix=0.0956126 Iy=0.1012626 Iz=0.0006758 Ixy=0.00 Ixz=0.011 Iyz=0.00
 	}
 	children {
         RF_leg via RF_HFE
@@ -58,8 +56,7 @@ link LH_hip {
     inertia_params {
         mass = 2.482
         CoM = (0.0131, -0.0001, -0.0573)
-        //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
-        moments = 0.0956126, 0.1012626, 0.0006758, 0.00,  0.011, 0.00
+        Ix=0.0956126 Iy=0.1012626 Iz=0.0006758 Ixy=0.00 Ixz=0.011 Iyz=0.00
     }
     children {
         LH_leg via LH_HFE
@@ -75,8 +72,7 @@ link RH_hip {
     inertia_params {
         mass = 2.482
         CoM = (0.0131, 0.0001, 0.0573)
-        //            Ix,         Iy,       Iz,     Ixy,  Ixz,  Iyz
-        moments = 0.0956126, 0.1012626, 0.0006758, 0.00, -0.011, 0.00
+        Ix=0.0956126 Iy=0.1012626 Iz=0.0006758 Ixy=0.00 Ixz=-0.011 Iyz=0.00
     }
     children {
         RH_leg via RH_HFE
@@ -95,8 +91,7 @@ link LF_leg {
 	inertia_params {
 		mass = 2.16
 		CoM = ( 0.14796,  -0.02958,   0.00000)
-		//            Ix,         Iy,       Iz,     Ixy,     Ixz,  Iyz
-		moments =  0.004785, 0.076166, 0.078576, 0.0071588, 0.00, 0.00 
+		Ix=0.004785 Iy=0.076166 Iz=0.078576 Ixy=0.0071588 Ixz=0.00 Iyz=0.00 
 	}
 	children {
 		LF_lowerleg via LF_KFE
@@ -112,7 +107,7 @@ link LF_lowerleg {
 	inertia_params {
 		mass = 1.8717
 		CoM = (0.1783, 0.0003, -0.0001)
-		moments =  0.0009, 0.0777, 0.0775, -0.0000, -0.0000, 0.0000   
+		Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000   
 	}
 	children {}
 	ref_frame {
@@ -130,7 +125,7 @@ link RF_leg {
     inertia_params {
         mass = 2.16
         CoM = ( 0.14796,  -0.02958,   0.00000)
-        moments =  0.004785, 0.076166, 0.078576, 0.0071588, 0.00, 0.00
+        Ix=0.004785 Iy=0.076166 Iz=0.078576 Ixy=0.0071588 Ixz=0.00 Iyz=0.00
     }
     children {
         RF_lowerleg via RF_KFE
@@ -146,7 +141,7 @@ link RF_lowerleg {
     inertia_params {
         mass = 1.8717
         CoM = (0.1783, 0.0003, -0.0001)
-        moments =  0.0009, 0.0777, 0.0775, -0.0000, -0.0000, 0.0000   
+        Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
     ref_frame {
@@ -162,7 +157,7 @@ link LH_leg {
     inertia_params {
         mass = 2.16
         CoM = ( 0.14796,  0.02958,   0.00000)
-        moments =  0.004785, 0.076166, 0.078576, -0.0071588, 0.00, 0.00 
+        Ix=0.004785 Iy=0.076166 Iz=0.078576 Ixy=-0.0071588 Ixz=0.00 Iyz=0.00
     }
     children {
         LH_lowerleg via LH_KFE
@@ -178,7 +173,7 @@ link LH_lowerleg {
     inertia_params {
         mass = 1.8717
         CoM = (0.1783, 0.0003, -0.0001)
-        moments =  0.0009, 0.0777, 0.0775, -0.0000, -0.0000, 0.0000
+        Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
     ref_frame {
@@ -194,7 +189,7 @@ link RH_leg {
     inertia_params {
         mass = 2.16
         CoM = ( 0.14796,  -0.02958,   0.00000)
-        moments =  0.004785, 0.076166, 0.078576, -0.0071588, 0.00, 0.00
+        Ix=0.004785 Iy=0.076166 Iz=0.078576 Ixy=-0.0071588 Ixz=0.00 Iyz=0.00
     }
     children {
         RH_lowerleg via RH_KFE
@@ -210,7 +205,7 @@ link RH_lowerleg {
     inertia_params {
         mass = 1.8717
         CoM = (0.1783, 0.0003, -0.0001)
-        moments =  0.0009, 0.0777, 0.0775, -0.0000, -0.0000, 0.0000
+        Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=0.00 Ixz=0.00 Iyz=0.00
     }
     children {}
     ref_frame {
