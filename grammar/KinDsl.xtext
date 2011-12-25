@@ -97,7 +97,7 @@ RefFrame:
 ;
     
 Vector3  :
-    '('items+=FLOAT','items+=FLOAT','items+=FLOAT')';
+    '('x=FLOAT','y=FLOAT','z=FLOAT')';
 
 terminal FLOAT returns ecore::EFloat : ('+'?|'-')('0'..'9')*'.'('0'..'9')+;
 

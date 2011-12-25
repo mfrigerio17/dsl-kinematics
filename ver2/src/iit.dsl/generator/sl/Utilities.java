@@ -7,8 +7,6 @@ import iit.dsl.kinDsl.Vector3;
 import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
 import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 
-import org.eclipse.emf.common.util.EList;
-
 public abstract class Utilities {
 	public static final String userConfigFolder = "config";
 	public static final String linkParamsFile = "LinkParameters.cf";
@@ -18,17 +16,17 @@ public abstract class Utilities {
 
 	public static InertiaParams tuneForSL(InertiaParams inertia) {
 		float mass  = inertia.getMass();
-		EList<Float> com = inertia.getCom().getItems();
+		Vector3 com = inertia.getCom();
 
 		InertiaParams tuned = (InertiaParams)factory.create(dslPackage.getInertiaParams());
 		tuned.setCom((Vector3)factory.create(dslPackage.getVector3()));
 		tuned.setMass(mass);
 
 		// Multiply the com by the mass
-		EList<Float> temp = tuned.getCom().getItems();
-		temp.add(com.get(0) * mass);
-		temp.add(com.get(1) * mass);
-		temp.add(com.get(2) * mass);
+		Vector3 temp = tuned.getCom();
+		temp.setX(com.getX() * mass);
+		temp.setY(com.getY() * mass);
+		temp.setZ(com.getZ() * mass);
 
 		// Add a minus sign in front of the centrifugal moments
 		tuned.setIx (inertia.getIx());

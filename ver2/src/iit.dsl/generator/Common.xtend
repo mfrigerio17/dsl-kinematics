@@ -160,7 +160,7 @@ def dispatch Joint getConnectingJoint(AbstractLink link) {
 }
 
 def listCoordinates(Vector3 vector) {
-    '''«vector.items.get(0)» «vector.items.get(1)» «vector.items.get(2)»'''
+    '''«vector.x» «vector.y» «vector.z»'''
 }
 
 def dispatch getTypeString(RevoluteJoint joint) {
@@ -181,7 +181,7 @@ def dispatch motionTransform(PrismaticJoint joint)
 
 def CharSequence link2jointTransform(Joint joint) {
     var StringBuffer text = new StringBuffer();
-    text.append('''Tx(«joint.refFrame.translation.items.get(0)») Ty(«joint.refFrame.translation.items.get(1)») Tz(«joint.refFrame.translation.items.get(2)») Rx(«joint.refFrame.rotation.items.get(0)») Ry(«joint.refFrame.rotation.items.get(1)») Rz(«joint.refFrame.rotation.items.get(2)»)''')
+    text.append('''Tx(«joint.refFrame.translation.x») Ty(«joint.refFrame.translation.y») Tz(«joint.refFrame.translation.z») Rx(«joint.refFrame.rotation.x») Ry(«joint.refFrame.rotation.y») Rz(«joint.refFrame.rotation.z»)''')
 
     return text
 }

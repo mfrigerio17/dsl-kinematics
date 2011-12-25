@@ -7,7 +7,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import com.google.inject.Inject
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.AbstractLink
 
 class Generator implements IGenerator {
     @Inject extension iit.dsl.generator.sl.Common slCommon
@@ -30,10 +29,10 @@ class Generator implements IGenerator {
     */
     def generateLinkParams(Robot robot) { '''
         «val bparams = Utilities::tuneForSL(robot.base.inertiaParams)»
-        BASE  «bparams.mass»  «bparams.com.items.get(0)» «bparams.com.items.get(1)» «bparams.com.items.get(2)»  «bparams.ix» «bparams.ixy» «bparams.ixz» «bparams.iy» «bparams.iyz» «bparams.iz» 0.1 0 0 0
+        BASE  «bparams.mass»  «bparams.com.x» «bparams.com.y» «bparams.com.z»  «bparams.ix» «bparams.ixy» «bparams.ixz» «bparams.iy» «bparams.iyz» «bparams.iz» 0.1 0 0 0
         «FOR link : robot.links»
             «val params = Utilities::tuneForSL(link.inertiaParams)»
-            «link.connectingJoint.name»  «params.mass»  «params.com.items.get(0)» «params.com.items.get(1)» «params.com.items.get(2)»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
+            «link.connectingJoint.name»  «params.mass»  «params.com.x» «params.com.y» «params.com.z»  «params.ix» «params.ixy» «params.ixz» «params.iy» «params.iyz» «params.iz» 0.1 0 0 0
         «ENDFOR»
         '''
     }

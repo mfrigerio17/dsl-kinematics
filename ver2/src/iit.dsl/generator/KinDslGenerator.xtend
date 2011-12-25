@@ -42,7 +42,7 @@ class KinDslGenerator implements IGenerator {
         «val inertia_trans = Utilities::translate(inertia, inertia.com)»
         <link name="«link.name»">
             <inertial>
-                <origin xyz="«inertia.com.items.get(0)» «inertia.com.items.get(1)» «inertia.com.items.get(2)»"/>
+                <origin xyz="«inertia.com.x» «inertia.com.y» «inertia.com.z»"/>
                 <mass value="«inertia.mass»"/>
                 <inertia ixx="«inertia_trans.ix»" iyy="«inertia_trans.iy»" izz="«inertia_trans.iz»" ixy="«inertia_trans.ixy»" ixz="«inertia_trans.ixz»" iyz="«inertia_trans.iyz»"/>
             </inertial>
@@ -79,7 +79,7 @@ class KinDslGenerator implements IGenerator {
     def generateCoordinateTransforms(Robot robot) '''
     Frames {
         «robot.base.frameName»
-        «FOR link : robot.abstractLinks.drop(1)»
+        «FOR link : robot.links»
             , «link.frameName»
         «ENDFOR»
         «FOR joint : robot.joints»
