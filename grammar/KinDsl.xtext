@@ -17,22 +17,26 @@ AbstractLink:
 RobotBase:
     FixedRobotBase | FloatingRobotBase;
 
+/* Any link might have an arbitrary number of frames *in addition*
+ * to the default one (the link frame, which is the one that coincides
+ * with the joint frame when the joint status is zero). These frames
+ * are expressed wrt such default one.
+ */
+
 FixedRobotBase:
     'RobotBase' name=ID
     '{'
     inertiaParams = InertiaParams // if the base is fixed inertia does not matter, does it?
     childrenList = ChildrenList
-    refFrame = RefFrame
+    ('frames' ('{'frames += RefFrame+'}')+)?
     '}';
 
-/* For a floating base it does not make sense to specify the transform for
-   its reference frame, so the 'refFrame' property is omitted.
-*/
 FloatingRobotBase:
     'RobotBase' name=ID 'floating'
    '{'
     inertiaParams = InertiaParams
     childrenList = ChildrenList
+    ('frames' ('{'frames += RefFrame+'}')+)?
     '}';
 
 Link:
@@ -40,7 +44,7 @@ Link:
     'id' '=' num = MY_ID
     inertiaParams = InertiaParams
     childrenList = ChildrenList
-    refFrame = RefFrame
+    ('frames' ('{'frames += RefFrame+'}')+)?
     '}';
 
 InertiaParams:
@@ -57,13 +61,13 @@ Joint:
 RevoluteJoint:
     'r_joint' name=ID '{'
     'id' '=' num = MY_ID
-    refFrame = RefFrame
+    'ref_frame' '{'refFrame = RotoTrasl'}'
     '}';
 
 PrismaticJoint:
     'p_joint' name=ID '{'
     'id' '=' num = MY_ID
-    refFrame = RefFrame
+    'ref_frame' '{'refFrame = RotoTrasl'}'
     '}';
 
 /* The explicit action {.} ensures object creation, in order to
@@ -78,21 +82,22 @@ ChildrenList: {ChildrenList}
 ChildSpec :
     link=[Link] 'via' joint=[Joint];
 
-/* A reference frame basically exists in terms of the roto-translation
-   with respect to some other frame.
-*/
-RefFrame:
-    'ref_frame' '{'
+RotoTrasl:
     'translation' '=' translation = Vector3
     'rotation' '=' rotation = Vector3
-    '}';
+    ;
 
+/* A reference frame basically exists in terms of the roto-translation
+   with respect to some other frame. Plus, it has a name
+*/
+RefFrame:
+    name = ID '{'
+    transform = RotoTrasl
+    '}'
+;
     
 Vector3  :
     '('items+=FLOAT','items+=FLOAT','items+=FLOAT')';
-
-//Vector3 returns ecore::EJavaObject :
-//    '('FLOAT','FLOAT','FLOAT')';
 
 terminal FLOAT returns ecore::EFloat : ('+'?|'-')('0'..'9')*'.'('0'..'9')+;
 

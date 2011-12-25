@@ -8,10 +8,6 @@ Robot HyL {
 	children {
 		slider via jSLIDE
 	}
-	ref_frame {
-		translation = (.0,.0,.0)
-		rotation =  (.0,.0,.0)
-	}
 }
 
 link slider {
@@ -24,10 +20,6 @@ link slider {
 
 	children {
 		hip via jHAA
-	}
-	ref_frame {
-		translation = (0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
@@ -42,10 +34,6 @@ link hip {
 
 	children {
 		leg via jHFE
-	}
-	ref_frame {
-		translation = (0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
@@ -63,10 +51,6 @@ link leg {
 	children {
 		lowerleg via jKFE
 	}
-	ref_frame {
-		translation =(0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
-	}
 }
 
 link lowerleg {
@@ -83,10 +67,6 @@ link lowerleg {
 	children {
 		foot via jDummy
 	}
-	ref_frame {
-		translation =(0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
-	}
 }
 
 // A dummy link to simulate a load at the endeffector; it is a small sphere of 5Kg, 2.5 cm of radius
@@ -100,10 +80,6 @@ link foot{
 	}
 
 	children {}
-	ref_frame {
-		translation =(0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
-	}
 }
 
 p_joint jSLIDE {

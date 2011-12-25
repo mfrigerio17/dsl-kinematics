@@ -13,9 +13,15 @@ RobotBase trunk {
 		LH_hip via LH_HAA
 		RH_hip via RH_HAA
 	}
-	ref_frame {
-	   translation = (0.0, 0.0, 0.0)
-	   rotation = (0.0, 0.0, 0.0)
+	frames {
+        foo {
+            translation = (0.0, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+        bla {
+           translation = (0.0, 0.0, 0.0)
+           rotation = (0.0, 0.0, 0.0)
+		}
 	}
 }
 
@@ -29,10 +35,6 @@ link LF_hip {
 	children {
 		LF_leg via LF_HFE
 	}
-	ref_frame {
-		translation = (1.0, 1.0, 1.0)
-		rotation = ( 0.0,0.0,0.0)
-	}
 }
 
 link RF_hip {
@@ -44,10 +46,6 @@ link RF_hip {
 	}
 	children {
         RF_leg via RF_HFE
-	}
-	ref_frame {
-		translation = (1.0,1.0,1.0)
-		rotation = (0.0, 0.0, 0.0)
 	}
 }
 
@@ -61,10 +59,6 @@ link LH_hip {
     children {
         LH_leg via LH_HFE
     }
-	ref_frame {
-		translation = (1.0,1.0,1.0)
-		rotation =  (0.0,0.0,0.0)
-	}
 }
 
 link RH_hip {
@@ -77,10 +71,6 @@ link RH_hip {
     children {
         RH_leg via RH_HFE
     }
-	ref_frame {
-		translation = (1.0,1.0,1.0)
-		rotation =  (0.0,0.0,0.0)
-	}
 }
 
 // Left Front leg
@@ -96,10 +86,6 @@ link LF_leg {
 	children {
 		LF_lowerleg via LF_KFE
 	}
-	ref_frame {
-		translation = (1.0,1.0,1.0)
-		rotation =  (0.0,0.0,0.0)
-	}
 }
 
 link LF_lowerleg {
@@ -110,10 +96,6 @@ link LF_lowerleg {
 		Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000   
 	}
 	children {}
-	ref_frame {
-		translation = (1.0,1.0,1.0)
-		rotation =  (0.0,0.0,0.0)
-	}
 }
 
 
@@ -130,10 +112,6 @@ link RF_leg {
     children {
         RF_lowerleg via RF_KFE
     }
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
 
 link RF_lowerleg {
@@ -144,10 +122,6 @@ link RF_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
 
 // Left Hind leg
@@ -162,10 +136,6 @@ link LH_leg {
     children {
         LH_lowerleg via LH_KFE
     }
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
 
 link LH_lowerleg {
@@ -176,10 +146,6 @@ link LH_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
 
 // Right Hind leg
@@ -194,10 +160,6 @@ link RH_leg {
     children {
         RH_lowerleg via RH_KFE
     }
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
 
 link RH_lowerleg {
@@ -208,12 +170,7 @@ link RH_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=0.00 Ixz=0.00 Iyz=0.00
     }
     children {}
-    ref_frame {
-        translation = (1.0,1.0,1.0)
-        rotation =  (0.0,0.0,0.0)
-    }
 }
-
 
 
 
