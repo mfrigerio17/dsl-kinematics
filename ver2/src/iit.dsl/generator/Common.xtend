@@ -163,11 +163,11 @@ def listCoordinates(Vector3 vector) {
     '''«vector.items.get(0)» «vector.items.get(1)» «vector.items.get(2)»'''
 }
 
-def dispatch getType(RevoluteJoint joint) {
+def dispatch getTypeString(RevoluteJoint joint) {
     '''revolute'''
 }
-def dispatch getType(PrismaticJoint joint) {
-    '''revolute'''
+def dispatch getTypeString(PrismaticJoint joint) {
+    '''prismatic'''
 }
 
 def getVariableName(Joint joint) '''q_«joint.name»'''

@@ -50,7 +50,7 @@ class KinDslGenerator implements IGenerator {
     «ENDFOR»
     «FOR joint : robot.joints»
         «val frame = joint.refFrame»
-        <joint name="«joint.name»" type="«joint.type»"/>
+        <joint name="«joint.name»" type="«joint.typeString»"/>
             <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.listCoordinates()»"/>
             <parent link="«joint.predecessorLink.name»"/>
             <child  link="«joint.successorLink.name»"/>
