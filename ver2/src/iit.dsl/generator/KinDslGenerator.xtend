@@ -92,7 +92,8 @@ class KinDslGenerator implements IGenerator {
     «FOR link : robot.links»
         «val joint  = link.connectingJoint»
         «val parent = link.parent»
-        {«parent.frameName»}_X_{«link.frameName»} = «joint.link2jointTransform» «joint.motionTransform»
+        {«parent.frameName»}_X_{«link.frameName»} = «FramesTransforms::predecessor_X_joint(joint)» «FramesTransforms::joint_X_successor(joint)»
+        {«link.frameName»}_X_{«parent.frameName»} = «FramesTransforms::successor_X_joint(joint)» «FramesTransforms::joint_X_predecessor(joint)»
 
     «ENDFOR»
     '''

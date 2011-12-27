@@ -1,13 +1,11 @@
 package iit.dsl.generator;
 
-import org.eclipse.emf.common.util.EList;
-
+import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
 import iit.dsl.kinDsl.KinDslPackage;
-import iit.dsl.kinDsl.impl.KinDslPackageImpl;
-import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
-import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.Vector3;
+import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
+import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 
 public class Utilities {
 	
@@ -39,5 +37,9 @@ public class Utilities {
 		translated.setIxz(inertia.getIxz() + mass * (x*z));
 		translated.setIyz(inertia.getIyz() + mass * (y*z));
 		return translated;
+	}
+
+	public static float invert(float num) {
+	    return -num;
 	}
 }

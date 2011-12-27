@@ -174,19 +174,5 @@ def getVariableName(Joint joint) '''q_«joint.name»'''
 def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
-def dispatch motionTransform(RevoluteJoint  joint)
-    '''Rz(«joint.variableName»)'''
-def dispatch motionTransform(PrismaticJoint joint)
-    '''Tz(«joint.variableName»)'''
-
-def CharSequence link2jointTransform(Joint joint) {
-    var StringBuffer text = new StringBuffer();
-    text.append('''Tx(«joint.refFrame.translation.x») Ty(«joint.refFrame.translation.y») Tz(«joint.refFrame.translation.z») Rx(«joint.refFrame.rotation.x») Ry(«joint.refFrame.rotation.y») Rz(«joint.refFrame.rotation.z»)''')
-
-    return text
-}
-
-
-
 }//end of class
 
