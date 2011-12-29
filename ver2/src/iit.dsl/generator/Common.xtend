@@ -174,5 +174,9 @@ def getVariableName(Joint joint) '''q_«joint.name»'''
 def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
+def str(Float num) {
+    String::format("% 06.5f", num)
+}
+
 }//end of class
 
