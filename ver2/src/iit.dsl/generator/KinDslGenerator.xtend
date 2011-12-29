@@ -77,6 +77,7 @@ class KinDslGenerator implements IGenerator {
     '''
 
     def generateCoordinateTransforms(Robot robot) '''
+    Model «robot.name»
     Frames {
         «robot.base.frameName»
         «FOR link : robot.links»
