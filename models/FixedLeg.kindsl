@@ -51,15 +51,17 @@ r_joint HFE {
 	id = 1
 	ref_frame {
 		translation = (0.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
-	}
-}
+		rotation = (0.0, 0.0, -PI/2.0) // when the hip joint is at zero status, the leg
+	}                                  // is vertical at -90 degrees wrt an horizontal line
+}                                      // (the x axis at the hip)
 
 r_joint KFE {
 	id = 2
 	ref_frame {
-		translation = (1.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
+	/* The leg length ('ll') is the translation along x
+	   A rotation of pi about x invert the versus of the z axis	*/
+		translation = (ll, 0.0, 0.0)
+		rotation = (PI, 0.0, 0.0)
 	}
 }
 
