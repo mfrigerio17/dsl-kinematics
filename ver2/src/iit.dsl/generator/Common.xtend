@@ -1,20 +1,26 @@
 package iit.dsl.generator
 
-import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.Link
-import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.RobotBase
-import iit.dsl.kinDsl.FloatingRobotBase
+import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.ChildrenList
-
+import iit.dsl.kinDsl.DivExpr
+import iit.dsl.kinDsl.Expr
+import iit.dsl.kinDsl.FixedRobotBase
+import iit.dsl.kinDsl.FloatLiteral
+import iit.dsl.kinDsl.FloatingRobotBase
+import iit.dsl.kinDsl.Identifier
+import iit.dsl.kinDsl.Joint
+import iit.dsl.kinDsl.Link
+import iit.dsl.kinDsl.MultExpr
+import iit.dsl.kinDsl.PlainExpr
+import iit.dsl.kinDsl.PrismaticJoint
+import iit.dsl.kinDsl.RevoluteJoint
+import iit.dsl.kinDsl.Robot
+import iit.dsl.kinDsl.RobotBase
+import iit.dsl.kinDsl.Vector3
 import java.util.ArrayList
 import java.util.List
-import iit.dsl.kinDsl.ChildSpec
-import iit.dsl.kinDsl.FixedRobotBase
-import iit.dsl.kinDsl.Vector3
-import iit.dsl.kinDsl.RevoluteJoint
-import iit.dsl.kinDsl.PrismaticJoint
+import org.eclipse.xtext.EcoreUtil2
 
 
 class Common {
@@ -163,12 +169,8 @@ def listCoordinates(Vector3 vector) {
     '''«vector.x» «vector.y» «vector.z»'''
 }
 
-def dispatch getTypeString(RevoluteJoint joint) {
-    '''revolute'''
-}
-def dispatch getTypeString(PrismaticJoint joint) {
-    '''prismatic'''
-}
+def dispatch getTypeString(RevoluteJoint joint) '''revolute'''
+def dispatch getTypeString(PrismaticJoint joint)'''prismatic'''
 
 def getVariableName(Joint joint) '''q_«joint.name»'''
 def getFrameName(Joint joint) '''fr_«joint.name»'''
@@ -177,6 +179,24 @@ def getFrameName(AbstractLink link) '''fr_«link.name»'''
 def str(Float num) {
     String::format("% 06.5f", num)
 }
+
+def dispatch str(FloatLiteral id)'''«str(id.value)»'''
+def dispatch str(PlainExpr expr) '''«str(expr.identifier)»'''
+def dispatch str(MultExpr expr)  '''«str(expr.mult)» «str(expr.identifier)»'''
+def dispatch str(DivExpr expr)   '''«str(expr.identifier)»/«expr.div»'''
+def str(Identifier id)           '''«IF id.minus»-«ENDIF»«id.name»'''
+
+def dispatch FloatLiteral invert(FloatLiteral f) {
+    var FloatLiteral newf =  EcoreUtil2::copy(f)
+    newf.value = Utilities::invert(f.value)
+    return newf
+}
+def dispatch Expr invert(Expr expr) {
+    var Expr newExpr = EcoreUtil2::copy(expr)
+    newExpr.identifier.minus = !expr.identifier.minus //the actual inversion
+    return newExpr
+}
+
 
 }//end of class
 
