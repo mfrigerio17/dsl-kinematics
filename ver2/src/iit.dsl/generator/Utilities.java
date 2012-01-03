@@ -4,6 +4,7 @@ import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
 import iit.dsl.kinDsl.KinDslPackage;
 import iit.dsl.kinDsl.Vector3;
+import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
 import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 
@@ -15,9 +16,16 @@ public class Utilities {
 	public static InertiaParams translate(InertiaParams inertia, Vector3 vector) {
 		float mass  = inertia.getMass();
 		Vector3 com = inertia.getCom();
-		float x = com.getX();
-		float y = com.getY();
-		float z = com.getZ();
+		if( ! (com.getX() instanceof FloatLiteral) ||
+			! (com.getY() instanceof FloatLiteral) ||
+			! (com.getZ() instanceof FloatLiteral))
+		{
+			throw new RuntimeException("Cannot translate inertia parameters if the COM is defined with some variables");
+		}
+
+		float x = ((FloatLiteral)com.getX()).getValue();
+		float y = ((FloatLiteral)com.getY()).getValue();
+		float z = ((FloatLiteral)com.getZ()).getValue();
 		
 		InertiaParams translated = (InertiaParams)factory.create(dslPackage.getInertiaParams());
 		translated.setCom((Vector3)factory.create(dslPackage.getVector3()));
@@ -26,9 +34,11 @@ public class Utilities {
 		// The returned inertia is supposed to be specified at the center of mass,
 		//  thus the center of mass position is 0,0,0 by definition
 		Vector3 temp = translated.getCom();
-		temp.setX((float)0.0);
-		temp.setY((float)0.0);
-		temp.setZ((float)0.0);
+		FloatLiteral zero = (FloatLiteral)factory.createFloatLiteral();
+		zero.setValue((float)0.0);
+		temp.setX(zero);
+		temp.setY(zero);
+		temp.setZ(zero);
 
 		translated.setIx (inertia.getIx()  + mass * (y*y + z*z) );
 		translated.setIy (inertia.getIy()  + mass * (x*x + z*z) );

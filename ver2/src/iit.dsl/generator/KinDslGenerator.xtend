@@ -42,7 +42,7 @@ class KinDslGenerator implements IGenerator {
         «val inertia_trans = Utilities::translate(inertia, inertia.com)»
         <link name="«link.name»">
             <inertial>
-                <origin xyz="«inertia.com.x» «inertia.com.y» «inertia.com.z»"/>
+                <origin xyz="«inertia.com.x.str» «inertia.com.y.str» «inertia.com.z.str»"/>
                 <mass value="«inertia.mass»"/>
                 <inertia ixx="«inertia_trans.ix»" iyy="«inertia_trans.iy»" izz="«inertia_trans.iz»" ixy="«inertia_trans.ixy»" ixz="«inertia_trans.ixz»" iyz="«inertia_trans.iyz»"/>
             </inertial>

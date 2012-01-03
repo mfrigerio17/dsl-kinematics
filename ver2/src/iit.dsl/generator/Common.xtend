@@ -166,7 +166,7 @@ def dispatch Joint getConnectingJoint(AbstractLink link) {
 }
 
 def listCoordinates(Vector3 vector) {
-    '''«vector.x» «vector.y» «vector.z»'''
+    '''«vector.x.str» «vector.y.str» «vector.z.str»'''
 }
 
 def dispatch getTypeString(RevoluteJoint joint) '''revolute'''

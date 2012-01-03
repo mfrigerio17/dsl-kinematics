@@ -1,5 +1,6 @@
 package iit.dsl.generator.sl;
 
+import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
 import iit.dsl.kinDsl.KinDslPackage;
@@ -23,10 +24,25 @@ public abstract class Utilities {
 		tuned.setMass(mass);
 
 		// Multiply the com by the mass
-		Vector3 temp = tuned.getCom();
-		temp.setX(com.getX() * mass);
-		temp.setY(com.getY() * mass);
-		temp.setZ(com.getZ() * mass);
+
+		if( ! (com.getX() instanceof FloatLiteral) ||
+			! (com.getY() instanceof FloatLiteral) ||
+			! (com.getZ() instanceof FloatLiteral))
+		{
+			throw new RuntimeException("Cannot tune inertia parameters for SL if the COM is defined with some variables");
+		}
+
+		Vector3 newCOM = tuned.getCom();
+		FloatLiteral newx = (FloatLiteral)factory.createFloatLiteral();
+		FloatLiteral newy = (FloatLiteral)factory.createFloatLiteral();
+		FloatLiteral newz = (FloatLiteral)factory.createFloatLiteral();
+		newx.setValue( ((FloatLiteral)com.getX()).getValue() * mass);
+		newy.setValue( ((FloatLiteral)com.getY()).getValue() * mass);
+		newz.setValue( ((FloatLiteral)com.getZ()).getValue() * mass);
+
+		newCOM.setX(newx);
+		newCOM.setY(newy);
+		newCOM.setZ(newz);
 
 		// Add a minus sign in front of the centrifugal moments
 		tuned.setIx (inertia.getIx());
