@@ -52,4 +52,7 @@ public class Utilities {
 	public static float invert(float num) {
 	    return -num;
 	}
+	public static boolean isZero(float num) {
+		return num==0.0;
+	}
 }

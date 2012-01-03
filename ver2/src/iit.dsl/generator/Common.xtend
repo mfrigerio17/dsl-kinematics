@@ -197,6 +197,13 @@ def dispatch Expr invert(Expr expr) {
     return newExpr
 }
 
+def dispatch boolean isZero(FloatLiteral f) {
+    return Utilities::isZero(f.value)
+}
+def dispatch boolean isZero(Expr expr) {
+    return false
+}
+
 
 }//end of class
 
