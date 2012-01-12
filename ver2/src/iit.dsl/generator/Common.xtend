@@ -21,6 +21,7 @@ import iit.dsl.kinDsl.Vector3
 import java.util.ArrayList
 import java.util.List
 import org.eclipse.xtext.EcoreUtil2
+import java.util.Locale
 
 
 class Common {
@@ -177,7 +178,7 @@ def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
 def str(Float num) {
-    String::format("% 06.5f", num)
+    String::format(Locale::US,"% 06.5f", num)
 }
 
 def dispatch str(FloatLiteral id)'''«str(id.value)»'''
