@@ -185,7 +185,7 @@ def dispatch str(FloatLiteral id)'''«str(id.value)»'''
 def dispatch str(PlainExpr expr) '''«str(expr.identifier)»'''
 def dispatch str(MultExpr expr)  '''«str(expr.mult)» «str(expr.identifier)»'''
 def dispatch str(DivExpr expr)   '''«str(expr.identifier)»/«expr.div»'''
-def str(Identifier id)           '''«IF id.minus»-«ENDIF»«id.name»'''
+def str(Identifier id)           '''«IF id.minus»-«ENDIF»«id.varname»'''
 
 def dispatch FloatLiteral invert(FloatLiteral f) {
     var FloatLiteral newf =  EcoreUtil2::copy(f)
