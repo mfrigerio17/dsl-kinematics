@@ -30,18 +30,26 @@ Workflow {
 			path = '${targetDir}/misc'
 		}
 	}
+//    component = org.eclipse.xtext.generator.GeneratorComponent {
+//        register = iit.dsl.KinDslStandaloneSetup_Maxima {}
+//        slot = 'robot'
+//        outlet = {
+//            path = '${targetDir}/maxima'
+//        }
+//    }
+//    component = org.eclipse.xtext.generator.GeneratorComponent {
+//        register = iit.dsl.KinDslStandaloneSetup_SL {}
+//        slot = 'robot'
+//        outlet = {
+//            path = '${targetDir}/SL'
+//        }
+//    }
+
     component = org.eclipse.xtext.generator.GeneratorComponent {
-        register = iit.dsl.KinDslStandaloneSetup_Maxima {}
+        register = iit.dsl.KinDslStandaloneSetup_CPP {}
         slot = 'robot'
         outlet = {
-            path = '${targetDir}/maxima'
-        }
-    }
-    component = org.eclipse.xtext.generator.GeneratorComponent {
-        register = iit.dsl.KinDslStandaloneSetup_SL {}
-        slot = 'robot'
-        outlet = {
-            path = '${targetDir}/SL'
+            path = '${targetDir}/cpp'
         }
     }
 
