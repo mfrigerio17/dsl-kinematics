@@ -13,16 +13,6 @@ RobotBase trunk {
 		LH_hip via LH_HAA
 		RH_hip via RH_HAA
 	}
-	frames {
-        foo {
-            translation = (0.0, 0.0, 0.0)
-            rotation = (0.0, 0.0, 0.0)
-        }
-        bla {
-           translation = (0.0, 0.0, 0.0)
-           rotation = (0.0, 0.0, 0.0)
-		}
-	}
 }
 
 link LF_hip {
@@ -96,6 +86,12 @@ link LF_lowerleg {
 		Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000   
 	}
 	children {}
+	frames {
+        LF_foot {
+            translation = (0.33, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+    }
 }
 
 
@@ -122,6 +118,12 @@ link RF_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
+    frames {
+        RF_foot {
+            translation = (0.33, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+    }
 }
 
 // Left Hind leg
@@ -146,6 +148,12 @@ link LH_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=-0.0000 Ixz=-0.0000 Iyz=0.0000
     }
     children {}
+    frames {
+        LH_foot {
+            translation = (0.33, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+    }
 }
 
 // Right Hind leg
@@ -170,6 +178,12 @@ link RH_lowerleg {
         Ix=0.0009 Iy=0.0777 Iz=0.0775 Ixy=0.00 Ixz=0.00 Iyz=0.00
     }
     children {}
+    frames {
+        RH_foot {
+            translation = (0.33, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+    }
 }
 
 
@@ -179,14 +193,14 @@ r_joint LF_HAA {
 	id = 1
 	ref_frame {
         translation = (0.3735, 0.207, 0.0)  //(+DFH/2, +DLR/2, 0)
-        rotation = (0.0, -1.57079632, 3.141592)
+        rotation = (0.0, -PI/2.0, PI)
 	}
 }
 r_joint LF_HFE {
     id = 2
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (-1.57079632, 0.0, 0.0)
+        rotation =  (-PI/2.0, 0.0, 0.0)
     }
 }
 r_joint LF_KFE {
@@ -203,14 +217,14 @@ r_joint RF_HAA {
 	id = 4
 	ref_frame {
         translation = (0.3735, -0.207, 0.0)  //(+DFH/2, -DLR/2, 0)
-		rotation =  (0.0, 1.57079632, 0.0)  // pi/2 around y
+		rotation =  (0.0, PI/2.0, 0.0)  // pi/2 around y
 	}
 }
 r_joint RF_HFE {
     id = 5
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (1.57079632, 0.0, 0.0)
+        rotation =  (PI/2.0, 0.0, 0.0)
     }
 }
 r_joint RF_KFE {
@@ -225,14 +239,14 @@ r_joint LH_HAA {
 	id = 7
 	ref_frame {
 		translation = (-0.3735, 0.207, 0.0)  //(-DFH/2, +DLR/2, 0)
-		rotation = (0.0, -1.57079632, 3.141592)
+		rotation = (0.0, -PI/2.0, PI)
 	}
 }
 r_joint LH_HFE {
     id = 8
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (-1.57079632, 0.0, 0.0)
+        rotation =  (-PI/2.0, 0.0, 0.0)
     }
 }
 r_joint LH_KFE {
@@ -248,14 +262,14 @@ r_joint RH_HAA {
 	id = 10
 	ref_frame {
         translation = (-0.3735, -0.207, 0.0)  //(-DFH/2, -DLR/2, 0)
-		rotation =  (0.0, 1.57079632, 0.0)
+		rotation =  (0.0, PI/2.0, 0.0)
 	}
 }
 r_joint RH_HFE {
     id = 11
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (1.57079632, 0.0, 0.0)
+        rotation =  (PI/2.0, 0.0, 0.0)
     }
 }
 r_joint RH_KFE {
