@@ -9,32 +9,40 @@ import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 
 class Generator implements IGenerator {
-    @Inject extension iit.dsl.generator.sl.Common slCommon
-    @Inject extension iit.dsl.generator.Common common
+    @Inject iit.dsl.generator.sl.Common slCommon
+    @Inject RobotFiles roboFiles
+    @Inject RobotUserFiles roboUserFiles
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        common.init(robot);
-        fsa.generateFile(slCommon.robotUserFolderName(robot)+"/"+
-            Utilities::userConfigFolder +"/" +
-            Utilities::linkParamsFile, generateLinkParams(robot))
-    }
 
-    /**
-    Configuration file with Inertia parameters
-    It is assumed that the provided moments of inertia strictly follow their definition,
-    so that the off-diagonal elements of the inertia tensor have a minus sign. It is also
-    assumed that the configuration file for SL expects the inertia tensor elements, so we
-    put that minus in front of the values
-    */
-    def generateLinkParams(Robot robot) { '''
-        «val bparams = Utilities::tuneForSL(robot.base.inertiaParams)»
-        BASE «'\t'»«bparams.mass.str»   «bparams.com.x.str» «bparams.com.y.str» «bparams.com.z.str»   «bparams.ix.str» «bparams.ixy.str» «bparams.ixz.str» «bparams.iy.str» «bparams.iyz.str» «bparams.iz.str»   0.1 0 0 0
-        «FOR link : robot.links»
-            «val params = Utilities::tuneForSL(link.inertiaParams)»
-            «link.connectingJoint.name» «'\t'»«params.mass.str»   «params.com.x.str» «params.com.y.str» «params.com.z.str»   «params.ix.str» «params.ixy.str» «params.ixz.str» «params.iy.str» «params.iyz.str» «params.iz.str»   0.1 0 0 0
-        «ENDFOR»
-        '''
-    }
+        // ROBOT FILES
+        fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
+            Utilities::makefileFolder +"/imakefile.unix",
+            roboFiles.makefileUnix(robot))
 
+        fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
+            Utilities::dynModelFolder +"/" + robot.name + ".dyn",
+            roboFiles.dynModel(robot))
+        fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
+            Utilities::dynModelFolder +"/" + robot.name + ".nb",
+            roboFiles.mathematicaNotebook(robot, "/home/phd/sl_root"))
+
+        fsa.generateFile(slCommon.robotFolderName(robot) + "/include/SL_user.h",
+            roboFiles.SL_user_dot_h(robot))
+
+        fsa.generateFile(slCommon.robotFolderName(robot) + "/src/SL_user_common.c",
+            roboFiles.SL_user_dot_h(robot))
+
+        // ROBOT USER FILES
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/ConfigParameters.cf",
+            roboUserFiles.linkParameters(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            Utilities::makefileFolder +"/imakefile.unix",
+            roboUserFiles.imakefileUnix(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/src/mymain.cpp",
+            roboUserFiles.benchmarkMain(robot))
+    }
 }

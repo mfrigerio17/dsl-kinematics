@@ -37,13 +37,13 @@ Workflow {
 //            path = '${targetDir}/maxima'
 //        }
 //    }
-//    component = org.eclipse.xtext.generator.GeneratorComponent {
-//        register = iit.dsl.KinDslStandaloneSetup_SL {}
-//        slot = 'robot'
-//        outlet = {
-//            path = '${targetDir}/SL'
-//        }
-//    }
+    component = org.eclipse.xtext.generator.GeneratorComponent {
+        register = iit.dsl.KinDslStandaloneSetup_SL {}
+        slot = 'robot'
+        outlet = {
+            path = '${targetDir}/SL'
+        }
+    }
 
     component = org.eclipse.xtext.generator.GeneratorComponent {
         register = iit.dsl.KinDslStandaloneSetup_CPP {}

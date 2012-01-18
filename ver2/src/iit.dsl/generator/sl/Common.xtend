@@ -15,10 +15,6 @@ def String robotUserFolderName(Robot robot) {
     robotFolderName(robot) + "User"
 }
 
-def String userConfigFolder() {
-    return "config"
-}
-
 def String benchmarkFileName(Robot robot) {
     "mymain"
 }

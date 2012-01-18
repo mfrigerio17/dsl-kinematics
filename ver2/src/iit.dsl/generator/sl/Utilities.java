@@ -11,6 +11,8 @@ import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 public abstract class Utilities {
 	public static final String userConfigFolder = "config";
 	public static final String linkParamsFile = "LinkParameters.cf";
+	public static final String makefileFolder = "makefiles";
+	public static final String dynModelFolder = "math";
 
 	private static KinDslPackage dslPackage = KinDslPackageImpl.init();
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
@@ -33,9 +35,9 @@ public abstract class Utilities {
 		}
 
 		Vector3 newCOM = tuned.getCom();
-		FloatLiteral newx = (FloatLiteral)factory.createFloatLiteral();
-		FloatLiteral newy = (FloatLiteral)factory.createFloatLiteral();
-		FloatLiteral newz = (FloatLiteral)factory.createFloatLiteral();
+		FloatLiteral newx = factory.createFloatLiteral();
+		FloatLiteral newy = factory.createFloatLiteral();
+		FloatLiteral newz = factory.createFloatLiteral();
 		newx.setValue( ((FloatLiteral)com.getX()).getValue() * mass);
 		newy.setValue( ((FloatLiteral)com.getY()).getValue() * mass);
 		newz.setValue( ((FloatLiteral)com.getZ()).getValue() * mass);
