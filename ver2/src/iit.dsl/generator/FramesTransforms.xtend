@@ -4,6 +4,8 @@ import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Var
+import iit.dsl.kinDsl.AbstractLink
+
 /**
  * Static utilities for the generation of text related to the reference frames
  * of the robot.
@@ -51,5 +53,24 @@ class FramesTransforms {
     def static RyString(Var ry) '''«IF !common.isZero(ry)»Ry(«common.str(ry)»)«ENDIF»'''
     def static RzString(Var rz) '''«IF !common.isZero(rz)»Rz(«common.str(rz)»)«ENDIF»'''
 
+    /**
+     * Returns the "code" of the transformation 'dest_X_source' for two arbitrary links
+     */
+    def static dest_X_source(AbstractLink dest, AbstractLink source) '''
+        «val AbstractLink ancestor = common.commonAncestor(source,dest)»
+        «descendant_X_ancestor(ancestor, dest)» «ancestor_X_descendant(ancestor, source)»
+        '''
 
+    def private static ancestor_X_descendant(AbstractLink ancestor, AbstractLink descendant) {
+        if(descendant.equals(ancestor)) return ''''''
+        val Joint j = common.getConnectingJoint(descendant)
+        return
+        '''«ancestor_X_descendant(ancestor, common.getPredecessorLink(j))» «predecessor_X_joint(j)» «joint_X_successor(j)»'''
+    }
+    def private static descendant_X_ancestor(AbstractLink ancestor, AbstractLink descendant) {
+        if(descendant.equals(ancestor)) return ''''''
+        val Joint j = common.getConnectingJoint(descendant)
+        return
+        '''«successor_X_joint(j)» «joint_X_predecessor(j)» «descendant_X_ancestor(ancestor, common.getPredecessorLink(j))»'''
+    }
 }
