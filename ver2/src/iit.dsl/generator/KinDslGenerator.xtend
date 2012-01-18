@@ -9,6 +9,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
+import iit.dsl.kinDsl.AbstractLink
 
 
 class KinDslGenerator implements IGenerator {
@@ -16,7 +17,7 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //fsa.generateFile(robot.name+".txt", test(robot))
+        //fsa.generateFile(robot.name+".temp", temp(robot))
         fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
     }
@@ -70,10 +71,22 @@ class KinDslGenerator implements IGenerator {
         «ENDFOR»
     '''
 
-    def temp(Robot robot) '''
-    «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
-    «inertia.com»
-    '''
+//    def temp(Robot robot) '''
+//    «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
+//    «inertia.com»
+//    '''
+    def temp(Robot robot) {
+        val StringBuilder builder = new StringBuilder()
+        val links = robot.abstractLinks
+        for(AbstractLink l1 : links) {
+            for(AbstractLink l2 : links.reverseView) {
+                builder.append(
+                '''«l1.name» - «l2.name»   Ancestor: «commonAncestor(l1,l2).name»
+                ''')
+            }
+        }
+        return builder
+    }
 
     def generateCoordinateTransforms(Robot robot) '''
     Model «robot.name»

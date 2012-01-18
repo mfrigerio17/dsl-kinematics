@@ -202,6 +202,49 @@ def dispatch boolean isZero(Expr expr) {
     return false
 }
 
+def boolean isDescendant(AbstractLink candidate, AbstractLink start) {
+    if(start.childrenList.contains(candidate)) {
+        return true
+    }
+    for(ChildSpec child : start.childrenList.children) {
+        if(candidate.isDescendant(child.link)) {
+            return true
+        }
+    }
+    return false
+}
+
+def AbstractLink commonAncestor(AbstractLink l1, AbstractLink l2) {
+    if(l1.equals(l2)) return l1;
+    if(l1.isDescendant(l2)) return l2;
+    if(l2.isDescendant(l1)) return l1;
+    var AbstractLink child1  = l1
+    var AbstractLink child2  = l2
+    var AbstractLink parent1 = l1.parent
+    var AbstractLink parent2 = l2.parent
+    while(parent1 != null && parent2 != null) {
+        if(parent1.equals(parent2)) return parent1;
+        // follow the branches up in the hierarchy
+        child1  = parent1
+        child2  = parent2
+        parent1 = parent1.parent
+        parent2 = parent2.parent
+    }
+    while(parent1 != null) {
+        if(parent1.equals(child2)) return parent1;
+        // follow the branch 1 up in the hierarchy
+        child1  = parent1
+        parent1 = parent1.parent
+    }
+    while(parent2 != null) {
+        if(parent2.equals(child1)) return parent2;
+        // follow the branch 2 up in the hierarchy
+        child2  = parent2
+        parent2 = parent2.parent
+    }
+    //should never get here
+    throw(new RuntimeException("looks like these two links do not have a common ancestor!!"))
+}
 
 }//end of class
 
