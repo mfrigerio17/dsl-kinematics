@@ -15,7 +15,7 @@ class RobotHeaders {
         #include <Eigen/Dense>
 
         namespace iit {
-        namespace «robot.name» {
+        namespace «Common::namespace(robot)» {
 
         typedef Eigen::Matrix<double, «robot.joints.size», 1> Column«robot.joints.size»d;
         typedef Column«robot.joints.size»d JointState;
