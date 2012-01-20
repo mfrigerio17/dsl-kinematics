@@ -3,30 +3,37 @@ package iit.dsl.generator.cpp;
 import iit.dsl.kinDsl.Robot;
 
 public class Names {
-    static class Files {
-        static String mainHeader(Robot robot) {
+    static public class Files {
+        static public String mainHeader(Robot robot) {
             return robot.getName() + "_declarations";
         }
 
-        static String transformsHeader(Robot robot) {
+        static public String transformsHeader(Robot robot) {
             return robot.getName() + "_transforms";
         }
 
-        static class RBD {
-            static String header(Robot r) {
+        static public class RBD {
+            static public String header(Robot r) {
                 return r.getName() + "_dynamics";
             }
-            static String source(Robot r) {
+            static public String source(Robot r) {
                 return r.getName() + "_dynamics";
+            }
+            static public String testMain(Robot r) {
+                return r.getName() + "_main";
             }
         }
     }
 
-    static class Namespaces {
-        static final String transforms6D = "transforms6D";
-        static final String enclosingQualifier = "iit";
-        static String rob(Robot r) {
+    static public class Namespaces {
+        static final public String transforms6D = "transforms6D";
+        static final public String enclosingQualifier = "iit";
+        static public String rob(Robot r) {
             return r.getName();
         }
+    }
+
+    static public class TypeNames {
+        static final public String jointState = "JointState";
     }
 }
