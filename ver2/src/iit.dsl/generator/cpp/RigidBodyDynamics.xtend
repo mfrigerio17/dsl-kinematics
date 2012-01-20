@@ -1,13 +1,14 @@
 package iit.dsl.generator.cpp
 
 import iit.dsl.kinDsl.Robot
-import com.google.inject.Inject
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.FixedRobotBase
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Link
+
+import com.google.inject.Inject
 
 class RigidBodyDynamics {
 
@@ -75,6 +76,9 @@ class RigidBodyDynamics {
 
         def inverseDynamicsImplementation(Robot robot)'''
             #include "«Names$Files$RBD::header(robot)».h"
+            #ifndef EIGEN_NO_DEBUG
+                #include <iostream>
+            #endif
 
             using namespace std;
             using namespace iit::rbd;
@@ -96,6 +100,8 @@ class RigidBodyDynamics {
                     «inertiaMxName(l)».fill(«l.inertiaParams.mass», Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
                         Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
                 «ENDFOR»
+
+                «Names$Namespaces::transforms6D»::initAll(); // initializes coordinates transforms
             }
 
             void «fullNSQualifier(robot)»::«className(robot)»::id(const JointState& q, const JointState& qd, const JointState& qdd, JointState& torques) {
@@ -161,5 +167,28 @@ class RigidBodyDynamics {
     def private child_X_parent__mxName(AbstractLink parent, AbstractLink child) '''
         «Names$Namespaces::transforms6D»::fr_«child.name»_X_fr_«parent.name»'''
 
+    def testMain(Robot robot) '''
+        #include <cmath>
+        #include <iostream>
 
+        #include "«Names$Files$RBD::header(robot)».h"
+
+        using namespace std;
+        using namespace «fullNSQualifier(robot)»;
+        using namespace iit::rbd;
+
+        int main(int argc, char** argv) {
+            «Names$TypeNames::jointState» q, qd, qdd, tau;
+            «FOR Joint j : robot.joints»
+            q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
+            qd(«j.getID()-1»)  = std::atof(argv[«j.getID() + robot.joints.size»]);
+            qdd(«j.getID()-1») = std::atof(argv[«j.getID() + robot.joints.size + robot.joints.size»]);
+            «ENDFOR»
+
+            «className(robot)» foo;
+
+            foo.id(q,qd,qdd,tau);
+            std::cout << tau << std::endl;
+            return 0;
+        }'''
 }

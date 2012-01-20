@@ -16,5 +16,6 @@ class Generator implements IGenerator {
         fsa.generateFile(Names$Files::mainHeader(robot)+".h", headers.main(robot))
         fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
         fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
+        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
     }
 }
