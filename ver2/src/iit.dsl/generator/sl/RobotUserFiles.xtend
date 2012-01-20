@@ -4,6 +4,7 @@ import iit.dsl.kinDsl.Robot
 
 import com.google.inject.Inject
 import iit.dsl.kinDsl.Joint
+import iit.dsl.generator.cpp.Names
 
 class RobotUserFiles {
     @Inject extension iit.dsl.generator.Common common
@@ -96,7 +97,7 @@ class RobotUserFiles {
 
 
     def benchmarkMain(Robot robot) '''
-        «val robotNS = robot.name»
+        «val robotNS = Names$Namespaces::enclosingQualifier + "::" + Names$Namespaces::rob(robot)»
         #include <iostream>
         #include <fstream>
         #include <ctime>
@@ -110,9 +111,9 @@ class RobotUserFiles {
         #include "SL_user.h"
 
         using namespace std;
-        using namespace iit::«robotNS»;
+        using namespace «robotNS»;
 
-        static void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* desiredState);
+        static void fillState(«Names$TypeNames::jointState»& q, «Names$TypeNames::jointState»& qd, «Names$TypeNames::jointState»& qdd, SL_DJstate* desiredState);
 
         /* This main is supposed to be used to test the inverse dynamics routines */
         int main(int argc, char**argv)
@@ -130,8 +131,8 @@ class RobotUserFiles {
             sl_total = 0;
             my_total = 0;
 
-            iit::«robotNS»::StateVector q, qd, qdd, tau;
-            iit::«robotNS»::Dynamics myDynamics;
+            «robotNS»::«Names$TypeNames::jointState» q, qd, qdd, tau;
+            «robotNS»::Dynamics myDynamics;
 
             int t=0,i=0;
 
@@ -243,7 +244,7 @@ class RobotUserFiles {
         }
 
 
-        void fillState(StateVector& q, StateVector& qd, StateVector& qdd, SL_DJstate* desiredState) {
+        void fillState(«Names$TypeNames::jointState»& q, «Names$TypeNames::jointState»& qd, «Names$TypeNames::jointState»& qdd, SL_DJstate* desiredState) {
             static const double max = 12.3;
         «FOR Joint j : robot.joints»
             q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;
