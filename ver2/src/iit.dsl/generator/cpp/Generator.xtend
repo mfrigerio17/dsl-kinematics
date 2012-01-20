@@ -12,6 +12,6 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(RobotHeaders::mainHeaderFileName(robot)+".h", headers.main(robot))
+        fsa.generateFile(Names$Files::mainHeader(robot)+".h", headers.main(robot))
     }
 }
