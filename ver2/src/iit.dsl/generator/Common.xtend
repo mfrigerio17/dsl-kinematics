@@ -97,13 +97,13 @@ def int movingBodiesCount(Robot robot) {
     }
 }
 
-def int getID(Link l) {
+def dispatch int getID(Link l) {
     return l.num;
 }
-def int getID(FixedRobotBase base) {
+def dispatch int getID(FixedRobotBase base) {
     return 0;
 }
-def int getID(FloatingRobotBase base) {
+def dispatch int getID(FloatingRobotBase base) {
     return 1;
 }
 def int getID(Joint j) {
