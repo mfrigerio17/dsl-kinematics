@@ -37,8 +37,6 @@ class RigidBodyDynamics {
         typedef iit::rbd::InertiaMatrixDense InertiaMatrix;
         typedef iit::rbd::MotionSubspaceMxSparse SubspaceMx;
         typedef iit::rbd::SparseColumnd JointVelocity;
-        typedef iit::rbd::Column6d MotionVector;
-        typedef iit::rbd::Column6d ForceVector;
 
 
         class «className(robot)» {
@@ -61,9 +59,9 @@ class RigidBodyDynamics {
             «FOR l : robot.links»
                 // Link '«l.name»' :
                 InertiaMatrix «inertiaMxName(l)»;
-                MotionVector «velocityName(l)»;
-                MotionVector «accelerationName(l)»;
-                ForceVector  «forceName(l)»;
+                iit::rbd::VelocityVector «velocityName(l)»;
+                iit::rbd::VelocityVector «accelerationName(l)»;
+                iit::rbd::ForceVector  «forceName(l)»;
             «ENDFOR»
 
         };
