@@ -54,6 +54,13 @@ class FramesTransforms {
     def static RzString(Var rz) '''«IF !common.isZero(rz)»Rz(«common.str(rz)»)«ENDIF»'''
 
     /**
+     * Return the transform between a parent and a child link, both directions
+     */
+    def static predecessor_X_successor(Joint j) '''
+        «predecessor_X_joint(j)» «joint_X_successor(j)»'''
+    def static successor_X_predecessor(Joint j) '''
+        «successor_X_joint(j)» «joint_X_predecessor(j)»'''
+    /**
      * Returns the "code" of the transformation 'dest_X_source' for two arbitrary links
      */
     def static dest_X_source(AbstractLink dest, AbstractLink source) '''
@@ -65,12 +72,12 @@ class FramesTransforms {
         if(descendant.equals(ancestor)) return ''''''
         val Joint j = common.getConnectingJoint(descendant)
         return
-        '''«ancestor_X_descendant(ancestor, common.getPredecessorLink(j))» «predecessor_X_joint(j)» «joint_X_successor(j)»'''
+        '''«ancestor_X_descendant(ancestor, common.getPredecessorLink(j))» «predecessor_X_successor(j)»'''
     }
     def private static descendant_X_ancestor(AbstractLink ancestor, AbstractLink descendant) {
         if(descendant.equals(ancestor)) return ''''''
         val Joint j = common.getConnectingJoint(descendant)
         return
-        '''«successor_X_joint(j)» «joint_X_predecessor(j)» «descendant_X_ancestor(ancestor, common.getPredecessorLink(j))»'''
+        '''«successor_X_predecessor(j)» «descendant_X_ancestor(ancestor, common.getPredecessorLink(j))»'''
     }
 }

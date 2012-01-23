@@ -19,7 +19,7 @@ class KinDslGenerator implements IGenerator {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name+".temp", temp(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
         //test(robot)
     }
 
@@ -122,8 +122,8 @@ class KinDslGenerator implements IGenerator {
     «FOR link : robot.links»
         «val joint  = link.connectingJoint»
         «val parent = link.parent»
-        {«parent.frameName»}_X_{«link.frameName»} = «FramesTransforms::predecessor_X_joint(joint)» «FramesTransforms::joint_X_successor(joint)»
-        {«link.frameName»}_X_{«parent.frameName»} = «FramesTransforms::successor_X_joint(joint)» «FramesTransforms::joint_X_predecessor(joint)»
+        {«parent.frameName»}_X_{«link.frameName»} = «FramesTransforms::predecessor_X_successor(joint)»
+        {«link.frameName»}_X_{«parent.frameName»} = «FramesTransforms::successor_X_predecessor(joint)»
 
     «ENDFOR»
     '''
