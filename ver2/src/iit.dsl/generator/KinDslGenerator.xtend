@@ -18,20 +18,11 @@ class KinDslGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name+".temp", temp(robot))
-        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        //test(robot)
     }
 
-    def generateCode(Robot robot) '''
-        «FOR link : robot.links»
-        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint.name»
-        «ENDFOR»
-        «FOR joint : robot.joints»
-        Joint «joint.name» connecting  «joint.successorLink.name»
-        «ENDFOR»
-    '''
-//    «var InertiaParams inertia»
-//    «var InertiaParams inertia_trans»
     /**
      * Generates and xml URDF description of the robot, as specified in the ROS documentation
      */
@@ -59,7 +50,18 @@ class KinDslGenerator implements IGenerator {
     </robot>
     '''
 
-    def test(Robot robot) '''
+    def test(Robot robot) {
+        var AbstractLink found;
+        for(AbstractLink l: robot.abstractLinks) {
+            found = common.getLinkByName(robot, l.name)
+            if(! found.equals(l)) {
+                throw new RuntimeException("test failed!")
+            }
+        }
+        //throw new RuntimeException("OK!!")
+    }
+    /*
+    '''
         «FOR link : robot.abstractLinks»
         Link «link.name» moved by  «link.connectingJoint»
         «ENDFOR»
@@ -70,6 +72,19 @@ class KinDslGenerator implements IGenerator {
         Joint «joint.name» connecting  «joint.successorLink.name»
         «ENDFOR»
     '''
+    //*/
+    /*
+    '''
+        «FOR link : robot.links»
+        Link «link.name» connected from  «link.parent.name»  via  «link.connectingJoint.name»
+        «ENDFOR»
+        «FOR joint : robot.joints»
+        Joint «joint.name» connecting  «joint.successorLink.name»
+        «ENDFOR»
+    '''
+    //*/
+
+
 
 //    def temp(Robot robot) '''
 //    «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
@@ -80,8 +95,10 @@ class KinDslGenerator implements IGenerator {
         val links = robot.abstractLinks
         for(AbstractLink l1 : links) {
             for(AbstractLink l2 : links.reverseView) {
-                builder.append(
-                '''«l1.name» - «l2.name»   Ancestor: «commonAncestor(l1,l2).name»
+                //builder.append(
+                //'''«l1.name» - «l2.name»   Ancestor: «commonAncestor(l1,l2).name»
+                //''')
+                builder.append('''«l1.name» - «l2.name»  :  «FramesTransforms::dest_X_source(l1,l2)»
                 ''')
             }
         }

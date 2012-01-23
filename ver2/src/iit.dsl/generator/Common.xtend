@@ -246,5 +246,15 @@ def AbstractLink commonAncestor(AbstractLink l1, AbstractLink l2) {
     throw(new RuntimeException("looks like these two links do not have a common ancestor!!"))
 }
 
+
+def AbstractLink getLinkByName(Robot robot, String linkName) {
+    for(AbstractLink l : robot.abstractLinks) {
+        if(l.name.equals(linkName)) {
+            return l
+        }
+    }
+    return null
+}
+
 }//end of class
 
