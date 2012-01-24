@@ -5,6 +5,7 @@ import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Var
 import iit.dsl.kinDsl.AbstractLink
+import iit.dsl.kinDsl.RefFrame
 
 /**
  * Static utilities for the generation of text related to the reference frames
@@ -65,8 +66,7 @@ class FramesTransforms {
      */
     def static dest_X_source(AbstractLink dest, AbstractLink source) '''
         «val AbstractLink ancestor = common.commonAncestor(source,dest)»
-        «descendant_X_ancestor(ancestor, dest)» «ancestor_X_descendant(ancestor, source)»
-        '''
+        «descendant_X_ancestor(ancestor, dest)» «ancestor_X_descendant(ancestor, source)»'''
 
     def private static ancestor_X_descendant(AbstractLink ancestor, AbstractLink descendant) {
         if(descendant.equals(ancestor)) return ''''''
@@ -79,5 +79,18 @@ class FramesTransforms {
         val Joint j = common.getConnectingJoint(descendant)
         return
         '''«successor_X_predecessor(j)» «descendant_X_ancestor(ancestor, common.getPredecessorLink(j))»'''
+    }
+
+    def static link_X_frame(AbstractLink link, RefFrame frame) {
+        /* Concatenates the transform between the link in the argument and the link containing the frame,
+         * with the transform between that link and that frame
+         */
+        val tx = frame.transform.translation.x
+        val ty = frame.transform.translation.y
+        val tz = frame.transform.translation.z
+        val rx = frame.transform.rotation.x
+        val ry = frame.transform.rotation.y
+        val rz = frame.transform.rotation.z
+        '''«dest_X_source(link, (frame.eContainer as AbstractLink))» «TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)»'''
     }
 }

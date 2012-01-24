@@ -10,6 +10,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
+import iit.dsl.kinDsl.RefFrame
 
 
 class KinDslGenerator implements IGenerator {
@@ -17,9 +18,9 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //fsa.generateFile(robot.name+".temp", temp(robot))
+        //fsa.generateFile(robot.name+".temp", test(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
         //test(robot)
     }
 
@@ -111,6 +112,9 @@ class KinDslGenerator implements IGenerator {
         «robot.base.frameName»
         «FOR link : robot.links»
             , «link.frameName»
+            «FOR RefFrame frame : link.frames»
+                , «frame.name»
+            «ENDFOR»
         «ENDFOR»
         «FOR joint : robot.joints»
             , «joint.frameName»
@@ -125,6 +129,14 @@ class KinDslGenerator implements IGenerator {
         {«parent.frameName»}_X_{«link.frameName»} = «FramesTransforms::predecessor_X_successor(joint)»
         {«link.frameName»}_X_{«parent.frameName»} = «FramesTransforms::successor_X_predecessor(joint)»
 
+    «ENDFOR»
+    «FOR link : robot.links»
+        «IF(! link.equals(robot.base))»
+            {«robot.base.frameName»}_X_{«link.frameName»} = «FramesTransforms::dest_X_source(robot.base, link)»
+            «FOR RefFrame frame : link.frames»
+                {«robot.base.frameName»}_X_{«frame.name»} = «FramesTransforms::link_X_frame(robot.base, frame)»
+            «ENDFOR»
+        «ENDIF»
     «ENDFOR»
     '''
 }
