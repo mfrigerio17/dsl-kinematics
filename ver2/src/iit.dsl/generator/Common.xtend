@@ -256,5 +256,43 @@ def AbstractLink getLinkByName(Robot robot, String linkName) {
     return null
 }
 
+def List<AbstractLink> buildChain(AbstractLink first, AbstractLink last) {
+    val List<AbstractLink> chain = new ArrayList<AbstractLink>()
+    if(first.equals(last)) {
+        chain.add(first)
+        return chain
+    }
+    val AbstractLink ancestor = commonAncestor(first, last);
+    var AbstractLink parent
+
+    if(last.equals(ancestor)) {
+        chain.add(first)
+        parent = first.parent
+        while(! parent.equals(last)){
+            chain.add(parent)
+            parent = parent.parent
+        }
+        chain.add(last)
+        return chain
+    }
+    if(first.equals(ancestor)) {
+        chain.add(last)
+        parent = last.parent
+        while(! parent.equals(first)) {
+            chain.add(parent)
+            parent = parent.parent
+        }
+        chain.add(first)
+        return chain.reverse
+    }
+
+    // The two links belong to different branches starting from the common ancestor
+    val List<AbstractLink> head = buildChain(first, ancestor);
+    val List<AbstractLink> tail = buildChain(ancestor, last);
+
+    head.addAll( tail.drop(1) ) //drop the first because it is the second copy of the ancestor
+    return head
+}
+
 }//end of class
 

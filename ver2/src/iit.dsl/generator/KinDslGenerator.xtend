@@ -18,7 +18,7 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //fsa.generateFile(robot.name+".temp", test(robot))
+        fsa.generateFile(robot.name+".temp", test(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
         //test(robot)
@@ -52,15 +52,26 @@ class KinDslGenerator implements IGenerator {
     '''
 
     def test(Robot robot) {
-        var AbstractLink found;
+        '''
+        «FOR link : robot.abstractLinks»
+            «FOR link2 : robot.abstractLinks»
+                «val chain = common.buildChain(link, link2)»
+                «link.name» - «link2.name»   :   «FOR AbstractLink el : chain» «el.name»«ENDFOR»
+            «ENDFOR»
+        «ENDFOR»
+
+    '''
+    }
+    /*
+    var AbstractLink found;
         for(AbstractLink l: robot.abstractLinks) {
             found = common.getLinkByName(robot, l.name)
             if(! found.equals(l)) {
                 throw new RuntimeException("test failed!")
             }
         }
-        //throw new RuntimeException("OK!!")
-    }
+    //throw new RuntimeException("OK!!")
+    //*/
     /*
     '''
         «FOR link : robot.abstractLinks»
