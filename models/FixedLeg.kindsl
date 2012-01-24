@@ -45,6 +45,12 @@ link lowerLeg {
 	}
 
 	children {}
+	frames {
+        Foot {
+            translation = (0.33, 0.0, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        }
+    }
 }
 
 r_joint HFE {
@@ -60,7 +66,7 @@ r_joint KFE {
 	ref_frame {
 	/* The leg length ('ll') is the translation along x
 	   A rotation of pi about x invert the versus of the z axis	*/
-		translation = (1.35, 0.0, 0.0)
+		translation = (0.35, 0.0, 0.0)
 		rotation = (PI, 0.0, 0.0)
 	}
 }
