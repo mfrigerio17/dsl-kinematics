@@ -22,6 +22,7 @@ import java.util.ArrayList
 import java.util.List
 import org.eclipse.xtext.EcoreUtil2
 import java.util.Locale
+import iit.dsl.kinDsl.RefFrame
 
 
 class Common {
@@ -251,6 +252,15 @@ def AbstractLink getLinkByName(Robot robot, String linkName) {
     for(AbstractLink l : robot.abstractLinks) {
         if(l.name.equals(linkName)) {
             return l
+        }
+    }
+    return null
+}
+
+def RefFrame getFrameByName(AbstractLink link, String frameName) {
+    for(RefFrame f : link.frames) {
+        if(f.name.equals(frameName)) {
+            return f
         }
     }
     return null
