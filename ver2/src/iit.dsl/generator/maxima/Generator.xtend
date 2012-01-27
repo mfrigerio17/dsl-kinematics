@@ -8,19 +8,24 @@ import com.google.inject.Inject
 import iit.dsl.generator.Common
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.AbstractLink
 
 class Generator implements IGenerator {
-        @Inject extension Common common
+    @Inject extension Common common
+    @Inject Jacobians jacs
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+"_transforms.maxima", generateCode(robot))
+        fsa.generateFile(robot.name+"_jacobians", generateJacobiansFile(robot))
     }
 
-    def generateCode(Robot robot) '''
-        «FOR link : robot.links»
-            «common.getParent(link)»
-        «ENDFOR»
+    def generateJacobiansFile(Robot robot)'''
+        «IF(robot.name.equals("FixedHyQ"))»
+            «val link = robot.getLinkByName("LF_lowerleg")»
+            «jacs.jacobian(robot.getLinkByName("trunk"), link.getFrameByName("LF_foot"))»
+        «ENDIF»
+        «IF(robot.name.equals("FixedLeg"))»
+            «val link = robot.getLinkByName("lowerLeg")»
+            «jacs.jacobian(robot.getLinkByName("Hip"), link.getFrameByName("Foot"))»
+        «ENDIF»
     '''
 }
