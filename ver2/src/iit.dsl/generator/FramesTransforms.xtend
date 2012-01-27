@@ -102,7 +102,8 @@ class FramesTransforms {
         val rx = common.invert(frame.transform.rotation.x)
         val ry = common.invert(frame.transform.rotation.y)
         val rz = common.invert(frame.transform.rotation.z)
-        '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)» «dest_X_source((frame.eContainer as AbstractLink), link)»'''
+        val AbstractLink dest = common.getContainingLink((link.eContainer as Robot), frame)
+        '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)» «dest_X_source(dest, link)»'''
     }
 
     def static transformLiteral(AbstractLink dest, AbstractLink source)
@@ -125,35 +126,53 @@ class FramesTransforms {
         «ENDFOR»
         '''
 
-    def transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
+    def transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink) {
+        return transformsForJacobian(robot, base, targetLink,
+            common.getDefaultFrame(base), common.getDefaultFrame(targetLink))
+    }
+
+    def transformsForJacobian(Robot robot, AbstractLink base, RefFrame targetFrame) {
+        val targetLink = common.getContainingLink(robot,targetFrame)
+        if(targetLink == null) throw(new RuntimeException(unknownFrameErrorMsg(robot, targetFrame)))
+
+        return transformsForJacobian(robot, base, targetLink,
+            common.getDefaultFrame(base), targetFrame)
+    }
+
+    def transformsForJacobian(Robot robot, RefFrame baseFrame, AbstractLink movingLink ) {
+        val baseLink = common.getContainingLink(robot,baseFrame)
+        if(baseLink == null) throw(new RuntimeException(unknownFrameErrorMsg(robot, baseFrame)))
+
+        return transformsForJacobian( robot, baseLink, movingLink,
+            baseFrame, common.getDefaultFrame(movingLink))
+    }
+
+    def transformsForJacobian(Robot robot, RefFrame baseFrame, RefFrame movingFrame) {
+        val baseLink   = common.getContainingLink(robot,baseFrame)
+        if(baseLink == null) throw(new RuntimeException(unknownFrameErrorMsg(robot, baseFrame)))
+        val movingLink = common.getContainingLink(robot,movingFrame)
+        if(movingLink == null)  throw(new RuntimeException(unknownFrameErrorMsg(robot, movingFrame)))
+
+        return transformsForJacobian(robot, baseLink, movingLink, baseFrame, movingFrame)
+    }
+
+    def private static unknownFrameErrorMsg(Robot robot, RefFrame frame) {
+        '''Hey!, seems that frame «frame.name» does not belong to any of the links of robot «robot.name»'''.toString()
+    }
+
+    def private transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
         val StringConcatenation strBuff = new StringConcatenation();
         val chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
-        if(baseFr != null) {
-            if( !(baseFr.eContainer() as AbstractLink).equals(base)) {
-                throw(new RuntimeException("Unknown frame"))
-            }
-            for(el : chain) {
-                strBuff.append('''«transformLiteral(baseFr, el)» = «frame_X_link(baseFr, el)»''')
-                strBuff.append("\n")
-            }
-        } else {
-            for(el : chain) {
-                strBuff.append('''«transformLiteral(base, el)» = «dest_X_source(base, el)»''')
-                strBuff.append("\n")
-            }
-        }
 
-        if(targetFr != null) {
-            if( !(targetFr.eContainer() as AbstractLink).equals(targetLink)) {
-                throw(new RuntimeException("Unknown frame"))
-            }
-            if(baseFr != null) {
-                strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
-                strBuff.append("\n")
-            } else {
-                strBuff.append('''«transformLiteral(base, targetFr)» = «dest_X_source(base, targetLink)» «link_X_frame(targetLink, targetFr)»''')
-                strBuff.append("\n")
-            }
+        for(el : chain) {
+            strBuff.append('''«transformLiteral(baseFr, el)» = «frame_X_link(baseFr, el)»''')
+            strBuff.append("\n")
+        }
+        // if the moving frame is the default frame of the moving link, the corresponding
+        //  transform has been already generated
+        if(! common.getDefaultFrame(targetLink).equals(targetFr)) {
+            strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
+            strBuff.append("\n")
         }
         return strBuff
     }
