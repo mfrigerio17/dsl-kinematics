@@ -23,9 +23,16 @@ import java.util.List
 import org.eclipse.xtext.EcoreUtil2
 import java.util.Locale
 import iit.dsl.kinDsl.RefFrame
+import iit.dsl.kinDsl.impl.KinDslFactoryImpl
+import iit.dsl.kinDsl.RotoTrasl
+import iit.dsl.kinDsl.KinDslFactory
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 
 class Common {
+
+    static KinDslFactory kinDSLFactory = KinDslFactoryImpl::init()
+    static FloatLiteral zeroFloat = kinDSLFactory.createFloatLiteral()//relies on default constructor setting it to zero
 
 def inertiaMxName(Link link) {
     link.name + "_Imx"
@@ -302,6 +309,44 @@ def List<AbstractLink> buildChain(AbstractLink first, AbstractLink last) {
 
     head.addAll( tail.drop(1) ) //drop the first because it is the second copy of the ancestor
     return head
+}
+
+/**
+ * The default frame of a link is simply a named frame whose transform should be
+ * the identity
+ */
+def RefFrame getDefaultFrame(AbstractLink link) {
+    val RefFrame ret = createDefaultFrame()
+    ret.setName(link.frameName.toString())
+
+    return ret
+}
+
+def createDefaultFrame() {
+    val RefFrame ret = kinDSLFactory.createRefFrame()
+    val RotoTrasl roto = kinDSLFactory.createRotoTrasl()
+    // default transformation is the identity
+    roto.setTranslation(zeroVector())
+    roto.setRotation(zeroVector())
+    ret.setTransform(roto)
+    ret.name = ""
+    return ret
+}
+
+def Vector3 zeroVector() {
+    val ret = kinDSLFactory.createVector3()
+    ret.setX(EcoreUtil::copy(zeroFloat))
+    ret.setY(EcoreUtil::copy(zeroFloat))
+    ret.setZ(EcoreUtil::copy(zeroFloat))
+    return ret
+}
+
+def AbstractLink getContainingLink(Robot robot, RefFrame frame) {
+    for(l : robot.abstractLinks) {
+        if(l.frames.contains(frame)) return l
+        if(frame.name.equals(l.frameName.toString())) return l
+    }
+    return null
 }
 
 }//end of class
