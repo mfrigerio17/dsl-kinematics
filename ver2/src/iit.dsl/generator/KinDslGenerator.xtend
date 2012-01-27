@@ -15,13 +15,14 @@ import iit.dsl.kinDsl.RefFrame
 
 class KinDslGenerator implements IGenerator {
     @Inject extension Common common
+    @Inject FramesTransforms frTransforms
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+".temp", test(robot))
+        //fsa.generateFile(robot.name+".temp", test(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
-        //test(robot)
+        fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        //fsa.generateFile("blabla", temp(resource))
     }
 
     /**
@@ -97,25 +98,10 @@ class KinDslGenerator implements IGenerator {
     //*/
 
 
-
-//    def temp(Robot robot) '''
-//    «val inertia = Utilities::translate(robot.links.get(1).inertiaParams,robot.links.get(1).inertiaParams.com)»
-//    «inertia.com»
-//    '''
-    def temp(Robot robot) {
-        val StringBuilder builder = new StringBuilder()
-        val links = robot.abstractLinks
-        for(AbstractLink l1 : links) {
-            for(AbstractLink l2 : links.reverseView) {
-                //builder.append(
-                //'''«l1.name» - «l2.name»   Ancestor: «commonAncestor(l1,l2).name»
-                //''')
-                builder.append('''«l1.name» - «l2.name»  :  «FramesTransforms::dest_X_source(l1,l2)»
-                ''')
-            }
-        }
-        return builder
-    }
+    def temp(Resource resource) '''
+        «FOR r : resource.contents»
+        «r.eClass.name»
+        «ENDFOR»'''
 
     def generateCoordinateTransforms(Robot robot) '''
     Model «robot.name»
@@ -134,20 +120,15 @@ class KinDslGenerator implements IGenerator {
 
     TransformedFramePos = right
 
-    «FOR link : robot.links»
-        «val joint  = link.connectingJoint»
-        «val parent = link.parent»
-        {«parent.frameName»}_X_{«link.frameName»} = «FramesTransforms::predecessor_X_successor(joint)»
-        {«link.frameName»}_X_{«parent.frameName»} = «FramesTransforms::successor_X_predecessor(joint)»
+    «frTransforms.parentChildTransforms(robot)»
 
-    «ENDFOR»
-    «FOR link : robot.links»
-        «IF(! link.equals(robot.base))»
-            {«robot.base.frameName»}_X_{«link.frameName»} = «FramesTransforms::dest_X_source(robot.base, link)»
-            «FOR RefFrame frame : link.frames»
-                {«robot.base.frameName»}_X_{«frame.name»} = «FramesTransforms::link_X_frame(robot.base, frame)»
-            «ENDFOR»
-        «ENDIF»
-    «ENDFOR»
+    «IF(robot.name.equals("FixedHyQ"))»
+        «val link = robot.getLinkByName("LF_lowerleg")»
+        «frTransforms.transformsForJacobian(robot, robot.getLinkByName("trunk"), link.getFrameByName("LF_foot"))»
+    «ENDIF»
+    «IF(robot.name.equals("FixedLeg"))»
+        «val link = robot.getLinkByName("lowerLeg")»
+        «frTransforms.transformsForJacobian(robot, robot.getLinkByName("Hip"), link.getFrameByName("Foot"))»
+    «ENDIF»
     '''
 }
