@@ -6,6 +6,8 @@ import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Var
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.RefFrame
+import iit.dsl.kinDsl.Robot
+import org.eclipse.xtend2.lib.StringConcatenation
 
 /**
  * Static utilities for the generation of text related to the reference frames
@@ -93,4 +95,69 @@ class FramesTransforms {
         val rz = frame.transform.rotation.z
         '''«dest_X_source(link, (frame.eContainer as AbstractLink))» «TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)»'''
     }
+    def static frame_X_link(RefFrame frame, AbstractLink link) {
+        val tx = common.invert(frame.transform.translation.x)
+        val ty = common.invert(frame.transform.translation.y)
+        val tz = common.invert(frame.transform.translation.z)
+        val rx = common.invert(frame.transform.rotation.x)
+        val ry = common.invert(frame.transform.rotation.y)
+        val rz = common.invert(frame.transform.rotation.z)
+        '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)» «dest_X_source((frame.eContainer as AbstractLink), link)»'''
+    }
+
+    def static transformLiteral(AbstractLink dest, AbstractLink source)
+        '''{«common.getFrameName(dest)»}_X_{«common.getFrameName(source)»}'''
+    def static transformLiteral(AbstractLink dest, RefFrame source)
+        '''{«common.getFrameName(dest)»}_X_{«source.name»}'''
+    def static transformLiteral(RefFrame dest, AbstractLink source)
+        '''{«dest.name»}_X_{«common.getFrameName(source)»}'''
+    def static transformLiteral(RefFrame dest, RefFrame source)
+        '''{«dest.name»}_X_{«source.name»}'''
+
+
+
+    def parentChildTransforms(Robot robot) '''
+        «FOR link : robot.links»
+            «val joint  = common.getConnectingJoint(link)»
+            «val parent = common.getParent(link)»
+            «transformLiteral(parent, link)» = «predecessor_X_successor(joint)»
+            «transformLiteral(link, parent)» = «successor_X_predecessor(joint)»
+        «ENDFOR»
+        '''
+
+    def transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
+        val StringConcatenation strBuff = new StringConcatenation();
+        val chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
+        if(baseFr != null) {
+            if( !(baseFr.eContainer() as AbstractLink).equals(base)) {
+                throw(new RuntimeException("Unknown frame"))
+            }
+            for(el : chain) {
+                strBuff.append('''«transformLiteral(baseFr, el)» = «frame_X_link(baseFr, el)»''')
+                strBuff.append("\n")
+            }
+        } else {
+            for(el : chain) {
+                strBuff.append('''«transformLiteral(base, el)» = «dest_X_source(base, el)»''')
+                strBuff.append("\n")
+            }
+        }
+
+        if(targetFr != null) {
+            if( !(targetFr.eContainer() as AbstractLink).equals(targetLink)) {
+                throw(new RuntimeException("Unknown frame"))
+            }
+            if(baseFr != null) {
+                strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
+                strBuff.append("\n")
+            } else {
+                strBuff.append('''«transformLiteral(base, targetFr)» = «dest_X_source(base, targetLink)» «link_X_frame(targetLink, targetFr)»''')
+                strBuff.append("\n")
+            }
+        }
+        return strBuff
+    }
+
+
+
 }
