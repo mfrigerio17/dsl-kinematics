@@ -179,6 +179,9 @@ def dispatch getTypeString(RevoluteJoint joint) '''revolute'''
 def dispatch getTypeString(PrismaticJoint joint)'''prismatic'''
 
 def getVariableName(Joint joint) '''q_«joint.name»'''
+def Joint getJointFromVariableName(Robot robot, String varname) {
+    return getJointByName(robot, varname.replaceAll("q_", ""))
+}
 def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
@@ -268,6 +271,15 @@ def RefFrame getFrameByName(AbstractLink link, String frameName) {
     for(RefFrame f : link.frames) {
         if(f.name.equals(frameName)) {
             return f
+        }
+    }
+    return null
+}
+
+def Joint getJointByName(Robot robot, String jointName) {
+    for(Joint j : robot.joints) {
+        if(j.name.equals(jointName)) {
+            return j
         }
     }
     return null
