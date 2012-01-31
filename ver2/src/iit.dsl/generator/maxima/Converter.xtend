@@ -25,14 +25,8 @@ class Converter {
     static String maximaBasePath = System::getenv("MAXIMA_LIBS_PATH")
     static String maximaJacobiansPath = "generated_code/maxima"
 
-    new() {
-        maximaRunner = new iit.dsl.coord.generator.MaximaRunner()
-        maximaRunner.runBatch(maximaBasePath+"/coord_transforms")
-        maximaRunner.runBatch(maximaBasePath+"/utils")
-    }
-
     /**
-     * Returns a matrix of strings with represeting a Jacobian matrix.
+     * Returns a matrix of strings representing a Jacobian matrix.
      * The Jacobian is identified by two reference frames; the Maxima source file
      * with the corresponding definition is executed, and its output is parsed
      * and returned.
@@ -40,6 +34,10 @@ class Converter {
     def String[][] getJacobianText(Robot robot, RefFrame baseFrame, RefFrame movingFrame,
         iit.dsl.coord.generator.IMaximaConversionSpec convSpec)
     {
+        maximaRunner = new iit.dsl.coord.generator.MaximaRunner()
+        maximaRunner.runBatch(maximaBasePath+"/coord_transforms")
+        maximaRunner.runBatch(maximaBasePath+"/utils")
+
         val iit.dsl.coord.coordTransDsl.Model transforms = transformsAccessor.getTransformsModel(robot)
 
         maximaRunner.runBatch(maximaBasePath +"/robots/" + Maxima::transformsFileName(transforms))
@@ -51,6 +49,9 @@ class Converter {
         val code = '''J : ratsimp(trigreduce(float(«jacName»))), keepfloat:true;'''
         maximaRunner.run(code.toString())
         val ret = iit::dsl::coord::generator::MaximaConverter::parseMatrix(maximaRunner, convSpec, "J", 6, variables.size(), variables);
+
+        maximaRunner.terminate();
+        maximaRunner = null;
         return ret
     }
 }
