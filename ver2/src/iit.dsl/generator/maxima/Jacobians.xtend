@@ -17,7 +17,9 @@ class Jacobians {
     @Inject iit.dsl.coord.generator.Maxima coordsMaxima //use injection otherwise you have to manually initialize its sub-members
     @Inject extension iit.dsl.generator.Common common
 
-    def jacName(String baseFrameName, String targetFrameName) '''«baseFrameName»_J_«targetFrameName»'''
+    def static fileName(Robot robot) '''«robot.name»_jacobians'''
+
+    def static jacName(String baseFrameName, String targetFrameName) '''«baseFrameName»_J_«targetFrameName»'''
 
     def jacobian(AbstractLink base, AbstractLink targetLink) {
         return jacobian(base, targetLink, base.defaultFrame, targetLink.defaultFrame)
