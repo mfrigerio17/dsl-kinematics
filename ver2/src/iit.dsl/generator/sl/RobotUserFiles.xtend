@@ -97,7 +97,7 @@ class RobotUserFiles {
 
 
     def benchmarkMain(Robot robot) '''
-        «val robotNS = Names$Namespaces::enclosingQualifier + "::" + Names$Namespaces::rob(robot)»
+        «val robotNS = Names$Namespaces::enclosing + "::" + Names$Namespaces::rob(robot)»
         #include <iostream>
         #include <fstream>
         #include <ctime>
@@ -113,7 +113,7 @@ class RobotUserFiles {
         using namespace std;
         using namespace «robotNS»;
 
-        static void fillState(«Names$TypeNames::jointState»& q, «Names$TypeNames::jointState»& qd, «Names$TypeNames::jointState»& qdd, SL_DJstate* desiredState);
+        static void fillState(«Names$Types::jointState»& q, «Names$Types::jointState»& qd, «Names$Types::jointState»& qdd, SL_DJstate* desiredState);
 
         /* This main is supposed to be used to test the inverse dynamics routines */
         int main(int argc, char**argv)
@@ -131,7 +131,7 @@ class RobotUserFiles {
             sl_total = 0;
             my_total = 0;
 
-            «robotNS»::«Names$TypeNames::jointState» q, qd, qdd, tau;
+            «robotNS»::«Names$Types::jointState» q, qd, qdd, tau;
             «robotNS»::Dynamics myDynamics;
 
             int t=0,i=0;
@@ -244,7 +244,7 @@ class RobotUserFiles {
         }
 
 
-        void fillState(«Names$TypeNames::jointState»& q, «Names$TypeNames::jointState»& qd, «Names$TypeNames::jointState»& qdd, SL_DJstate* desiredState) {
+        void fillState(«Names$Types::jointState»& q, «Names$Types::jointState»& qd, «Names$Types::jointState»& qdd, SL_DJstate* desiredState) {
             static const double max = 12.3;
         «FOR Joint j : robot.joints»
             q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;

@@ -114,7 +114,7 @@ class RigidBodyDynamics {
                 «ENDFOR»
             } '''
 
-    def private fullNSQualifier(Robot r) '''«Names$Namespaces::enclosingQualifier»::«Names$Namespaces::rob(r)»'''
+    def private fullNSQualifier(Robot r) '''«Names$Namespaces::enclosing»::«Names$Namespaces::rob(r)»'''
 
     def private dispatch jointSubspaceMx(PrismaticJoint j) '''
         «j.subspaceMxName».resize(6);
@@ -176,7 +176,7 @@ class RigidBodyDynamics {
         using namespace iit::rbd;
 
         int main(int argc, char** argv) {
-            «Names$TypeNames::jointState» q, qd, qdd, tau;
+            «Names$Types::jointState» q, qd, qdd, tau;
             «FOR Joint j : robot.joints»
             q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
             qd(«j.getID()-1»)  = std::atof(argv[«j.getID() + robot.joints.size»]);
