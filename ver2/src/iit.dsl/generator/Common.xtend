@@ -276,6 +276,21 @@ def RefFrame getFrameByName(AbstractLink link, String frameName) {
     return null
 }
 
+def RefFrame getFrameByName(Robot robot, String frameName) {
+    for(AbstractLink l : robot.abstractLinks) {
+        // The link does not have an actual RefFrame member to model its default frame,
+        //  so if the name matches return a default token that represents it
+        if(frameName.equals(l.frameName.toString())) {
+            return l.defaultFrame
+        }
+        var frame = getFrameByName(l, frameName) // search the list of local frames on the link
+        if(frame != null) {
+            return frame
+        }
+    }
+    return null
+}
+
 def Joint getJointByName(Robot robot, String jointName) {
     for(Joint j : robot.joints) {
         if(j.name.equals(jointName)) {
