@@ -26,9 +26,13 @@ public class TransSpecsAccessor {
     private ResourceSet set;
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(Robot robot) {
-        Injector injector = new iit.dsl.coord.CoordTransDslStandaloneSetupGenerated().createInjectorAndDoEMFRegistration();
+        Injector injector = new iit.dsl.transspecs.TransSpecsStandaloneSetup().createInjectorAndDoEMFRegistration();
         set = resourceSetProvider.get();
-        resource = set.getResource(URI.createURI("models/"+robot.getName() + ".dtdsl"), true);
-        return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
+        String modelFilePath = "models/"+robot.getName() + ".dtdsl";
+        if(new java.io.File(modelFilePath).isFile()) {
+            resource = set.getResource(URI.createURI(modelFilePath), true);
+            return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
+        }
+        return null;
     }
 }
