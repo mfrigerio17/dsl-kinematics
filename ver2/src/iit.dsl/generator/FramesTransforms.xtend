@@ -177,6 +177,26 @@ class FramesTransforms {
         return strBuff
     }
 
+    def coordinateTransformsDSLDocument(Robot robot) '''
+    Model «robot.name»
+    Frames {
+        «common.getFrameName(robot.base)»
+        «FOR link : robot.links»
+            , «common.getFrameName(link)»
+            «FOR RefFrame frame : link.frames»
+                , «frame.name»
+            «ENDFOR»
+        «ENDFOR»
+        «FOR joint : robot.joints»
+            , «common.getFrameName(joint)»
+        «ENDFOR»
+    }
 
+    TransformedFramePos = right
+
+    /* All the <child>_X_<parent> transforms (plus the inverse), required for
+        instance by the inverse dynamics algorithm */
+    «parentChildTransforms(robot)»
+    '''
 
 }

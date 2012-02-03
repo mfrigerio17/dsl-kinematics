@@ -21,9 +21,9 @@ class KinDslGenerator implements IGenerator {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name+".temp", test(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        //fsa.generateFile(robot.name+".ctdsl", generateCoordinateTransforms(robot))
+        fsa.generateFile(robot.name+".ctdsl", frTransforms.coordinateTransformsDSLDocument(robot))
         //fsa.generateFile("blabla", temp(resource))
-        test(robot)
+        //test(robot)
     }
 
     /**
@@ -110,32 +110,4 @@ class KinDslGenerator implements IGenerator {
         «r.eClass.name»
         «ENDFOR»'''
 
-    def generateCoordinateTransforms(Robot robot) '''
-    Model «robot.name»
-    Frames {
-        «robot.base.frameName»
-        «FOR link : robot.links»
-            , «link.frameName»
-            «FOR RefFrame frame : link.frames»
-                , «frame.name»
-            «ENDFOR»
-        «ENDFOR»
-        «FOR joint : robot.joints»
-            , «joint.frameName»
-        «ENDFOR»
-    }
-
-    TransformedFramePos = right
-
-    «frTransforms.parentChildTransforms(robot)»
-
-    «IF(robot.name.equals("FixedHyQ"))»
-        «val link = robot.getLinkByName("LF_lowerleg")»
-        «frTransforms.transformsForJacobian(robot, robot.getLinkByName("trunk"), link.getFrameByName("LF_foot"))»
-    «ENDIF»
-    «IF(robot.name.equals("FixedLeg"))»
-        «val link = robot.getLinkByName("lowerLeg")»
-        «frTransforms.transformsForJacobian(robot, robot.getLinkByName("Hip"), link.getFrameByName("Foot"))»
-    «ENDIF»
-    '''
 }
