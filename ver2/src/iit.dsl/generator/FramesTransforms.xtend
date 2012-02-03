@@ -7,7 +7,12 @@ import iit.dsl.kinDsl.Var
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.RefFrame
 import iit.dsl.kinDsl.Robot
+import iit.dsl.TransSpecsAccessor
+
 import org.eclipse.xtend2.lib.StringConcatenation
+import com.google.inject.Inject
+
+
 
 /**
  * Static utilities for the generation of text related to the reference frames
@@ -16,6 +21,8 @@ import org.eclipse.xtend2.lib.StringConcatenation
  * transformations.
  */
 class FramesTransforms {
+    @Inject TransSpecsAccessor desiredTrasformsAccessor
+
     static Common common = new Common()
 
 	def static dispatch joint_X_successor(RevoluteJoint  joint)
@@ -87,22 +94,29 @@ class FramesTransforms {
         /* Concatenates the transform between the link in the argument and the link containing the frame,
          * with the transform between that link and that frame
          */
+        val AbstractLink source = common.getContainingLink((link.eContainer as Robot), frame)
+        if(source == null) {
+            throw new RuntimeException(unknownFrameErrorMsg((link.eContainer as Robot), frame))
+        }
         val tx = frame.transform.translation.x
         val ty = frame.transform.translation.y
         val tz = frame.transform.translation.z
         val rx = frame.transform.rotation.x
         val ry = frame.transform.rotation.y
         val rz = frame.transform.rotation.z
-        '''«dest_X_source(link, (frame.eContainer as AbstractLink))» «TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)»'''
+        '''«dest_X_source(link, source)» «TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)»'''
     }
     def static frame_X_link(RefFrame frame, AbstractLink link) {
+        val AbstractLink dest = common.getContainingLink((link.eContainer as Robot), frame)
+        if(dest == null) {
+            throw new RuntimeException(unknownFrameErrorMsg((link.eContainer as Robot), frame))
+        }
         val tx = common.invert(frame.transform.translation.x)
         val ty = common.invert(frame.transform.translation.y)
         val tz = common.invert(frame.transform.translation.z)
         val rx = common.invert(frame.transform.rotation.x)
         val ry = common.invert(frame.transform.rotation.y)
         val rz = common.invert(frame.transform.rotation.z)
-        val AbstractLink dest = common.getContainingLink((link.eContainer as Robot), frame)
         '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)» «dest_X_source(dest, link)»'''
     }
 
@@ -178,25 +192,27 @@ class FramesTransforms {
     }
 
     def coordinateTransformsDSLDocument(Robot robot) '''
-    Model «robot.name»
-    Frames {
-        «common.getFrameName(robot.base)»
-        «FOR link : robot.links»
-            , «common.getFrameName(link)»
-            «FOR RefFrame frame : link.frames»
-                , «frame.name»
+        Model «robot.name»
+        Frames {
+            «common.getFrameName(robot.base)»
+            «FOR link : robot.links»
+                , «common.getFrameName(link)»
+                «FOR RefFrame frame : link.frames»
+                    , «frame.name»
+                «ENDFOR»
             «ENDFOR»
-        «ENDFOR»
-        «FOR joint : robot.joints»
-            , «common.getFrameName(joint)»
-        «ENDFOR»
-    }
+            «FOR joint : robot.joints»
+                , «common.getFrameName(joint)»
+            «ENDFOR»
+        }
 
-    TransformedFramePos = right
+        TransformedFramePos = right
 
-    /* All the <child>_X_<parent> transforms (plus the inverse), required for
-        instance by the inverse dynamics algorithm */
-    «parentChildTransforms(robot)»
-    '''
+        /* All the <child>_X_<parent> transforms (plus the inverse), required for
+            instance by the inverse dynamics algorithm */
+        «parentChildTransforms(robot)»
+
+        '''
 
 }
+
