@@ -212,6 +212,26 @@ class FramesTransforms {
             instance by the inverse dynamics algorithm */
         «parentChildTransforms(robot)»
 
+        «val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)»
+        // Additional transforms required by the user
+        «IF(desiredTransforms != null)»
+            «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.transforms.getSpecs()»
+                «val dest   = common.getFrameByName(robot, jSpec.base.name)»
+                «val source = common.getFrameByName(robot, jSpec.target.name)»
+                «val destLink   = common.getContainingLink(robot, dest)»
+                «val sourceLink = common.getContainingLink(robot, source)»
+                «transformLiteral(dest, source)» = «frame_X_link(dest,destLink)» «dest_X_source(destLink, sourceLink)» «link_X_frame(sourceLink, source)»
+            «ENDFOR»
+        «ENDIF»
+
+        // Transforms required to compute Jacobians more conveniently
+        «IF(desiredTransforms != null)»
+            «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()»
+                «val base   = common.getFrameByName(robot, jSpec.base.name)»
+                «val target = common.getFrameByName(robot, jSpec.target.name)»
+                «transformsForJacobian(robot, base, target)»
+            «ENDFOR»
+        «ENDIF»
         '''
 
 }
