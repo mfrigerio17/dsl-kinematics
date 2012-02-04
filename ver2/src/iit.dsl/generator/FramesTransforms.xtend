@@ -11,6 +11,7 @@ import iit.dsl.TransSpecsAccessor
 
 import org.eclipse.xtend2.lib.StringConcatenation
 import com.google.inject.Inject
+import java.util.List
 
 
 
@@ -183,13 +184,21 @@ class FramesTransforms {
 
     def private transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
         val StringConcatenation strBuff = new StringConcatenation();
-        val chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
+
+        // If the base frame is the default frame of the base link, then we can discard the
+        //  first element of the chain (ie the base link itself)
+        var Iterable<AbstractLink> chain = null
+        if(common.getFrameName(base).toString().equals(baseFr.name)) {
+            chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
+        } else {
+            chain = common.buildChain(base, targetLink)
+        }
 
         for(el : chain) {
             strBuff.append('''«transformLiteral(baseFr, el)» = «frame_X_link(baseFr, el)»''')
             strBuff.append("\n")
         }
-        // if the moving frame is the default frame of the moving link, the corresponding
+        // If the moving frame is the default frame of the moving link, the corresponding
         //  transform has been already generated
         if(! common.getFrameName(targetLink).toString().equals(targetFr.name)) {
             strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
