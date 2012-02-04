@@ -140,6 +140,13 @@ class FramesTransforms {
         «ENDFOR»
         '''
 
+    def transformsForJacobian(Robot robot, iit.dsl.transspecs.transSpecs.FramePair jacSpec) {
+        // Create two reference-frame instances using local types
+        val base   = common.getFrameByName(robot, jacSpec.base.name)
+        val target = common.getFrameByName(robot, jacSpec.target.name)
+        return transformsForJacobian(robot, base, target)
+    }
+
     def transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink) {
         return transformsForJacobian(robot, base, targetLink,
             common.getDefaultFrame(base), common.getDefaultFrame(targetLink))
@@ -184,7 +191,7 @@ class FramesTransforms {
         }
         // if the moving frame is the default frame of the moving link, the corresponding
         //  transform has been already generated
-        if(! common.getDefaultFrame(targetLink).equals(targetFr)) {
+        if(! common.getFrameName(targetLink).toString().equals(targetFr.name)) {
             strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
             strBuff.append("\n")
         }
@@ -227,9 +234,7 @@ class FramesTransforms {
         // Transforms required to compute Jacobians more conveniently
         «IF(desiredTransforms != null)»
             «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()»
-                «val base   = common.getFrameByName(robot, jSpec.base.name)»
-                «val target = common.getFrameByName(robot, jSpec.target.name)»
-                «transformsForJacobian(robot, base, target)»
+                «transformsForJacobian(robot, jSpec)»
             «ENDFOR»
         «ENDIF»
         '''
