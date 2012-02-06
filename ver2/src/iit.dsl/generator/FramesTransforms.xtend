@@ -123,13 +123,21 @@ class FramesTransforms {
 
     def static transformLiteral(AbstractLink dest, AbstractLink source)
         '''{«common.getFrameName(dest)»}_X_{«common.getFrameName(source)»}'''
+
     def static transformLiteral(AbstractLink dest, RefFrame source)
         '''{«common.getFrameName(dest)»}_X_{«source.name»}'''
+
     def static transformLiteral(RefFrame dest, AbstractLink source)
         '''{«dest.name»}_X_{«common.getFrameName(source)»}'''
+
     def static transformLiteral(RefFrame dest, RefFrame source)
         '''{«dest.name»}_X_{«source.name»}'''
 
+    def static transformLiteral(AbstractLink dest, Joint source)
+        '''{«common.getFrameName(dest)»}_X_{«common.getFrameName(source)»}'''
+
+    def static transformLiteral(RefFrame dest, Joint source)
+        '''{«dest.name»}_X_{«common.getFrameName(source)»}'''
 
 
     def parentChildTransforms(Robot robot) '''
@@ -185,23 +193,29 @@ class FramesTransforms {
     def private transformsForJacobian(Robot robot, AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
         val StringConcatenation strBuff = new StringConcatenation();
 
-        // If the base frame is the default frame of the base link, then we can discard the
-        //  first element of the chain (ie the base link itself)
-        var Iterable<AbstractLink> chain = null
-        if(common.getFrameName(base).toString().equals(baseFr.name)) {
-            chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
-        } else {
-            chain = common.buildChain(base, targetLink)
-        }
+        // The first transform that we need is the "total" one connecting base frame with the target mobing frame
+        strBuff.append(
+        '''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, base)» «dest_X_source(base, targetLink)» «link_X_frame(targetLink, targetFr)»
+        ''')
 
-        for(el : chain) {
-            strBuff.append('''«transformLiteral(baseFr, el)» = «frame_X_link(baseFr, el)»''')
-            strBuff.append("\n")
-        }
-        // If the moving frame is the default frame of the moving link, the corresponding
-        //  transform has been already generated
-        if(! common.getFrameName(targetLink).toString().equals(targetFr.name)) {
-            strBuff.append('''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, targetLink)» «link_X_frame(targetLink, targetFr)»''')
+        val chain  = common.buildChain(base, targetLink)
+        val joints = common.getChainJoints(chain)
+        val chainIter = chain.iterator()
+        var AbstractLink currentLink
+        for(j : joints) {
+            if(!chainIter.hasNext()) {
+                throw new RuntimeException("Looks like the link-chain and the joint-chain are not consistent")
+            }
+            currentLink = chainIter.next()
+            strBuff.append('''«transformLiteral(baseFr, j)» = «frame_X_link(baseFr, currentLink)» ''')
+            // Figure out the relation between the current joint and the current link in the chain
+            if(common.getPredecessorLink(j).equals(currentLink)) {
+                strBuff.append(predecessor_X_joint(j))
+            } else if(common.getSuccessorLink(j).equals(currentLink)) {
+                strBuff.append(successor_X_joint(j))
+            } else {
+                throw new RuntimeException("Looks like the link-chain and the joint-chain are not consistent")
+            }
             strBuff.append("\n")
         }
         return strBuff

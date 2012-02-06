@@ -11,6 +11,7 @@ import iit.dsl.TransformsAccessor
 import iit.dsl.coord.coordTransDsl.Model
 import iit.dsl.coord.coordTransDsl.impl.CoordTransDslFactoryImpl
 import iit.dsl.coord.coordTransDsl.CoordTransDslFactory
+import iit.dsl.kinDsl.Joint
 
 class Jacobians {
     @Inject TransformsAccessor transformsAccessor
@@ -67,14 +68,16 @@ class Jacobians {
         val jacName   = '''«jacName(bsFrame.name, eeFrame.name)»(«variablesList»)'''
         val eePosName = '''«eeFrame.name»_pos_wrt_«bsFrame.name»(«variablesList»)'''
 
-        val chain = common.buildChain(base, targetLink).drop(1) //drops the base itself
         var iit.dsl.coord.coordTransDsl.Transform transform
         val StringConcatenation strBuff = new StringConcatenation();
         strBuff.append('''
             «eePosName» := posVector(«maximaTransformLiteral»);
             «jacName» := addcol(matrix()
                 ''');
-        for(AbstractLink el : chain) {
+
+        val chain = common.buildChain(base, targetLink)
+        val jointsChain = common.getChainJoints(chain)
+        for(Joint el : jointsChain) {
             // Get the transform 'base_X_<current link>'
             tmpFrame.setName(common.getFrameName(el).toString())
             transform = coordTransCommon.getTransform(transforms, bsFrame, tmpFrame)
@@ -87,7 +90,8 @@ class Jacobians {
             '''    , GJacobianColumn(«eePosName», zaxis(«maximaTransformLiteral»), posVector(«maximaTransformLiteral»))
             ''');
         }
-        strBuff.append(''');''');
+        strBuff.append(''');
+        ''');
 
         return strBuff
     }
