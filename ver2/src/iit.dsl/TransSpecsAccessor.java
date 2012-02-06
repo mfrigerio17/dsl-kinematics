@@ -25,8 +25,10 @@ public class TransSpecsAccessor {
     private Resource resource;
     private ResourceSet set;
 
+    private static Injector injector = new iit.dsl.transspecs.TransSpecsStandaloneSetup().createInjectorAndDoEMFRegistration();
+
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(Robot robot) {
-        Injector injector = new iit.dsl.transspecs.TransSpecsStandaloneSetup().createInjectorAndDoEMFRegistration();
+
         set = resourceSetProvider.get();
         String modelFilePath = "models/"+robot.getName() + ".dtdsl";
         if(new java.io.File(modelFilePath).isFile()) {
