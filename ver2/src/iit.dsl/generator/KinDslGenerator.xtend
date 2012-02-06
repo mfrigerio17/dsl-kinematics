@@ -21,9 +21,9 @@ class KinDslGenerator implements IGenerator {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name+".temp", test(robot))
         //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        fsa.generateFile(robot.name+".ctdsl", frTransforms.coordinateTransformsDSLDocument(robot))
+        //fsa.generateFile(robot.name+".ctdsl", frTransforms.coordinateTransformsDSLDocument(robot))
         //fsa.generateFile("blabla", temp(resource))
-        //test(robot)
+        test_getJoint(robot)
     }
 
     /**
@@ -53,10 +53,17 @@ class KinDslGenerator implements IGenerator {
     </robot>
     '''
 
-    def test(Robot robot) {
+    def test_getJoint(Robot robot) {
+        System::out.println('''
+        «FOR link : robot.links»
+        Parent «link.parent.name», child: «link.name»  -  Joint: «getJoint(link.parent, link).name»
+        «ENDFOR»'''.toString() );
+    }
+
+    def test_jointFromVariableName(Robot robot) {
         System::out.println('''
         «FOR joint : robot.joints»
-             Joint «joint.name», variable: «joint.variableName», joint again: «(robot.getJointFromVariableName(joint.variableName.toString())).name»
+        Joint «joint.name», variable: «joint.variableName», joint again: «(robot.getJointFromVariableName(joint.variableName.toString())).name»
         «ENDFOR»'''.toString() );
     }
     /*

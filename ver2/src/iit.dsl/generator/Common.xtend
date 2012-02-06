@@ -171,6 +171,18 @@ def dispatch Joint getConnectingJoint(AbstractLink link) {
     throw new RuntimeException("Link " + link.name + " is not connected via any joint?!?")
 }
 
+/** Returns the joint that connects two links, the parent and the child */
+def getJoint(AbstractLink parent, AbstractLink child) {
+    if(parent == null  ||  child == null) return null
+    for(ChildSpec c : parent.childrenList.children) {
+        if(c.link.equals(child)) {
+            return c.joint
+        }
+    }
+    //should never get here
+    throw new RuntimeException("Link " + parent.name  + " does not seem to be the parent of " + child.name)
+}
+
 def listCoordinates(Vector3 vector) {
     '''«vector.x.str» «vector.y.str» «vector.z.str»'''
 }
@@ -374,6 +386,29 @@ def AbstractLink getContainingLink(Robot robot, RefFrame frame) {
         if(frame.name.equals(l.frameName.toString())) return l
     }
     return null
+}
+
+def List<Joint> getChainJoints(List<AbstractLink> kinChain) {
+    if(kinChain == null) return null
+    if(kinChain.size() == 1) return new ArrayList<Joint>() // empty list
+
+    val ret = new ArrayList<Joint>()
+    val it1 = kinChain.iterator // points to first element
+    val it2 = kinChain.listIterator(1) // points to second element
+    var AbstractLink current
+    var AbstractLink next
+    while(it1.hasNext() && it2.hasNext()) {
+        current = it1.next()
+        next    = it2.next()
+        if(next.equals(current.parent)) { // the i+1th element is the parent of the i-th
+            ret.add(getJoint(next, current))
+        } else if(current.equals(next.parent)) {// the other way round
+            ret.add(getJoint(current, next))
+        } else {
+            throw new RuntimeException("Seems that the specified list is not a connected kinematic chain")
+        }
+    }
+    return ret
 }
 
 }//end of class
