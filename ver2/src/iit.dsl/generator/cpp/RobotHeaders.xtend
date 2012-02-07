@@ -2,8 +2,13 @@ package iit.dsl.generator.cpp
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
+import java.util.List
+import iit.dsl.generator.Jacobian
+import com.google.inject.Inject
 
 class RobotHeaders {
+    @Inject Jacobians jacobians
+
     def main(Robot robot)'''
         #ifndef IIT_«Names$Files::mainHeader(robot).toUpperCase()»_H_
         #define IIT_«Names$Files::mainHeader(robot).toUpperCase()»_H_
@@ -29,7 +34,7 @@ class RobotHeaders {
         #endif
         '''
 
-    def jacobiansHeader(Robot robot) '''
+    def jacobiansHeader(Robot robot, List<Jacobian> jacs) '''
         #ifndef «robot.name.toUpperCase()»_JACOBIANS_H_
         #define «robot.name.toUpperCase()»_JACOBIANS_H_
 
@@ -40,7 +45,7 @@ class RobotHeaders {
         namespace «Names$Namespaces::rob(robot)» {
 
         template<int COLS>
-        class JacobianT : public «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> {
+        class «Names$Types::jacobianLocal» : public «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> {
             private:
                 typedef «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> Base;
             public:
@@ -54,6 +59,7 @@ class RobotHeaders {
         namespace «Names$Namespaces::jacobians» {
         namespace «Names$Namespaces::internal» {
         /* Declarations */
+        «jacobians.declarations(robot, jacs)»
 
         } //namespace '«Names$Namespaces::internal»'
 
