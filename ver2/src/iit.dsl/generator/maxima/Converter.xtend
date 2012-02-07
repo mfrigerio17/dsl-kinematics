@@ -9,6 +9,7 @@ import iit.dsl.coord.generator.Maxima
 
 import com.google.inject.Inject
 import java.util.List
+import iit.dsl.generator.Jacobian
 
 /**
  * This class should be used to convert the output of the Maxima code generated
@@ -46,12 +47,17 @@ class Converter {
         val List<iit.dsl.coord.coordTransDsl.VariableLiteral> variables =
             coord_common.getVars(coord_common.getTransform(transforms, baseFrame.name, movingFrame.name))
         val jacName = '''«Jacobians::jacName(baseFrame.name, movingFrame.name)»(«coord_maxima.argsListText(variables)»)'''
-        val code = '''J : ratsimp(trigreduce(float(«jacName»))), keepfloat:true;'''
+        val code = '''J : float(ratsimp(trigreduce(«jacName»)));'''
         maximaRunner.run(code.toString())
         val ret = iit::dsl::coord::generator::MaximaConverter::parseMatrix(maximaRunner, convSpec, "J", 6, variables.size(), variables);
 
         maximaRunner.terminate();
         maximaRunner = null;
         return ret
+    }
+
+    def String[][] getJacobianText(Jacobian J, iit.dsl.coord.generator.IMaximaConversionSpec convSpec)
+    {
+        return getJacobianText(J.robot, J.baseFrame, J.movingFrame, convSpec)
     }
 }
