@@ -1,10 +1,9 @@
 package iit.dsl.generator.cpp
 
 import iit.dsl.kinDsl.Joint
-import com.google.inject.Inject
 
 class Common {
-    @Inject static iit.dsl.generator.Common common
+    static iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
     def public static jointIdentifier(Joint j) '''«j.name.toUpperCase()»'''
     def public static variableForCosineOf(Joint j) '''cos_«common.getVariableName(j)»'''
