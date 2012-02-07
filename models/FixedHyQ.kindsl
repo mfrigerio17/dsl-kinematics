@@ -200,7 +200,7 @@ r_joint LF_HFE {
     id = 2
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (-PI/2.0, 0.0, 0.0)
+        rotation =  (PI/2.0, 0.0, 0.0)
     }
 }
 r_joint LF_KFE {
@@ -224,7 +224,7 @@ r_joint RF_HFE {
     id = 5
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (PI/2.0, 0.0, 0.0)
+        rotation =  (-PI/2.0, 0.0, 0.0)
     }
 }
 r_joint RF_KFE {
@@ -246,7 +246,7 @@ r_joint LH_HFE {
     id = 8
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (-PI/2.0, 0.0, 0.0)
+        rotation =  (PI/2.0, 0.0, 0.0)
     }
 }
 r_joint LH_KFE {
@@ -269,7 +269,7 @@ r_joint RH_HFE {
     id = 11
     ref_frame {
         translation = (0.08, 0.0, 0.0)
-        rotation =  (PI/2.0, 0.0, 0.0)
+        rotation =  (-PI/2.0, 0.0, 0.0)
     }
 }
 r_joint RH_KFE {
