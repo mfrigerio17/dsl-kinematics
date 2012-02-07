@@ -38,9 +38,12 @@ public class Names {
         static final public String jacobians = "jacs";
         static final public String internal = "internal";
 
-        static public class Qialifiers {
+        static public class Qualifiers {
             static public String robot(Robot rob) {
                 return enclosing + "::" + rob(rob);
+            }
+            static public String roboJacs(Robot rob) {
+                return robot(rob) + "::" + jacobians;
             }
         }
 
@@ -54,5 +57,6 @@ public class Names {
         public static String jstateDependentMatrix() {
             return "iit::rbd::JStateDependentMatrix";
         }
+        public static final String jacobianLocal = "JacobianT";
     }
 }
