@@ -4,46 +4,22 @@ import com.google.inject.Inject
 
 import org.eclipse.xtend2.lib.StringConcatenation
 
-import iit.dsl.kinDsl.RefFrame
-import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.RevoluteJoint
 import java.util.List
-import iit.dsl.TransSpecsAccessor
-import iit.dsl.transspecs.transSpecs.FramePair
 import iit.dsl.generator.Jacobian
-import java.util.ArrayList
 
 
 class Jacobians {
-    @Inject TransSpecsAccessor desiredTrasformsAccessor
     @Inject iit.dsl.generator.maxima.Converter maximaConverter
-    @Inject extension iit.dsl.generator.Common common
-
     iit.dsl.coord.generator.IMaximaConversionSpec maximaConversionSpec = new iit.dsl.coord.generator.cpp.MaximaConversion()
 
-    def String[][] jacobian(Robot robot, AbstractLink baseLink, RefFrame targetFr) {
-        return jacobian(robot, common.getDefaultFrame(baseLink), targetFr)
-    }
-
-
-	def String[][] jacobian(Robot robot, RefFrame baseFr, RefFrame targetFr) {
-	    val jacText = maximaConverter.getJacobianText(
-	        robot,
-	        baseFr, targetFr,
-	        new iit.dsl.coord.generator.cpp.MaximaConversion()
-	    )
-	    return jacText
-    }
-
-    def private dynamicAssignmentsCode(Robot robot, String[][] matrixAsText, String matrixVarName, List<iit.dsl.coord.coordTransDsl.VariableLiteral> args) {
+    def private dynamicAssignmentsCode(Jacobian J, String[][] JasText, String varName) {
         val StringConcatenation strBuff = new StringConcatenation();
         var r = 0 // row index
         var c = 0 // column index
-        var Joint j;
-        for(iit.dsl.coord.coordTransDsl.VariableLiteral arg : args) {
-            j = common.getJointFromVariableName(robot, arg.varname)
+        for(Joint j : J.jointsChain) {
             if(j instanceof RevoluteJoint) {
                 strBuff.append('''
                 static double «Common::variableForCosineOf(j)»;
@@ -54,11 +30,11 @@ class Jacobians {
                 );
             }
         }
-        for(row : matrixAsText) {
+        for(row : JasText) {
             for(el : row) {
                 if( !iit::dsl::coord::generator::MaximaConverter::isConstant(el)) {
-                    strBuff.append('''«matrixVarName»(«r»,«c») = «el»;''')
-                    strBuff.append("\n");
+                    strBuff.append('''«varName»(«r»,«c») = «el»;
+                    ''')
                 }
                 c = c+1
             }
@@ -84,7 +60,7 @@ class Jacobians {
 
     def definitions(Robot robot, List<Jacobian> jacs) '''
         «FOR Jacobian j : jacs»
-            «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jacobianLocal»<«j.cols»> «j.name»;
+            «Names$Types::jacobianLocal»<«j.cols»> «Names$Namespaces$Qualifiers::roboJacs(robot)»::«j.name»(«runtimeAssignementsFunc_name(j)»);
         «ENDFOR»
 
         void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::initAll() {
@@ -94,13 +70,18 @@ class Jacobians {
         }
 
         «FOR Jacobian j : jacs»
-            void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::«Names$Namespaces::internal»::«runtimeAssignementsFunc_name(j)»(«runtimeAssignementsFunc_argsList(j)»)
+            «val jText = maximaConverter.getJacobianText(j, maximaConversionSpec)»
+            void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::«Names$Namespaces::internal»::«staticInitFunc_name(j)»(«staticInitFunc_argsList(j)»)
             {
                 «iit::dsl::coord::generator::cpp::EigenCommons::
-                matrixInitializationCode(maximaConverter.getJacobianText(j, maximaConversionSpec), "mx")»
+                matrixInitializationCode(jText, "mx")»
+            }
+
+            void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::«Names$Namespaces::internal»::«runtimeAssignementsFunc_name(j)»(«runtimeAssignementsFunc_argsList(j)»)
+            {
+                «dynamicAssignmentsCode(j, jText, "mx")»
             }
         «ENDFOR»
-
         '''
 
 
@@ -114,30 +95,12 @@ class Jacobians {
     def runtimeAssignementsFunc_argsList(Jacobian J)
         '''const «Names$Types::jointState»& state, «Names$Types::jacobianLocal»<«J.cols»>& mx'''
 
-
-    def temp(Robot robot) {
-        val StringConcatenation strBuff = new StringConcatenation();
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)
-        if(desiredTransforms != null) {
-            val jacobians = new ArrayList<Jacobian>()
-            for(FramePair jSpec : desiredTransforms.jacobians.getSpecs()) {
-                jacobians.add(new Jacobian(robot, jSpec))
-//                // Convert the frames to local types
-//                val RefFrame base   = common.createDefaultFrame()
-//                val RefFrame target = common.createDefaultFrame()
-//                base.name   = jSpec.base.name
-//                target.name = jSpec.target.name
-//                val text = jacobian(robot, base, target)
-//                for(row : text) {
-//                    System::out.println(Arrays::toString(row))
-//                }
-            }
-            System::out.println(declarations(robot, jacobians))
-            System::out.println(definitions(robot, jacobians))
-        }
-    }
-
     def implementationFile(Robot robot, List<Jacobian> jacs) '''
-    /* Definitions of the Jacobian matrices for the robot «robot.name»: */'''
+        #include "«Names$Files::jacobiansHeader(robot)».h"
 
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::roboJacs(robot)»;
+
+        «definitions(robot, jacs)»
+        '''
 }
