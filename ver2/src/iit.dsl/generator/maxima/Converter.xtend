@@ -47,7 +47,7 @@ class Converter {
         val List<iit.dsl.coord.coordTransDsl.VariableLiteral> variables =
             coord_common.getVars(coord_common.getTransform(transforms, baseFrame.name, movingFrame.name))
         val jacName = '''«Jacobians::jacName(baseFrame.name, movingFrame.name)»(«coord_maxima.argsListText(variables)»)'''
-        val code = '''J : float(ratsimp(trigreduce(«jacName»)));'''
+        val code = '''J : float(ratexpand(ratsimp(trigreduce(«jacName»))));'''
         maximaRunner.run(code.toString())
         val ret = iit::dsl::coord::generator::MaximaConverter::parseMatrix(maximaRunner, convSpec, "J", 6, variables.size(), variables);
 
