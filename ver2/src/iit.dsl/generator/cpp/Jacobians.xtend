@@ -1,19 +1,18 @@
 package iit.dsl.generator.cpp
 
+import java.util.List
 import com.google.inject.Inject
-
 import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.RevoluteJoint
-import java.util.List
+
 import iit.dsl.generator.Jacobian
 
 
 class Jacobians {
     @Inject iit.dsl.generator.maxima.Converter maximaConverter
-    iit.dsl.coord.generator.IMaximaConversionSpec maximaConversionSpec = new iit.dsl.coord.generator.cpp.MaximaConversion()
 
     def private dynamicAssignmentsCode(Jacobian J, String[][] JasText, String varName) {
         val StringConcatenation strBuff = new StringConcatenation();
@@ -24,6 +23,13 @@ class Jacobians {
                 strBuff.append('''
                 static double «Common::variableForCosineOf(j)»;
                 static double «Common::variableForSineOf(j)»;
+                '''
+                );
+            }
+        }
+        for(Joint j : J.jointsChain) {
+            if(j instanceof RevoluteJoint) {
+                strBuff.append('''
                 «Common::variableForCosineOf(j)» = std::cos(«Common::valueAccessorOf(j)»);
                 «Common::variableForSineOf(j)» = std::sin(«Common::valueAccessorOf(j)»);
                 '''
@@ -49,18 +55,20 @@ class Jacobians {
             extern «Names$Types::jacobianLocal»<«j.cols»> «j.name»;
         «ENDFOR»
 
-        «FOR Jacobian j : jacs»
-            void «staticInitFunc_name(j)»(«staticInitFunc_argsList(j)»);
-        «ENDFOR»
+        namespace «Names$Namespaces::internal» {
+            «FOR Jacobian j : jacs»
+                void «staticInitFunc_name(j)»(«staticInitFunc_argsList(j)»);
+            «ENDFOR»
 
-        «FOR Jacobian j : jacs»
-            void «runtimeAssignementsFunc_name(j)»(«runtimeAssignementsFunc_argsList(j)»);
-        «ENDFOR»
+            «FOR Jacobian j : jacs»
+                void «runtimeAssignementsFunc_name(j)»(«runtimeAssignementsFunc_argsList(j)»);
+            «ENDFOR»
+        } //namespace '«Names$Namespaces::internal»'
         '''
 
     def definitions(Robot robot, List<Jacobian> jacs) '''
         «FOR Jacobian j : jacs»
-            «Names$Types::jacobianLocal»<«j.cols»> «Names$Namespaces$Qualifiers::roboJacs(robot)»::«j.name»(«runtimeAssignementsFunc_name(j)»);
+            «Names$Types::jacobianLocal»<«j.cols»> «Names$Namespaces$Qualifiers::roboJacs(robot)»::«j.name»(«Names$Namespaces::internal»::«runtimeAssignementsFunc_name(j)»);
         «ENDFOR»
 
         void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::initAll() {
@@ -69,8 +77,9 @@ class Jacobians {
             «ENDFOR»
         }
 
+        «val MaximaConversion maximaConversion = new MaximaConversion(robot)»
         «FOR Jacobian j : jacs»
-            «val jText = maximaConverter.getJacobianText(j, maximaConversionSpec)»
+            «val jText = maximaConverter.getJacobianText(j, maximaConversion)»
             void «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::jacobians»::«Names$Namespaces::internal»::«staticInitFunc_name(j)»(«staticInitFunc_argsList(j)»)
             {
                 «iit::dsl::coord::generator::cpp::EigenCommons::
@@ -90,10 +99,10 @@ class Jacobians {
     def runtimeAssignementsFunc_name(Jacobian J) '''jointStateSetter__«J.name»'''
 
     def staticInitFunc_argsList(Jacobian J)
-        '''«Names$Types::jacobianLocal»<«J.cols»>& mx'''
+        '''«Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, «J.cols»>& mx'''
 
     def runtimeAssignementsFunc_argsList(Jacobian J)
-        '''const «Names$Types::jointState»& state, «Names$Types::jacobianLocal»<«J.cols»>& mx'''
+        '''const «Names$Types::jointState»& «Common::jointsStateVarName», «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, «J.cols»>& mx'''
 
     def implementationFile(Robot robot, List<Jacobian> jacs) '''
         #include "«Names$Files::jacobiansHeader(robot)».h"

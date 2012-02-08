@@ -49,7 +49,7 @@ class RobotHeaders {
             private:
                 typedef «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> Base;
             public:
-                JacobianT(Base::JointStateSetter setter) : Base(setter) {}
+                JacobianT(typename Base::JointStateSetter setter) : Base(setter) {}
         };
 
 
@@ -57,17 +57,15 @@ class RobotHeaders {
          * The namespace with the Jacobian matrices for the robot «robot.name»
          */
         namespace «Names$Namespaces::jacobians» {
-        namespace «Names$Namespaces::internal» {
-        /* Declarations */
-        «jacobians.declarations(robot, jacs)»
+            /* Declarations */
+            «jacobians.declarations(robot, jacs)»
 
-        } //namespace '«Names$Namespaces::internal»'
 
-        /**
-         * Call this function once at initialization time, to prepare the
-         * transform matrices.
-         **/
-        void initAll();
+            /**
+             * Call this function once at initialization time, to prepare the
+             * transform matrices.
+             **/
+            void initAll();
 
         } // end of namespace '«Names$Namespaces::jacobians»'
         } // end of namespace '«Names$Namespaces::rob(robot)»'
