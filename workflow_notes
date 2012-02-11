@@ -1,0 +1,25 @@
+Sequence of generations steps required to have full C++ sources with 
+coordinates transformations and Jacobians
+
+kindsl
+    - generate .cdtsl
+
+coord_trans
+    - generate maxima (transforms)
+    - generate cpp (transforms)
+
+    * environment variables
+        - MAXIMA_LIBS_PATHS: where to find maxima code for transforms etc.
+        - ROBOTS_CPP_FOLDER: where to put the generated C++ files
+
+kindsl
+    - generate maxima (Jacobians)
+    - generate cpp (Jacobians)
+
+    * environment variables
+        - MAXIMA_LIBS_PATHS: where to find maxima code for transforms etc.
+
+
+
+In the robotUser folder in SL, add symbolic links to headers and sources
+related to coordinates transformations and matrices
