@@ -5,6 +5,7 @@ import iit.dsl.kinDsl.Joint;
 import iit.dsl.kinDsl.RefFrame;
 import iit.dsl.kinDsl.Robot;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class Jacobian {
@@ -69,4 +70,19 @@ public class Jacobian {
         return baseFrame.getName() + "_J_" + movingFrame.getName();
     }
 
+    /**
+     * Returns a comma-separated list of the names of the variables of this Jacobian
+     * @return
+     */
+    public String getArgsList() {
+        if(jointsChain.size() == 0) return "";
+
+        StringBuffer argsList = new StringBuffer();
+        Iterator<Joint> iter = jointsChain.iterator();
+        argsList.append( common.getVariableName( iter.next() ) );
+        while( iter.hasNext() ) {
+            argsList.append( ", " + common.getVariableName( iter.next() ) );
+        }
+        return argsList.toString();
+    }
 }
