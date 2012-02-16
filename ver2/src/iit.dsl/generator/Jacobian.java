@@ -60,6 +60,10 @@ public class Jacobian {
         return cols;
     }
 
+    public int getRows() {
+        return 6;
+    }
+
     public List<Joint> getJointsChain() {
         return jointsChain;
     }
