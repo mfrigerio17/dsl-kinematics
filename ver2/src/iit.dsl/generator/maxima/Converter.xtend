@@ -1,14 +1,9 @@
 package iit.dsl.generator.maxima
 
-
-import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.RefFrame
-import iit.dsl.TransformsAccessor
-
-import iit.dsl.coord.generator.Maxima
-
 import com.google.inject.Inject
-import java.util.List
+
+import iit.dsl.TransformsAccessor
+import iit.dsl.coord.generator.Maxima
 import iit.dsl.generator.Jacobian
 
 /**
@@ -17,10 +12,6 @@ import iit.dsl.generator.Jacobian
  */
 class Converter {
     @Inject TransformsAccessor transformsAccessor
-    @Inject iit.dsl.coord.generator.Maxima coord_maxima
-    @Inject iit.dsl.coord.generator.Common coord_common
-
-	iit.dsl.coord.generator.MaximaRunner maximaRunner = null
 
     //filesytem location where to find required code to set up the environment
     static String maximaBasePath = System::getenv("MAXIMA_LIBS_PATH")
@@ -28,36 +19,25 @@ class Converter {
 
     /**
      * Returns a matrix of strings representing a Jacobian matrix.
-     * The Jacobian is identified by two reference frames; the Maxima source file
-     * with the corresponding definition is executed, and its output is parsed
-     * and returned.
+     * The Maxima source file with the corresponding definition is retrieved
+     * and executed, and its output is parsed and returned.
      */
-    def String[][] getJacobianText(Robot robot, RefFrame baseFrame, RefFrame movingFrame,
-        iit.dsl.coord.generator.IMaximaConversionSpec convSpec)
+    def String[][] getJacobianText(Jacobian J)
     {
-        maximaRunner = new iit.dsl.coord.generator.MaximaRunner()
+        val maximaRunner = new iit.dsl.maxdsl.utils.MaximaRunner()
         maximaRunner.runBatch(maximaBasePath+"/coord_transforms")
         maximaRunner.runBatch(maximaBasePath+"/utils")
 
-        val iit.dsl.coord.coordTransDsl.Model transforms = transformsAccessor.getTransformsModel(robot)
-
+        val iit.dsl.coord.coordTransDsl.Model transforms = transformsAccessor.getTransformsModel(J.robot)
         maximaRunner.runBatch(maximaBasePath +"/robots/" + Maxima::transformsFileName(transforms))
-        maximaRunner.runBatch(maximaJacobiansPath + "/" + Jacobians::fileName(robot))
+        maximaRunner.runBatch(maximaJacobiansPath + "/" + Jacobians::fileName(J.robot))
 
-        val List<iit.dsl.coord.coordTransDsl.VariableLiteral> variables =
-            coord_common.getVars(coord_common.getTransform(transforms, baseFrame.name, movingFrame.name))
-        val jacName = '''«Jacobians::jacName(baseFrame.name, movingFrame.name)»(«coord_maxima.argsListText(variables)»)'''
+        val jacName = '''«J.getName()»(«J.getArgsList()»)'''
         val code = '''J : float(ratexpand(ratsimp(trigreduce(«jacName»))));'''
         maximaRunner.run(code.toString())
-        val ret = iit::dsl::coord::generator::MaximaConverter::parseMatrix(maximaRunner, convSpec, "J", 6, variables.size(), variables);
+        val ret = iit::dsl::maxdsl::utils::MaximaConversionUtils::getMatrix(maximaRunner, "J", 6, J.cols);
 
         maximaRunner.terminate();
-        maximaRunner = null;
         return ret
-    }
-
-    def String[][] getJacobianText(Jacobian J, iit.dsl.coord.generator.IMaximaConversionSpec convSpec)
-    {
-        return getJacobianText(J.robot, J.baseFrame, J.movingFrame, convSpec)
     }
 }
