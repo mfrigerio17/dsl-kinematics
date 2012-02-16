@@ -27,11 +27,10 @@ public class MaximaDSLAccessor {
         Injector injector = new iit.dsl.maxdsl.MaximaDslStandaloneSetup().createInjectorAndDoEMFRegistration();
         resourceSet = injector.getInstance(XtextResourceSet.class);
         resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
-
-        resource = resourceSet.createResource(URI.createURI("dummy:/example.maxdsl"));
     }
 
     public iit.dsl.maxdsl.maximaDsl.Model getParsedTextModel(String model) throws IOException {
+        resource = resourceSet.createResource(URI.createURI("dummy:/"+Long.toString(System.nanoTime())+".maxdsl"));
         InputStream in = new StringInputStream(model);
         resource.load(in, resourceSet.getLoadOptions());
         return (iit.dsl.maxdsl.maximaDsl.Model) resource.getContents().get(0);
