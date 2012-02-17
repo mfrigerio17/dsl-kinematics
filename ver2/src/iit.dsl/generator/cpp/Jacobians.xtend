@@ -6,14 +6,13 @@ import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.generator.Jacobian
-import iit.dsl.MaximaDSLAccessor
 import java.util.Iterator
 
 
 class Jacobians {
     @Inject iit.dsl.generator.maxima.Converter maximaConverter
 
-    MaximaDSLAccessor maxdslAccess = new MaximaDSLAccessor()
+    iit.dsl.maxdsl.utils.DSLAccessor maxdslAccess = new iit.dsl.maxdsl.utils.DSLAccessor()
     iit.dsl.maxdsl.generator.cpp.Utils exprGenerator = new iit.dsl.maxdsl.generator.cpp.Utils()
 
 
@@ -33,7 +32,7 @@ class Jacobians {
         strBuff.append("\n");
         for(row : JasText) {
             for(el : row) {
-                if( !iit::dsl::coord::generator::MaximaConverter::isConstant(el)) {
+                if( !iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el)) {
                     // we assume we as many parsed expressions as the number of non constant elements of the Jacobian
                     if( ! exprIter.hasNext()) {
                         throw new RuntimeException("The number of expressions does not match the Jacobian")
