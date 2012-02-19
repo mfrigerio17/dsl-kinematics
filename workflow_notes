@@ -20,6 +20,22 @@ kindsl
         - MAXIMA_LIBS_PATHS: where to find maxima code for transforms etc.
 
 
+=== Dependencies of DSLs === (to properly configure Eclipse projects)
+
+kindsl depends on
+    - the CoordinateTransforms DSL
+    - the TransformSpec DSL
+    - the Maxima DSL
+coord_trans depens on
+    - (the TransformSpec DSL) [not yet, but should]
+    - the Maxima DSL
+
+=== External libraries dependencies ===
+
+maxima DSL:
+    - jacomax libraries
+
+
 
 In the robotUser folder in SL, add symbolic links to headers and sources
 related to coordinates transformations and matrices
