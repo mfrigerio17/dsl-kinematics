@@ -189,4 +189,47 @@ class RigidBodyDynamics {
             std::cout << tau << std::endl;
             return 0;
         }'''
+
+
+    def inertiaMatrixHeader(Robot robot)'''
+        #ifndef IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
+        #define IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
+
+        #include <iit/rbd/JStateDependentMatrix>
+        #include <iit/robots/«Names$Files::mainHeader(robot)».h>
+
+        namespace «Names$Namespaces::enclosing» {
+        namespace «Names$Namespaces::rob(robot)» {
+
+        typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> «Names$Types::jspaceMLocal»;
+
+        extern «Names$Types::jspaceMLocal» jspaceM;
+        void initJointSpaceInertiaMatrix();
+        namespace «Names$Namespaces::internal» {
+            void jspaceM_setJointStatus(const «Names$Types::jointState»& «Common::jointsStateVarName», «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>& mx»);
+        }
+
+        }
+        }
+        #endif
+        '''
+
+    def inertiaMatrixSource(Robot robot) '''
+        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+        #include "«Names$Files::transformsHeader(robot)».h"
+
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
+
+        «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jspaceMLocal» «Names$Namespaces$Qualifiers::robot(robot)»::jspaceM(«Names$Namespaces::internal»::jspaceM_setJointStatus);
+
+        «Names$Namespaces$Qualifiers::robot(robot)»::initJointSpaceInertiaMatrix() {
+            jspaceM.setZero();
+        }
+
+        «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::internal»::jspaceM_setJointStatus(const «Names$Types::jointState»& «Common::jointsStateVarName», «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState» jState, «robot.joints.size», «robot.joints.size»>& M») {
+
+        }
+    '''
+
 }

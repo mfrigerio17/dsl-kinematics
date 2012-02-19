@@ -29,11 +29,15 @@ public class Names {
             static public String testMain(Robot r) {
                 return r.getName() + "_main";
             }
+            static public String inertiaMatrixHeader(Robot r) {
+                return r.getName() + "_JSpaceM";
+            }
         }
     }
 
     static public class Namespaces {
         static final public String transforms6D = "transforms6D";
+        static final public String T6D_force = "force";
         static final public String enclosing = "iit";
         static public String rob(Robot r) {
             return r.getName();
@@ -61,5 +65,6 @@ public class Names {
             return "iit::rbd::JStateDependentMatrix";
         }
         public static final String jacobianLocal = "JacobianT";
+        public static final String jspaceMLocal = "JSpaceInertiaMatrix";
     }
 }
