@@ -165,7 +165,7 @@ class RigidBodyDynamics {
     def private child_X_parent__mxName(AbstractLink parent, AbstractLink child) '''
         fr_«child.name»_X_fr_«parent.name»'''
     def private parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
-        fr_«child.name»_X_fr_«parent.name»'''
+        fr_«parent.name»_X_fr_«child.name»'''
 
     def testMain(Robot robot) '''
         #include <cmath>
@@ -285,18 +285,22 @@ class RigidBodyDynamics {
 
             // "Bottom-up" loop to update the inertia-composite property of each link, for the current configuration
             «FOR l : sortedLinks»
+
+
+                // Link «l.name» //
+
                 «val parent = l.parent»
                 «IF !(parent instanceof RobotBase)»
-                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
+                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)»(state) * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»(state);
                 «ENDIF»
 
                 «val linkJoint = getJoint(parent, l)»
                 «IF linkJoint instanceof PrismaticJoint»
                     F = «inertiaCompositeName(l)».col(5); // multiplication by the joint subspace matrix, assuming 1 DoF joint
-                    DATA(«linkJoint.ID-1»,«linkJoint.ID-1») = F.row(2)(0,0);
+                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(2)(0,0);
                 «ELSE»
                     F = «inertiaCompositeName(l)».col(2); // multiplication by the joint subspace matrix, assuming 1 DoF joint
-                    DATA(«linkJoint.ID-1»,«linkJoint.ID-1») = F.row(2)(0,0);
+                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(2)(0,0);
                 «ENDIF»
 
                 «val chain = chainToBase(l)»
@@ -305,6 +309,8 @@ class RigidBodyDynamics {
 
             return *this;
         }
+
+        #undef DATA
     '''
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
@@ -325,9 +331,9 @@ class RigidBodyDynamics {
             if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
                 parentJ = getConnectingJoint(parent);
                 strBuff.append('''
-                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)» * F;
-                DATA(«rowIndex»,«parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
-                DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex»,«parentJ.ID-1»); //the matrix is symmetric
+                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)»(state) * F;
+                DATA(«rowIndex», «parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
+                DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex», «parentJ.ID-1»); //the matrix is symmetric
                 ''');
             }
         }
