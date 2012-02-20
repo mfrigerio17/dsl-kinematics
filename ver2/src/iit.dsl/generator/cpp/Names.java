@@ -39,6 +39,7 @@ public class Names {
         static final public String transforms6D = "transforms6D";
         static final public String T6D_force = "force";
         static final public String enclosing = "iit";
+        static final public String rbd = "rbd";
         static public String rob(Robot r) {
             return r.getName();
         }

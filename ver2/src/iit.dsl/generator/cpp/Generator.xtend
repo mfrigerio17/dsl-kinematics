@@ -4,15 +4,17 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
+import java.util.ArrayList
 import com.google.inject.Inject
+
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
-import java.util.ArrayList
 import iit.dsl.generator.Jacobian
+
 
 class Generator implements IGenerator {
     @Inject RobotHeaders headers
-    @Inject RigidBodyDynamics rbd
+    RigidBodyDynamics rbd = new RigidBodyDynamics()
     @Inject Jacobians jacobs
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
@@ -22,10 +24,13 @@ class Generator implements IGenerator {
 //        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
 //        fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
 //        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
-        generateJacobiansFile(robot, fsa)
+        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot) + ".h",   rbd.inertiaMatrixHeader(robot))
+        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot) + ".cpp", rbd.inertiaMatrixSource(robot))
+//        generateJacobiansFiles(robot, fsa)
+//System::out.println(rbd.inertiaMatrixSource(robot))
     }
 
-    def generateJacobiansFile(Robot robot, IFileSystemAccess fsa) {
+    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)
         if(desiredTransforms != null) {
             val jacobians = new ArrayList<Jacobian>()
@@ -36,6 +41,12 @@ class Generator implements IGenerator {
             fsa.generateFile(Names$Files::jacobiansSource(robot) + ".cpp", jacobs.implementationFile(robot, jacobians))
         }
     }
+
+        // To generate C++ files with Jacobians, I first need to make sure that
+        //  we have the corresponding Maxima sources
+        //KinDslStandaloneSetup_Maxima::doSetup();
+        //maximaGenerator.generateJacobiansSources(robot, fsa)
+
 
 
 }

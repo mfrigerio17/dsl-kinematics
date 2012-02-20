@@ -8,11 +8,13 @@ import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Link
 
-import com.google.inject.Inject
+import iit.dsl.kinDsl.RobotBase
+import java.util.List
+import org.eclipse.xtend2.lib.StringConcatenation
 
 class RigidBodyDynamics {
 
-    @Inject extension iit.dsl.generator.Common common
+    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
     def static headerFileName(Robot r)'''«r.name»_dynamics'''
     def static sourceFileName(Robot r)'''«r.name»_dynamics'''
@@ -77,12 +79,12 @@ class RigidBodyDynamics {
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
             #endif
-
+            «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
             using namespace std;
             using namespace iit::rbd;
-            using namespace «fullNSQualifier(robot)»;
+            using namespace «nsqualifier»;
 
-            «fullNSQualifier(robot)»::«className(robot)»::«className(robot)»() {
+            «nsqualifier»::«className(robot)»::«className(robot)»() {
             #ifndef EIGEN_NO_DEBUG
                 std::cout << "Robot «robot.name», «className(robot)»::«className(robot)»()" << std::endl;
                 std::cout << "Compiled with Eigen debug active" << std::endl;
@@ -102,7 +104,7 @@ class RigidBodyDynamics {
                 «Names$Namespaces::transforms6D»::initAll(); // initializes coordinates transforms
             }
 
-            void «fullNSQualifier(robot)»::«className(robot)»::id(const JointState& q, const JointState& qd, const JointState& qdd, JointState& torques) {
+            void «nsqualifier»::«className(robot)»::id(const JointState& q, const JointState& qd, const JointState& qdd, JointState& torques) {
                 «val sortedLinks = robot.abstractLinks.sortBy(link | getID(link))»
                 «FOR AbstractLink l : sortedLinks»
                     «inverseDynamicsPass1(l)»
@@ -113,8 +115,6 @@ class RigidBodyDynamics {
 
                 «ENDFOR»
             } '''
-
-    def private fullNSQualifier(Robot r) '''«Names$Namespaces::enclosing»::«Names$Namespaces::rob(r)»'''
 
     def private dispatch jointSubspaceMx(PrismaticJoint j) '''
         «j.subspaceMxName».resize(6);
@@ -133,7 +133,7 @@ class RigidBodyDynamics {
            «val myJoint = l.connectingJoint»
            «val velocity = l.velocityName»
            «val acceler = l.accelerationName»
-           «val transform = child_X_parent__mxName(parentLink, l)»
+           «val transform = Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(parentLink, l)»
            «transform»(q); // updates the transform with the joint status
            «IF parentLink.getID() == 0»
                «velocity» = «myJoint.subspaceMxName» * qd(«myJoint.ID-1»); // «velocity» = vJ, for the first link of a fixed base robot
@@ -158,12 +158,14 @@ class RigidBodyDynamics {
         «val myJoint = l.connectingJoint»
         torques(«myJoint.ID-1») = «myJoint.subspaceMxName».transpose().dot(«l.forceName»);
         «IF parentLink.ID != 0»
-            «parentLink.forceName» = «parentLink.forceName» + «child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
+            «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
         «ENDIF»
         '''
 
     def private child_X_parent__mxName(AbstractLink parent, AbstractLink child) '''
-        «Names$Namespaces::transforms6D»::fr_«child.name»_X_fr_«parent.name»'''
+        fr_«child.name»_X_fr_«parent.name»'''
+    def private parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
+        fr_«child.name»_X_fr_«parent.name»'''
 
     def testMain(Robot robot) '''
         #include <cmath>
@@ -172,7 +174,7 @@ class RigidBodyDynamics {
         #include "«Names$Files$RBD::header(robot)».h"
 
         using namespace std;
-        using namespace «fullNSQualifier(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
         using namespace iit::rbd;
 
         int main(int argc, char** argv) {
@@ -195,19 +197,54 @@ class RigidBodyDynamics {
         #ifndef IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
         #define IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
 
-        #include <iit/rbd/JStateDependentMatrix>
+        #include <iit/rbd/rbd.h>
+        #include <iit/rbd/JStateDependentMatrix.h>
         #include <iit/robots/«Names$Files::mainHeader(robot)».h>
+        #include <iit/robots/«Names$Files$RBD::header(robot)».h>
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
 
-        typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> «Names$Types::jspaceMLocal»;
+        //typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> «Names$Types::jspaceMLocal»;
 
-        extern «Names$Types::jspaceMLocal» jspaceM;
-        void initJointSpaceInertiaMatrix();
-        namespace «Names$Namespaces::internal» {
-            void jspaceM_setJointStatus(const «Names$Types::jointState»& «Common::jointsStateVarName», «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>& mx»);
+        class «Names$Types::jspaceMLocal» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>
+        {
+            private:
+                typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> Base;
+            public:
+                typedef Base::Scalar Scalar;
+                typedef Base::Index Index;
+            public:
+                «Names$Types::jspaceMLocal»();
+                ~«Names$Types::jspaceMLocal»() {}
+
+                const «Names$Types::jspaceMLocal»& operator()(const «Names$Types::jointState»&);
+
+                //need to redeclare these because previous overloading hides the base class versions
+                const Scalar& operator()(Index row, Index col) const;
+                Scalar& operator()(Index row, Index col);
+
+            private:
+                // The composite inertia matrix for each link
+                «FOR l : robot.links»
+                    InertiaMatrix «inertiaCompositeName(l)»;
+                «ENDFOR»
+        };
+
+
+        inline const «Names$Types::jspaceMLocal»::Scalar&
+        «Names$Types::jspaceMLocal»::operator()(Index row, Index col) const {
+            return this->Base::operator() (row,col);
         }
+
+        inline «Names$Types::jspaceMLocal»::Scalar&
+        «Names$Types::jspaceMLocal»::operator()(Index row, Index col) {
+            return this->Base::operator() (row,col);
+        }
+
+        // The joint space inertia matrix of this robot
+        extern «Names$Types::jspaceMLocal» jspaceM;
+
 
         }
         }
@@ -215,21 +252,85 @@ class RigidBodyDynamics {
         '''
 
     def inertiaMatrixSource(Robot robot) '''
+        #include <iit/robots/«Names$Files::transformsHeader(robot)».h>
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
-        #include "«Names$Files::transformsHeader(robot)».h"
 
-        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        //using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
 
-        «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jspaceMLocal» «Names$Namespaces$Qualifiers::robot(robot)»::jspaceM(«Names$Namespaces::internal»::jspaceM_setJointStatus);
+        «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
+        «val classname = Names$Types::jspaceMLocal»
 
-        «Names$Namespaces$Qualifiers::robot(robot)»::initJointSpaceInertiaMatrix() {
-            jspaceM.setZero();
+        // The joint space inertia matrix of this robot
+        «nsqualifier»::«Names$Types::jspaceMLocal» «nsqualifier»::jspaceM;
+
+        //Implementation of default constructor
+        «nsqualifier»::«classname»::«classname»() {
+            //Make sure all the transforms for this robot are initialized
+            «nsqualifier»::«Names$Namespaces::transforms6D»::initAll();
+            «nsqualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
+
+            this->setZero();
+            «FOR l : robot.links»
+                «inertiaCompositeName(l)».fill(«l.inertiaParams.mass», «Names$Namespaces::rbd»::Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
+                        «Names$Namespaces::rbd»::Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
+            «ENDFOR»
         }
 
-        «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::internal»::jspaceM_setJointStatus(const «Names$Types::jointState»& «Common::jointsStateVarName», «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState» jState, «robot.joints.size», «robot.joints.size»>& M») {
+        #define DATA operator()
 
+        const «nsqualifier»::«classname»& «nsqualifier»::«classname»::operator()(const «Names$Types::jointState»& state) {
+            «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
+            static «Names$Namespaces::rbd»::ForceVector F;
+
+            // "Bottom-up" loop to update the inertia-composite property of each link, for the current configuration
+            «FOR l : sortedLinks»
+                «val parent = l.parent»
+                «IF !(parent instanceof RobotBase)»
+                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
+                «ENDIF»
+
+                «val linkJoint = getJoint(parent, l)»
+                «IF linkJoint instanceof PrismaticJoint»
+                    F = «inertiaCompositeName(l)».col(5); // multiplication by the joint subspace matrix, assuming 1 DoF joint
+                    DATA(«linkJoint.ID-1»,«linkJoint.ID-1») = F.row(2)(0,0);
+                «ELSE»
+                    F = «inertiaCompositeName(l)».col(2); // multiplication by the joint subspace matrix, assuming 1 DoF joint
+                    DATA(«linkJoint.ID-1»,«linkJoint.ID-1») = F.row(2)(0,0);
+                «ENDIF»
+
+                «val chain = chainToBase(l)»
+                «inertiaMatrix_lastStep(chain, linkJoint.ID-1)»
+            «ENDFOR»
+
+            return *this;
         }
     '''
 
+    def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
+
+    def private List<AbstractLink> chainToBase(AbstractLink l) {
+        val chain = buildChain(l, (l.eContainer() as Robot).base)
+        chain.remove(chain.size() - 1) // removes the last element, which is the base
+        return chain
+    }
+
+    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, int rowIndex) {
+        val strBuff = new StringConcatenation()
+
+        var AbstractLink parent
+        var Joint parentJ
+        for( link : chainToBase ) {
+            parent = link.parent
+            if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
+                parentJ = getConnectingJoint(parent);
+                strBuff.append('''
+                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)» * F;
+                DATA(«rowIndex»,«parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
+                DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex»,«parentJ.ID-1»); //the matrix is symmetric
+                ''');
+            }
+        }
+        return strBuff;
+    }
 }
