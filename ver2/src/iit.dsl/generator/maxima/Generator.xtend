@@ -11,6 +11,8 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.RefFrame
 import iit.dsl.TransSpecsAccessor
 import org.eclipse.xtend2.lib.StringConcatenation
+//import java.util.ArrayList
+//import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
     @Inject extension Common common
@@ -19,6 +21,10 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        generateJacobiansSources(robot, fsa);
+    }
+
+    def generateJacobiansSources(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(Jacobians::fileName(robot).toString(), jacobiansFileCode(robot))
     }
 
@@ -26,6 +32,10 @@ class Generator implements IGenerator {
         val StringConcatenation strBuff = new StringConcatenation();
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)
         if(desiredTransforms != null) {
+//            val jacobians = new ArrayList<Jacobian>()
+//            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()) {
+//                jacobians.add(new Jacobian(robot, jSpec))
+//            } // TODO
             for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()) {
                 // Convert the frames to local types
                 val RefFrame base   = common.getFrameByName(robot, jSpec.base.name)
