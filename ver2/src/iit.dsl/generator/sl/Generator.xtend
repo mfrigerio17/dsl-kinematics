@@ -9,7 +9,7 @@ import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 
 class Generator implements IGenerator {
-    @Inject iit.dsl.generator.sl.Common slCommon
+    extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
     @Inject RobotFiles roboFiles
     @Inject RobotUserFiles roboUserFiles
 
@@ -17,6 +17,7 @@ class Generator implements IGenerator {
         val robot = resource.contents.head as Robot;
 
         // ROBOT FILES
+/*
         fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
             Utilities::makefileFolder +"/imakefile.unix",
             roboFiles.makefileUnix(robot))
@@ -33,16 +34,18 @@ class Generator implements IGenerator {
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/src/SL_user_common.c",
             roboFiles.SL_user_dot_h(robot))
-
+*/
         // ROBOT USER FILES
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
-            "/config/ConfigParameters.cf",
+            "/config/LinkParameters.cf",
             roboUserFiles.linkParameters(robot))
+///*
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
-            Utilities::makefileFolder +"/imakefile.unix",
+            "/" + Utilities::makefileFolder +"/imakefile.unix",
             roboUserFiles.imakefileUnix(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
-            "/src/mymain.cpp",
+            "/src/" + benchmarkFileName(robot) + ".cpp",
             roboUserFiles.benchmarkMain(robot))
+//*/
     }
 }

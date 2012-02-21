@@ -16,7 +16,7 @@ def String robotUserFolderName(Robot robot) {
 }
 
 def String benchmarkFileName(Robot robot) {
-    "mymain"
+    "dynTest_main"
 }
 
 }
