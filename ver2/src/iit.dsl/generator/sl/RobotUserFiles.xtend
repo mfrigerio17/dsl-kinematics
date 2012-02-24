@@ -105,10 +105,9 @@ class RobotUserFiles {
         #include "«robot.name»_dynamics.h"
 
         #include "SL.h"
-        #include "SL_kinematics.h"
-        #include "SL_dynamics.h"
-
         #include "SL_user.h"
+        #include "SL_kinematics_body.h" //"SL_kinematics.h" does not work
+        #include "SL_dynamics.h"
 
         using namespace std;
         using namespace «Names$Namespaces::enclosing»;
@@ -161,17 +160,11 @@ class RobotUserFiles {
                 desiredState[i].uex  = 0;
             }
 
-            endeffector[ENDEFF].m = 0; // zero mass -> no endeffector
+            setDefaultEndeffector();
             for(i=0; i<=N_CART; i++) {
                 basePosition.x[i]   = 0;
                 basePosition.xd[i]  = 0;
                 basePosition.xdd[i] = 0;
-
-                endeffector[ENDEFF].mcm[i] = 0;
-                endeffector[ENDEFF].cf[i]  = 0;
-                endeffector[ENDEFF].ct[i]  = 0;
-                endeffector[ENDEFF].x[i]   = 0;
-                endeffector[ENDEFF].a[i]   = 0;
             }
             baseOrient.q[_Q0_] = 1;
             baseOrient.q[_Q1_] = 0;
@@ -256,4 +249,92 @@ class RobotUserFiles {
             desiredState[«j.name»].thdd = qdd(«j.getID()-1»);
         «ENDFOR»
         }'''
+
+
+
+        def main_inertiaM(Robot robot) '''
+        «val robotNS = Names$Namespaces::rob(robot)»
+        #include <iostream>
+        #include <fstream>
+        #include <ctime>
+
+        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+
+        #include "SL.h"
+        #include "SL_user.h"
+        #include "SL_kinematics_body.h" //"SL_kinematics.h" does not work
+        #include "SL_dynamics.h"
+
+        using namespace std;
+        using namespace «Names$Namespaces::enclosing»;
+
+        static SL_Jstate currentState[N_ROBOT_DOFS];
+        static SL_endeff endeffector[N_ROBOT_ENDEFFECTORS];
+        static SL_Cstate basePosition;
+        static SL_quat baseOrient;
+        static SL_uext   ux[N_DOFS+1];
+        static Matrix rbdM;
+        static Vector rbdCG;
+
+        static void fillState(«robotNS»::«Names$Types::jointState»& q, SL_Jstate* SLState);
+        static void SL_init();
+
+        /* This main is supposed to be used to test the joint space inertia matrix routines */
+        int main(int argc, char**argv)
+        {
+            «robotNS»::«Names$Types::jointState» q;
+
+            SL_init();
+            std::srand(std::time(NULL)); // initialize random number generator
+            fillState(q, currentState);
+            SL_ForDynComp(currentState, &basePosition, &baseOrient, ux, endeff, rbdM, rbdCG);
+            «robotNS»::«Names$GlobalVars::jsInertia»(q);
+
+            «robotNS»::«Names$Types::jspaceMLocal» SLM;
+
+            // Copies the matrix of SL into an Eigen matrix
+            «FOR Joint jo : robot.joints»
+                «FOR Joint ji : robot.joints»
+                SLM(«robotNS»::«jo.name»,«robotNS»::«ji.name») = rbdM[«jo.name»][«ji.name»];
+                «ENDFOR»
+            «ENDFOR»
+
+            cout << "SL:" << endl << (SLM.array().abs() < 1E-4).select(0, SLM) << endl;
+            cout << "Me:" << endl <<
+                    («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotNS»::«Names$GlobalVars::jsInertia»)  << endl;
+
+            return TRUE;
+        }
+
+
+        void fillState(«robotNS»::«Names$Types::jointState»& q, SL_Jstate* SLState) {
+            static const double max = 12.3;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+                SLState[«j.name»].th = q(«j.getID()-1»);
+            «ENDFOR»
+        }
+
+        static void SL_init() {
+            init_kinematics();
+            init_dynamics();
+
+            bzero((void *)&basePosition,sizeof(basePosition));
+            bzero((void *)&baseOrient,sizeof(baseOrient));
+            bzero((void *)ux,sizeof(SL_uext)*N_DOFS+1);
+            setDefaultEndeffector(); // the the default end-effector parameters
+
+            baseOrient.q[_Q0_] = 1;
+            baseOrient.q[_Q1_] = 0;
+            baseOrient.q[_Q2_] = 0;
+            baseOrient.q[_Q3_] = 0;
+
+            rbdM = my_matrix(1,N_DOFS+6,1,N_DOFS+6);
+            rbdCG = my_vector(1,N_DOFS+6);
+            mat_zero(rbdM);
+            vec_zero(rbdCG);
+
+            freeze_base = TRUE;//
+        }
+        '''
 }

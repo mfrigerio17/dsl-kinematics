@@ -19,4 +19,8 @@ def String benchmarkFileName(Robot robot) {
     "dynTest_main"
 }
 
+def String main_inertiaM_filename(Robot robot) {
+    "main_inertiaM"
+}
+
 }
