@@ -68,4 +68,8 @@ public class Names {
         public static final String jacobianLocal = "JacobianT";
         public static final String jspaceMLocal = "JSpaceInertiaMatrix";
     }
+
+    static public class GlobalVars {
+        static final public String jsInertia = "jspaceM";
+    }
 }

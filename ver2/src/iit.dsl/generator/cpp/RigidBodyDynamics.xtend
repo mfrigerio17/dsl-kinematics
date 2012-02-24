@@ -243,7 +243,7 @@ class RigidBodyDynamics {
         }
 
         // The joint space inertia matrix of this robot
-        extern «Names$Types::jspaceMLocal» jspaceM;
+        extern «Names$Types::jspaceMLocal» «Names$GlobalVars::jsInertia»;
 
 
         }
@@ -262,7 +262,7 @@ class RigidBodyDynamics {
         «val classname = Names$Types::jspaceMLocal»
 
         // The joint space inertia matrix of this robot
-        «nsqualifier»::«Names$Types::jspaceMLocal» «nsqualifier»::jspaceM;
+        «nsqualifier»::«Names$Types::jspaceMLocal» «nsqualifier»::«Names$GlobalVars::jsInertia»;
 
         //Implementation of default constructor
         «nsqualifier»::«classname»::«classname»() {
