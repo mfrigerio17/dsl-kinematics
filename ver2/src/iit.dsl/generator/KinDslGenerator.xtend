@@ -20,10 +20,10 @@ class KinDslGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name+".temp", test(robot))
-        //fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         //fsa.generateFile(robot.name+".ctdsl", frTransforms.coordinateTransformsDSLDocument(robot))
         //fsa.generateFile("blabla", temp(resource))
-        test_getJoint(robot)
+        //test_getJoint(robot)
     }
 
     /**
@@ -31,7 +31,7 @@ class KinDslGenerator implements IGenerator {
      */
     def generateURDFmodel(Robot robot) '''
     <robot name="«robot.name»">
-    «FOR link : robot.links»
+    «FOR link : robot.abstractLinks»
         «val inertia = link.inertiaParams»
         «val inertia_trans = Utilities::translate(inertia, inertia.com)»
         <link name="«link.name»">
@@ -44,10 +44,11 @@ class KinDslGenerator implements IGenerator {
     «ENDFOR»
     «FOR joint : robot.joints»
         «val frame = joint.refFrame»
-        <joint name="«joint.name»" type="«joint.typeString»"/>
-            <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.listCoordinates()»"/>
+        <joint name="«joint.name»" type="«joint.typeString»">
+            <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.x.asFloat» «frame.rotation.y.asFloat» «frame.rotation.z.asFloat»"/>
             <parent link="«joint.predecessorLink.name»"/>
             <child  link="«joint.successorLink.name»"/>
+            <limit effort="30" velocity="1.0"/>
         </joint>
     «ENDFOR»
     </robot>

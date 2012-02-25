@@ -9,7 +9,7 @@ import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
 import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 
 public class Utilities {
-	
+
 	private static KinDslPackage dslPackage = KinDslPackageImpl.init();
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
 
@@ -26,7 +26,7 @@ public class Utilities {
 		float x = ((FloatLiteral)com.getX()).getValue();
 		float y = ((FloatLiteral)com.getY()).getValue();
 		float z = ((FloatLiteral)com.getZ()).getValue();
-		
+
 		InertiaParams translated = (InertiaParams)factory.create(dslPackage.getInertiaParams());
 		translated.setCom((Vector3)factory.create(dslPackage.getVector3()));
 		translated.setMass(mass);
@@ -34,7 +34,7 @@ public class Utilities {
 		// The returned inertia is supposed to be specified at the center of mass,
 		//  thus the center of mass position is 0,0,0 by definition
 		Vector3 temp = translated.getCom();
-		FloatLiteral zero = (FloatLiteral)factory.createFloatLiteral();
+		FloatLiteral zero = factory.createFloatLiteral();
 		zero.setValue((float)0.0);
 		temp.setX(zero);
 		temp.setY(zero);
@@ -54,5 +54,11 @@ public class Utilities {
 	}
 	public static boolean isZero(float num) {
 		return num==0.0;
+	}
+	public static float mult(float a, float b) {
+	    return a*b;
+	}
+	public static float div(float a, float b) {
+	    return a/b;
 	}
 }

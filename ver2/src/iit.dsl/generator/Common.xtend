@@ -27,6 +27,8 @@ import iit.dsl.kinDsl.impl.KinDslFactoryImpl
 import iit.dsl.kinDsl.RotoTrasl
 import iit.dsl.kinDsl.KinDslFactory
 import org.eclipse.emf.ecore.util.EcoreUtil
+import iit.dsl.kinDsl.PILiteral
+import iit.dsl.kinDsl.ConstantLiteral
 
 
 class Common {
@@ -206,6 +208,40 @@ def dispatch str(PlainExpr expr) '''«str(expr.identifier)»'''
 def dispatch str(MultExpr expr)  '''«str(expr.mult)» «str(expr.identifier)»'''
 def dispatch str(DivExpr expr)   '''«str(expr.identifier)»/«expr.div»'''
 def str(Identifier id)           '''«IF id.minus»-«ENDIF»«id.varname»'''
+
+
+/**
+ * Return the float value of an expression.
+ * Will throw an exception if the expression is a variable literal, which of
+ * course cannot be converted arbitrarily to a floating point value
+ */
+def dispatch float asFloat(FloatLiteral id) {
+    id.value
+}
+def dispatch float asFloat(PlainExpr id) {
+    id.identifier.asFloat
+}
+def dispatch float asFloat(MultExpr expr) {
+    return Utilities::mult(expr.mult, expr.identifier.asFloat)
+}
+def dispatch float asFloat(DivExpr expr) {
+    return Utilities::div(expr.identifier.asFloat, expr.div)
+}
+def dispatch float asFloat(PILiteral pi) {
+    if(pi.minus) {
+        return Utilities::invert(java::lang::Math::PI as float)
+     }
+     else {
+         return java::lang::Math::PI as float
+     }
+}
+//def dispatch asFloat(ConstantLiteral c) {
+//    throw new RuntimeException("cannot convert to a float a variable literal")
+//}
+
+
+
+
 
 def dispatch FloatLiteral invert(FloatLiteral f) {
     var FloatLiteral newf =  EcoreUtil2::copy(f)
