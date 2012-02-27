@@ -2,17 +2,23 @@ package iit.dsl.generator;
 
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
-import iit.dsl.kinDsl.KinDslPackage;
 import iit.dsl.kinDsl.Vector3;
 import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
-import iit.dsl.kinDsl.impl.KinDslPackageImpl;
 
 public class Utilities {
 
-	private static KinDslPackage dslPackage = KinDslPackageImpl.init();
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
 
+	/**
+	 * Express the inertia parameters in a frame parallel to the current one
+	 * @param inertia the input parameters to be expressed in the new frame
+	 * @param vector the displacement of the new frame with respect to the current one,
+	 *        expressed in the latter
+	 * @return a new instance of InertiaParams that specifies the same inertial
+	 *         properties of the first parameter, but expressed in a frame translated
+	 *         by 'vector'
+	 */
 	public static InertiaParams translate(InertiaParams inertia, Vector3 vector) {
 		float mass  = inertia.getMass();
 		Vector3 com = inertia.getCom();
@@ -27,8 +33,8 @@ public class Utilities {
 		float y = ((FloatLiteral)com.getY()).getValue();
 		float z = ((FloatLiteral)com.getZ()).getValue();
 
-		InertiaParams translated = (InertiaParams)factory.create(dslPackage.getInertiaParams());
-		translated.setCom((Vector3)factory.create(dslPackage.getVector3()));
+		InertiaParams translated = factory.createInertiaParams();
+		translated.setCom(factory.createVector3());
 		translated.setMass(mass);
 
 		// The returned inertia is supposed to be specified at the center of mass,
@@ -40,12 +46,17 @@ public class Utilities {
 		temp.setY(zero);
 		temp.setZ(zero);
 
+		// The parallel axis theorem:
 		translated.setIx (inertia.getIx()  + mass * (y*y + z*z) );
 		translated.setIy (inertia.getIy()  + mass * (x*x + z*z) );
 		translated.setIz (inertia.getIz()  + mass * (x*x + y*y) );
-		translated.setIxy(inertia.getIxy() + mass * (x*y));
-		translated.setIxz(inertia.getIxz() + mass * (x*z));
-		translated.setIyz(inertia.getIyz() + mass * (y*z));
+		//  note that the formula to translate the centrifugal moment has a '+',
+		//   but since we are updating the elements of the inertia tensor, we
+		//   use the minus sign in front of 'mass * ...' :
+		translated.setIxy(inertia.getIxy() - mass * (x*y));
+		translated.setIxz(inertia.getIxz() - mass * (x*z));
+		translated.setIyz(inertia.getIyz() - mass * (y*z));
+
 		return translated;
 	}
 
