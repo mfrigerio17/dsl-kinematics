@@ -49,6 +49,7 @@ class KinDslGenerator implements IGenerator {
             <parent link="«joint.predecessorLink.name»"/>
             <child  link="«joint.successorLink.name»"/>
             <limit effort="30" velocity="1.0"/>
+            <axis xyz="0 0 1"/>
         </joint>
     «ENDFOR»
     </robot>
