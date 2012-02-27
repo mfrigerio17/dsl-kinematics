@@ -32,6 +32,9 @@ public class Names {
             static public String inertiaMatrixHeader(Robot r) {
                 return r.getName() + "_JSpaceM";
             }
+            static public String inertiaMatrixTestMain(Robot r) {
+                return r.getName() + "_JSpaceM_test";
+            }
         }
     }
 

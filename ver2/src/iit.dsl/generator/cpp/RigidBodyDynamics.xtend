@@ -339,4 +339,70 @@ class RigidBodyDynamics {
         }
         return strBuff;
     }
+
+    def inertiaMatrixTestMain(Robot robot) '''
+        «val robotNS = Names$Namespaces::rob(robot)»
+        #include <iostream>
+        #include <fstream>
+        #include <ctime>
+
+        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+
+        using namespace std;
+        using namespace «Names$Namespaces::enclosing»;
+
+        static void fillState(«robotNS»::«Names$Types::jointState»& q);
+
+        /* This main is supposed to be used to test the joint space inertia matrix routines */
+        int main(int argc, char**argv)
+        {
+            if(argc < 2) {
+                cerr << "Please provide the number of tests to perform" << endl;
+                return -1;
+            }
+            int numOfTests = std::atoi(argv[1]);
+
+            «robotNS»::«Names$Types::jointState» q;
+
+            std::srand(std::time(NULL)); // initialize random number generator
+            fillState(q);
+
+            double t0, duration, total;
+            total = 0;
+            int numOfIterations = 0;
+            double tests[numOfTests];
+            for(int t=0; t<numOfTests; t++) {
+                total = 0;
+                numOfIterations = std::pow(10,t+1);
+
+                for(int i=0; i<numOfIterations; i++) {
+                    fillState(q);
+
+                    t0 = std::clock();
+                    «robotNS»::«Names$GlobalVars::jsInertia»(q);// this is actually performing computations
+                    duration = std::clock() - t0;
+                    total += duration;
+
+                }
+                tests[t] = total / CLOCKS_PER_SEC;
+            }
+
+            for(int t=0; t<numOfTests; t++) {
+                cout << tests[t] << endl;
+            }
+
+            return 0;
+        }
+
+
+        void fillState(«robotNS»::«Names$Types::jointState»& q) {
+            static const double max = 12.3;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+            «ENDFOR»
+        }
+
+        '''
+
+
 }
