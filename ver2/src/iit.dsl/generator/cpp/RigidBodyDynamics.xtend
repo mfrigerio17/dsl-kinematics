@@ -224,11 +224,14 @@ class RigidBodyDynamics {
                 const Scalar& operator()(Index row, Index col) const;
                 Scalar& operator()(Index row, Index col);
 
+                const Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»>& getL();
             private:
                 // The composite inertia matrix for each link
                 «FOR l : robot.links»
                     InertiaMatrix «inertiaCompositeName(l)»;
                 «ENDFOR»
+
+                Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> L;
         };
 
 
@@ -311,10 +314,19 @@ class RigidBodyDynamics {
         }
 
         #undef DATA
+
+        const Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»>& «nsqualifier»::«classname»::getL() {
+            «LTLfactorization(robot)»
+            return L;
+        }
     '''
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
 
+    /**
+     * Constructs the chain (list) of links connecting the argument to the
+     * robot base, except the base itself
+     */
     def private List<AbstractLink> chainToBase(AbstractLink l) {
         val chain = buildChain(l, (l.eContainer() as Robot).base)
         chain.remove(chain.size() - 1) // removes the last element, which is the base
@@ -404,5 +416,26 @@ class RigidBodyDynamics {
 
         '''
 
+    def LTLfactorization(Robot robot) '''
+        L = «Names$GlobalVars::jsInertia».triangularView<Eigen::Lower>();
+        «FOR Joint joint : robot.joints.reverseView»
+            «val row = joint.getID()-1»
+            // Joint «joint.name», index «row» :
+            L(«row», «row») = std::sqrt(L(«row», «row»));
+            «val chainToBase = joint.predecessorLink.chainToBase»
+            «FOR ancestor : chainToBase»
+                «val col = ancestor.connectingJoint.getID - 1»
+                L(«row», «col») = L(«row», «col») / L(«row», «row»);
+            «ENDFOR»
+            «FOR ancestor : chainToBase»
+                «val i = ancestor.connectingJoint.getID-1»
+                «FOR ancestor2 : chainToBase»
+                    «val j = ancestor2.connectingJoint.getID-1»
+                    L(«i», «j») = L(«i», «j») - L(«row», «i») * L(«row», «j»);
+                «ENDFOR»
+            «ENDFOR»
+
+        «ENDFOR»
+    '''
 
 }
