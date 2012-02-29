@@ -10,6 +10,7 @@ import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
+import iit.dsl.generator.SparsityMap
 
 
 class Generator implements IGenerator {
@@ -30,6 +31,10 @@ class Generator implements IGenerator {
         fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
+        //System::out.println(rbd.Linverse(robot))
+
+//        val foo = new SparsityMap(robot)
+//        System::out.println(foo.asText())
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {

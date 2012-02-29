@@ -11,6 +11,7 @@ import iit.dsl.kinDsl.Link
 import iit.dsl.kinDsl.RobotBase
 import java.util.List
 import org.eclipse.xtend2.lib.StringConcatenation
+import iit.dsl.generator.SparsityMap
 
 class RigidBodyDynamics {
 
@@ -214,6 +215,7 @@ class RigidBodyDynamics {
             public:
                 typedef Base::Scalar Scalar;
                 typedef Base::Index Index;
+                typedef Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> MatrixType;
             public:
                 «Names$Types::jspaceMLocal»();
                 ~«Names$Types::jspaceMLocal»() {}
@@ -224,14 +226,16 @@ class RigidBodyDynamics {
                 const Scalar& operator()(Index row, Index col) const;
                 Scalar& operator()(Index row, Index col);
 
-                const Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»>& getL();
+                const MatrixType& getL();
+                const MatrixType& getLinv();
             private:
                 // The composite inertia matrix for each link
                 «FOR l : robot.links»
                     InertiaMatrix «inertiaCompositeName(l)»;
                 «ENDFOR»
 
-                Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> L;
+                MatrixType L;
+                MatrixType Linv;
         };
 
 
@@ -315,9 +319,15 @@ class RigidBodyDynamics {
 
         #undef DATA
 
-        const Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»>& «nsqualifier»::«classname»::getL() {
+        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getL() {
             «LTLfactorization(robot)»
             return L;
+        }
+
+        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getLinv() {
+            //assumes L has been compute already
+            «Linverse(robot)»
+            return Linv;
         }
     '''
 
@@ -364,6 +374,7 @@ class RigidBodyDynamics {
         using namespace «Names$Namespaces::enclosing»;
 
         static void fillState(«robotNS»::«Names$Types::jointState»& q);
+        static void speedTest(int numOfTests);
 
         /* This main is supposed to be used to test the joint space inertia matrix routines */
         int main(int argc, char**argv)
@@ -378,6 +389,30 @@ class RigidBodyDynamics {
 
             std::srand(std::time(NULL)); // initialize random number generator
             fillState(q);
+
+            «robotNS»::jspaceM(q);
+            «robotNS»::jspaceM.getL(); // L gets computed
+            «robotNS»::JSpaceInertiaMatrix::MatrixType Linv;
+            Linv =  «robotNS»::jspaceM.getLinv(); // computes the inverse
+
+            «robotNS»::JSpaceInertiaMatrix::MatrixType id;
+            id = «robotNS»::jspaceM * Linv * Linv.transpose();
+            std::cout << (id.array().abs() < 1E-6).select(0, id) << std::endl;
+
+            return 0;
+        }
+
+
+        static void fillState(«robotNS»::«Names$Types::jointState»& q) {
+            static const double max = 50;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+            «ENDFOR»
+        }
+
+        static void speedTest(int numOfTests) {
+            «robotNS»::«Names$Types::jointState» q;
+            std::srand(std::time(NULL)); // initialize random number generator
 
             double t0, duration, total;
             total = 0;
@@ -402,16 +437,6 @@ class RigidBodyDynamics {
             for(int t=0; t<numOfTests; t++) {
                 cout << tests[t] << endl;
             }
-
-            return 0;
-        }
-
-
-        void fillState(«robotNS»::«Names$Types::jointState»& q) {
-            static const double max = 12.3;
-            «FOR Joint j : robot.joints»
-                q(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
-            «ENDFOR»
         }
 
         '''
@@ -435,6 +460,23 @@ class RigidBodyDynamics {
                 «ENDFOR»
             «ENDFOR»
 
+        «ENDFOR»
+    '''
+
+    def Linverse(Robot robot) '''
+        «FOR jo : robot.joints»
+            «val i = jo.ID-1»
+            Linv(«i», «i») = 1 / L(«i», «i»);
+        «ENDFOR»
+        «FOR jo : robot.joints.drop(1)»
+            «val link = jo.successorLink»
+            «val chain = getChainJoints(buildChain(jo.predecessorLink, robot.base))»
+            «val i = jo.ID-1»
+            «FOR jo2 : chain»
+                «val j = jo2.ID-1»
+                «val subChain = getChainJoints(buildChain(jo2.successorLink, link))»
+                Linv(«i», «j») = - Linv(«j», «j») * («FOR jo3 : subChain»«val k = jo3.ID-1»(Linv(«i», «k») * L(«k», «j»)) + «ENDFOR»0);
+            «ENDFOR»
         «ENDFOR»
     '''
 
