@@ -303,6 +303,9 @@ class RobotUserFiles {
             cout << "Me:" << endl <<
                     («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotNS»::«Names$GlobalVars::jsInertia»)  << endl;
 
+            //cout << SLM.block<6,6>(0,0) << endl;
+            //cout << «robotNS»::«Names$GlobalVars::jsInertia».block<6,6>(0,0) << endl;
+
             return TRUE;
         }
 
