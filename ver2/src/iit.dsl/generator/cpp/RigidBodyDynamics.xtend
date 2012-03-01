@@ -304,7 +304,7 @@ class RigidBodyDynamics {
                 «val linkJoint = getJoint(parent, l)»
                 «IF linkJoint instanceof PrismaticJoint»
                     F = «inertiaCompositeName(l)».col(5); // multiplication by the joint subspace matrix, assuming 1 DoF joint
-                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(2)(0,0);
+                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(5)(0,0);
                 «ELSE»
                     F = «inertiaCompositeName(l)».col(2); // multiplication by the joint subspace matrix, assuming 1 DoF joint
                     DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(2)(0,0);
