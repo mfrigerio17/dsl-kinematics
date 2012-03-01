@@ -299,9 +299,12 @@ class RobotUserFiles {
                 «ENDFOR»
             «ENDFOR»
 
-            cout << "SL:" << endl << (SLM.array().abs() < 1E-4).select(0, SLM) << endl;
-            cout << "Me:" << endl <<
-                    («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotNS»::«Names$GlobalVars::jsInertia»)  << endl;
+            //cout << "SL:" << endl << (SLM.array().abs() < 1E-4).select(0, SLM) << endl;
+            //cout << "Me:" << endl <<
+              //      («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotNS»::«Names$GlobalVars::jsInertia»)  << endl;
+
+            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType diff = SLM - «robotNS»::«Names$GlobalVars::jsInertia»;
+            cout << "difference:" << endl << (diff.array().abs() < 1E-5).select(0, diff) << endl;
 
             //cout << SLM.block<6,6>(0,0) << endl;
             //cout << «robotNS»::«Names$GlobalVars::jsInertia».block<6,6>(0,0) << endl;
