@@ -151,8 +151,14 @@ class FramesTransforms {
 
     def transformsForJacobian(Robot robot, iit.dsl.transspecs.transSpecs.FramePair jacSpec) {
         // Create two reference-frame instances using local types
-        val base   = common.getFrameByName(robot, jacSpec.base.name)
+        val base = common.getFrameByName(robot, jacSpec.base.name)
+        if(base == null) {
+            throw new RuntimeException("Could not find frame " + jacSpec.base.name + " in robot " + robot.name)
+        }
         val target = common.getFrameByName(robot, jacSpec.target.name)
+        if(target == null) {
+            throw new RuntimeException("Could not find frame " + jacSpec.target.name + " in robot " + robot.name)
+        }
         return transformsForJacobian(robot, base, target)
     }
 
