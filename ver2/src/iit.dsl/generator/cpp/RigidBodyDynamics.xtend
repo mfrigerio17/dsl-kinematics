@@ -290,15 +290,23 @@ class RigidBodyDynamics {
             «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
             static «Names$Namespaces::rbd»::ForceVector F;
 
+            // Precomputes only once the coordinate transforms:
+            «FOR l : sortedLinks»
+                «val parent = l.parent»
+                «IF !(parent.equals(robot.base))»
+                    «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)»(state);
+                    «child_X_parent__mxName(parent, l)»(state);
+                «ENDIF»
+            «ENDFOR»
+
             // "Bottom-up" loop to update the inertia-composite property of each link, for the current configuration
             «FOR l : sortedLinks»
-
 
                 // Link «l.name» //
 
                 «val parent = l.parent»
-                «IF !(parent instanceof RobotBase)»
-                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)»(state) * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»(state);
+                «IF !(parent.equals(robot.base))»
+                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
                 «val linkJoint = getJoint(parent, l)»
@@ -353,7 +361,7 @@ class RigidBodyDynamics {
             if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
                 parentJ = getConnectingJoint(parent);
                 strBuff.append('''
-                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)»(state) * F;
+                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)» * F;
                 DATA(«rowIndex», «parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
                 DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex», «parentJ.ID-1»); //the matrix is symmetric
                 ''');
