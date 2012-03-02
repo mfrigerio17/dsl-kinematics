@@ -295,7 +295,7 @@ class RobotUserFiles {
             // Copies the matrix of SL into an Eigen matrix
             «FOR Joint jo : robot.joints»
                 «FOR Joint ji : robot.joints»
-                SLM(«robotNS»::«jo.name»,«robotNS»::«ji.name») = rbdM[«jo.name»][«ji.name»];
+                SLM(«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(jo)»,«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(ji)») = rbdM[«jo.name»][«ji.name»];
                 «ENDFOR»
             «ENDFOR»
 
