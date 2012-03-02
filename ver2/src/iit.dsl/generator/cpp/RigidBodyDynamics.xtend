@@ -468,7 +468,8 @@ class RigidBodyDynamics {
             «ENDFOR»
             «FOR ancestor : chainToBase»
                 «val i = ancestor.connectingJoint.getID-1»
-                «FOR ancestor2 : chainToBase»
+                «val secondChain = ancestor.chainToBase»
+                «FOR ancestor2 : secondChain»
                     «val j = ancestor2.connectingJoint.getID-1»
                     L(«i», «j») = L(«i», «j») - L(«row», «i») * L(«row», «j»);
                 «ENDFOR»
