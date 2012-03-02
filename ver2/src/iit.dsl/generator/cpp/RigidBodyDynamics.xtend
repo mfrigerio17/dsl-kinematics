@@ -383,6 +383,7 @@ class RigidBodyDynamics {
 
         static void fillState(«robotNS»::«Names$Types::jointState»& q);
         static void speedTest(int numOfTests);
+        static void testInverse();
 
         /* This main is supposed to be used to test the joint space inertia matrix routines */
         int main(int argc, char**argv)
@@ -393,19 +394,10 @@ class RigidBodyDynamics {
             }
             int numOfTests = std::atoi(argv[1]);
 
-            «robotNS»::«Names$Types::jointState» q;
-
             std::srand(std::time(NULL)); // initialize random number generator
-            fillState(q);
 
-            «robotNS»::jspaceM(q);
-            «robotNS»::jspaceM.getL(); // L gets computed
-            «robotNS»::JSpaceInertiaMatrix::MatrixType Linv;
-            Linv =  «robotNS»::jspaceM.getLinv(); // computes the inverse
-
-            «robotNS»::JSpaceInertiaMatrix::MatrixType id;
-            id = «robotNS»::jspaceM * Linv * Linv.transpose();
-            std::cout << (id.array().abs() < 1E-6).select(0, id) << std::endl;
+            //speedTest(numOfTests);
+            testInverse();
 
             return 0;
         }
@@ -445,6 +437,20 @@ class RigidBodyDynamics {
             for(int t=0; t<numOfTests; t++) {
                 cout << tests[t] << endl;
             }
+        }
+
+        static void testInverse() {
+            «robotNS»::«Names$Types::jointState» q;
+            fillState(q);
+
+            «robotNS»::jspaceM(q);
+            «robotNS»::jspaceM.getL(); // L gets computed
+            «robotNS»::JSpaceInertiaMatrix::MatrixType Linv;
+            Linv =  «robotNS»::jspaceM.getLinv(); // computes the inverse
+
+            «robotNS»::JSpaceInertiaMatrix::MatrixType id;
+            id = «robotNS»::jspaceM * Linv * Linv.transpose();
+            std::cout << (id.array().abs() < 1E-6).select(0, id) << std::endl;
         }
 
         '''
