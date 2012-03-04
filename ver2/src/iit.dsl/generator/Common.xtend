@@ -447,5 +447,15 @@ def List<Joint> getChainJoints(List<AbstractLink> kinChain) {
     return ret
 }
 
+def List<AbstractLink> chainEndLinks(Robot robot) {
+    val ret = new ArrayList<AbstractLink>()
+    for(l : robot.abstractLinks) {
+        if(l.childrenList.children.empty) {
+            ret.add(l)
+        }
+    }
+    return ret;
+}
+
 }//end of class
 
