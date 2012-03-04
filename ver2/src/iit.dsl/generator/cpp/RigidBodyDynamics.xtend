@@ -229,9 +229,17 @@ class RigidBodyDynamics {
                 const MatrixType& getL();
                 const MatrixType& getLinv();
             private:
-                // The composite inertia matrix for each link
+                // The inertia tensor of each link
                 «FOR l : robot.links»
-                    InertiaMatrix «inertiaCompositeName(l)»;
+                    InertiaMatrix «inertiaName(l)»;
+                «ENDFOR»
+                // The composite-inertia tensor for each link
+                «FOR l : robot.links»
+                    «IF l.childrenList.children.empty»
+                        const InertiaMatrix& «inertiaCompositeName(l)»;
+                    «ELSE»
+                        InertiaMatrix «inertiaCompositeName(l)»;
+                    «ENDIF»
                 «ENDFOR»
 
                 MatrixType L;
@@ -271,15 +279,21 @@ class RigidBodyDynamics {
         // The joint space inertia matrix of this robot
         «nsqualifier»::«Names$Types::jspaceMLocal» «nsqualifier»::«Names$GlobalVars::jsInertia»;
 
+        «val endLinks = chainEndLinks(robot)»
         //Implementation of default constructor
-        «nsqualifier»::«classname»::«classname»() {
+        «nsqualifier»::«classname»::«classname»()
+        «IF endLinks.size() > 0»: «inertiaCompositeName(endLinks.get(0))»(«inertiaName(endLinks.get(0))»)
+        «FOR l : endLinks.drop(1)», «inertiaCompositeName(l)»(«inertiaName(l)»)«ENDFOR»
+        «ENDIF»
+        {
             //Make sure all the transforms for this robot are initialized
             «nsqualifier»::«Names$Namespaces::transforms6D»::initAll();
             «nsqualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
 
             this->setZero();
+            // Initialize the 6D inertia tensor of each body of the robot
             «FOR l : robot.links»
-                «inertiaCompositeName(l)».fill(«l.inertiaParams.mass», «Names$Namespaces::rbd»::Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
+                «inertiaName(l)».fill(«l.inertiaParams.mass», «Names$Namespaces::rbd»::Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
                         «Names$Namespaces::rbd»::Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
             «ENDFOR»
         }
@@ -306,7 +320,7 @@ class RigidBodyDynamics {
 
                 «val parent = l.parent»
                 «IF !(parent.equals(robot.base))»
-                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
+                    «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
                 «val linkJoint = getJoint(parent, l)»
@@ -340,6 +354,7 @@ class RigidBodyDynamics {
     '''
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
+    def private inertiaName(AbstractLink l) '''I_«l.name»'''
 
     /**
      * Constructs the chain (list) of links connecting the argument to the
@@ -498,7 +513,8 @@ class RigidBodyDynamics {
             «robotNS»::«Names$Types::jspaceMLocal»::MatrixType Minv;
 
             // convenient aliases
-            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = «robotNS»::«Names$Namespaces::jacobians»:: //TODO fill!!! ******************
+            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»> deleteMe(NULL);
+            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = deleteMe; //«robotNS»::«Names$Namespaces::jacobians»:: //TODO fill!!! ******************
             «robotNS»::«Names$Types::jspaceMLocal»& M = «robotNS»::«Names$GlobalVars::jsInertia»;
 
             std::srand(std::time(NULL)); // initialize random number generator
