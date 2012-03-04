@@ -396,8 +396,8 @@ class RigidBodyDynamics {
 
             std::srand(std::time(NULL)); // initialize random number generator
 
-            //speedTest(numOfTests);
-            testInverse();
+            speedTest(numOfTests);
+            //testInverse();
 
             return 0;
         }
@@ -416,13 +416,14 @@ class RigidBodyDynamics {
 
             double t0, duration, total;
             total = 0;
-            int numOfIterations = 0;
+            int iterations[numOfTests+1];//use indexes 1..numOfTests
             double tests[numOfTests];
+            iterations[0] = 1;
             for(int t=0; t<numOfTests; t++) {
                 total = 0;
-                numOfIterations = std::pow(10,t+1);
+                iterations[t+1] = iterations[t] * 10;
 
-                for(int i=0; i<numOfIterations; i++) {
+                for(int i=0; i<iterations[t+1]; i++) {
                     fillState(q);
 
                     t0 = std::clock();
@@ -437,6 +438,34 @@ class RigidBodyDynamics {
             for(int t=0; t<numOfTests; t++) {
                 cout << tests[t] << endl;
             }
+
+            ///*
+            // Generate simple matlab file with test data
+            «val prefix = robot.name.toLowerCase + "_test"»
+            ofstream out("«robot.name»_speed_test_data.m");
+            out << "«prefix».robot       = '«robot.name»';" << std::endl;
+            out << "«prefix».description = 'test of the speed of the calculation of the joint space inertia matrix';" << std::endl;
+            out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
+
+            // Current date/time based on current system
+            time_t now = std::time(0);
+            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
+            char timeStr[64];
+            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
+            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+
+            out << "«prefix».iterations = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << iterations[t+1];
+            }
+            out << "];" << endl;
+            out << "«prefix».times = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << tests[t];
+            }
+            out << "];" << endl;
+            out.close();
+            //*/
         }
 
         static void testInverse() {
