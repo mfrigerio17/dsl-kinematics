@@ -376,6 +376,8 @@ class RigidBodyDynamics {
         #include <fstream>
         #include <ctime>
 
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files::jacobiansHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
 
         using namespace std;
@@ -384,6 +386,7 @@ class RigidBodyDynamics {
         static void fillState(«robotNS»::«Names$Types::jointState»& q);
         static void speedTest(int numOfTests);
         static void testInverse();
+        static void nullSpaceProj();
 
         /* This main is supposed to be used to test the joint space inertia matrix routines */
         int main(int argc, char**argv)
@@ -396,8 +399,9 @@ class RigidBodyDynamics {
 
             std::srand(std::time(NULL)); // initialize random number generator
 
-            speedTest(numOfTests);
+            //speedTest(numOfTests);
             //testInverse();
+            nullSpaceProj();
 
             return 0;
         }
@@ -472,14 +476,62 @@ class RigidBodyDynamics {
             «robotNS»::«Names$Types::jointState» q;
             fillState(q);
 
-            «robotNS»::jspaceM(q);
-            «robotNS»::jspaceM.getL(); // L gets computed
+            cout << endl << "M:" << endl << «robotNS»::«Names$GlobalVars::jsInertia»(q) << endl;
+            cout << endl << "L:" << endl << «robotNS»::jspaceM.getL() << endl; // L gets computed
             «robotNS»::JSpaceInertiaMatrix::MatrixType Linv;
             Linv =  «robotNS»::jspaceM.getLinv(); // computes the inverse
+            cout << endl << "L inverse:" << endl << Linv << endl;
 
             «robotNS»::JSpaceInertiaMatrix::MatrixType id;
             id = «robotNS»::jspaceM * Linv * Linv.transpose();
-            std::cout << (id.array().abs() < 1E-6).select(0, id) << std::endl;
+            std::cout << endl << "M * L^{-1} * L^{-T}:" << endl <<
+                  (id.array().abs() < 1E-6).select(0, id) << std::endl;
+        }
+
+        static void nullSpaceProj() {
+            «robotNS»::«Names$Namespaces::jacobians»::initAll();
+            «robotNS»::«Names$Types::jointState» q;
+
+            Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> I;
+            I.setIdentity();
+            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType Linv;
+            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType Minv;
+
+            // convenient aliases
+            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = «robotNS»::«Names$Namespaces::jacobians»:: //TODO fill!!! ******************
+            «robotNS»::«Names$Types::jspaceMLocal»& M = «robotNS»::«Names$GlobalVars::jsInertia»;
+
+            std::srand(std::time(NULL)); // initialize random number generator
+            static const int numOfTests = 5;
+            double t0, duration, total;
+            total = 0;
+            int iterations[numOfTests+1];//use indexes 1..numOfTests
+            double tests[numOfTests];
+            iterations[0] = 1;
+            for(int t=0; t<numOfTests; t++) {
+                total = 0;
+                iterations[t+1] = iterations[t] * 10;
+
+                for(int i=0; i<iterations[t+1]; i++) {
+                    fillState(q);
+
+                    t0 = std::clock();
+                        M(q); // this is actually performing computations
+                        J(q); // this is actually performing computations
+                        «robotNS»::«Names$GlobalVars::jsInertia».getL();
+                        Linv = «robotNS»::«Names$GlobalVars::jsInertia».getLinv();
+                        Minv = Linv * Linv.transpose();
+                        I - J.transpose() * (J * M * J.transpose()).inverse() * J*M;
+                    duration = std::clock() - t0;
+                    total += duration;
+
+                }
+                tests[t] = total / CLOCKS_PER_SEC;
+            }
+
+            for(int t=0; t<numOfTests; t++) {
+                cout << tests[t] << endl;
+            }
         }
 
         '''
