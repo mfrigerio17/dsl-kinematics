@@ -537,7 +537,7 @@ class RigidBodyDynamics {
                         «robotNS»::«Names$GlobalVars::jsInertia».getL();
                         Linv = «robotNS»::«Names$GlobalVars::jsInertia».getLinv();
                         Minv = Linv * Linv.transpose();
-                        I - J.transpose() * (J * M * J.transpose()).inverse() * J*M;
+                        I - J.transpose() * (J * Minv * J.transpose()).inverse() * J*Minv;
                     duration = std::clock() - t0;
                     total += duration;
 
@@ -548,6 +548,33 @@ class RigidBodyDynamics {
             for(int t=0; t<numOfTests; t++) {
                 cout << tests[t] << endl;
             }
+
+            ///*
+            // Generate simple matlab file with test data
+            ofstream out("«robot.name»_N_speed_test_data.m");
+            out << "«prefix».robot       = '«robot.name»';" << std::endl;
+            out << "«prefix».description = 'test of the speed of the calculation of a null space projector';" << std::endl;
+            out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
+
+            // Current date/time based on current system
+            time_t now = std::time(0);
+            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
+            char timeStr[64];
+            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
+            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+
+            out << "«prefix».iterations = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << iterations[t+1];
+            }
+            out << "];" << endl;
+            out << "«prefix».times = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << tests[t];
+            }
+            out << "];" << endl;
+            out.close();
+            //*/
         }
 
         '''
