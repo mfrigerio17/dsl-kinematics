@@ -12,6 +12,8 @@ import iit.dsl.coord.coordTransDsl.Model
 import iit.dsl.coord.coordTransDsl.impl.CoordTransDslFactoryImpl
 import iit.dsl.coord.coordTransDsl.CoordTransDslFactory
 import iit.dsl.kinDsl.Joint
+import iit.dsl.kinDsl.RevoluteJoint
+import iit.dsl.kinDsl.PrismaticJoint
 
 class Jacobians {
     @Inject TransformsAccessor transformsAccessor
@@ -86,9 +88,17 @@ class Jacobians {
                     bsFrame.name + "_X_" + tmpFrame.name + " is missing");
             }
             maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(transform)
-            strBuff.append(
-            '''    , GJacobianColumn(«eePosName», zaxis(«maximaTransformLiteral»), posVector(«maximaTransformLiteral»))
-            ''');
+            if(el instanceof RevoluteJoint) {
+                strBuff.append(
+                '''    , GJacobianColumn(«eePosName», zaxis(«maximaTransformLiteral»), posVector(«maximaTransformLiteral»))
+                ''');
+            } else if (el instanceof PrismaticJoint) {
+                strBuff.append(
+                '''    , GJacobianColumn_prism(zaxis(«maximaTransformLiteral»))
+                ''');
+            } else {
+                throw new RuntimeException("Unknown joint type")
+            }
         }
         strBuff.append(''');
         ''');
