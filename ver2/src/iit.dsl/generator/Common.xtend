@@ -119,6 +119,9 @@ def dispatch int getID(FloatingRobotBase base) {
 def int getID(Joint j) {
     j.num;
 }
+def int getArrayIdx(Joint j) {
+    j.num - 1
+}
 
 /**
  * Returns the successor link of the joint, searching in the given
