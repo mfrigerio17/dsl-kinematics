@@ -10,7 +10,6 @@ import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
-import iit.dsl.generator.SparsityMap
 
 
 class Generator implements IGenerator {
@@ -26,15 +25,13 @@ class Generator implements IGenerator {
 //        fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
 //        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
 //        generateJacobiansFiles(robot, fsa)
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
+//        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
+//        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
         fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
-
-//        val foo = new SparsityMap(robot)
-//        System::out.println(foo.asText())
+        //System::out.println(rbd.Minverse(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {

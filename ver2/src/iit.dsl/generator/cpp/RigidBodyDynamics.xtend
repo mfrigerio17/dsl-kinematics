@@ -407,9 +407,14 @@ class RigidBodyDynamics {
         using namespace «Names$Namespaces::enclosing»;
 
         static void fillState(«robotNS»::«Names$Types::jointState»& q);
-        static void speedTest(int numOfTests);
+        // Speed test functions:
+        static void speedTest_M(int numOfTests);  // 'M' is the joint space inertia matrix
+        static void speedTest_inverseM(int numOfTests);
+        static void speedTest_N(); // 'N' is the null space projector
+
         static void testInverse();
-        static void nullSpaceProj();
+
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject);
 
         /* This main is supposed to be used to test the joint space inertia matrix routines */
         int main(int argc, char**argv)
@@ -420,11 +425,13 @@ class RigidBodyDynamics {
             }
             int numOfTests = std::atoi(argv[1]);
 
+            «robotNS»::«Names$Namespaces::jacobians»::initAll();
             std::srand(std::time(NULL)); // initialize random number generator
 
-            //speedTest(numOfTests);
-            testInverse();
-            //nullSpaceProj();
+            //speedTest_M(numOfTests);
+            //speedTest_inverseM(numOfTests);
+            speedTest_N();
+            //testInverse();
 
             return 0;
         }
@@ -437,7 +444,7 @@ class RigidBodyDynamics {
             «ENDFOR»
         }
 
-        static void speedTest(int numOfTests) {
+        static void speedTest_M(int numOfTests) {
             «robotNS»::«Names$Types::jointState» q;
             std::srand(std::time(NULL)); // initialize random number generator
 
@@ -466,33 +473,42 @@ class RigidBodyDynamics {
                 cout << tests[t] << endl;
             }
 
-            ///*
-            // Generate simple matlab file with test data
-            «val prefix = robot.name.toLowerCase + "_test"»
-            ofstream out("«robot.name»_speed_test_data.m");
-            out << "«prefix».robot       = '«robot.name»';" << std::endl;
-            out << "«prefix».description = 'test of the speed of the calculation of the joint space inertia matrix';" << std::endl;
-            out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
+            matlabLog(numOfTests, iterations, tests, "M");
+        }
 
-            // Current date/time based on current system
-            time_t now = std::time(0);
-            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
-            char timeStr[64];
-            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
-            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+        static void speedTest_inverseM(int numOfTests) {
+            «robotNS»::«Names$Types::jointState» q;
+            std::srand(std::time(NULL)); // initialize random number generator
 
-            out << "«prefix».iterations = [";
+            double t0, duration, total;
+            total = 0;
+            int iterations[numOfTests+1];//use indexes 1..numOfTests
+            double tests[numOfTests];
+            iterations[0] = 1;
             for(int t=0; t<numOfTests; t++) {
-                out << " " << iterations[t+1];
+                total = 0;
+                iterations[t+1] = iterations[t] * 10;
+
+                for(int i=0; i<iterations[t+1]; i++) {
+                    fillState(q);
+
+                    t0 = std::clock();
+                    «robotNS»::«Names$GlobalVars::jsInertia»(q);// this is actually performing computations
+                    «robotNS»::«Names$GlobalVars::jsInertia».getL();
+                    «robotNS»::«Names$GlobalVars::jsInertia».getLinv();
+                    «robotNS»::«Names$GlobalVars::jsInertia».getInv();
+                    duration = std::clock() - t0;
+                    total += duration;
+
+                }
+                tests[t] = total / CLOCKS_PER_SEC;
             }
-            out << "];" << endl;
-            out << "«prefix».times = [";
+
             for(int t=0; t<numOfTests; t++) {
-                out << " " << tests[t];
+                cout << tests[t] << endl;
             }
-            out << "];" << endl;
-            out.close();
-            //*/
+
+            matlabLog(numOfTests, iterations, tests, "M_inverse");
         }
 
         static void testInverse() {
@@ -519,19 +535,21 @@ class RigidBodyDynamics {
                   (id.array().abs() < 1E-6).select(0, id) << std::endl;
         }
 
-        static void nullSpaceProj() {
-            «robotNS»::«Names$Namespaces::jacobians»::initAll();
+        static void speedTest_N() {
             «robotNS»::«Names$Types::jointState» q;
 
             Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> I;
             I.setIdentity();
-            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType Linv;
-            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType Minv;
 
             // convenient aliases
-            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»> deleteMe(NULL);
-            «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = deleteMe; //«robotNS»::«Names$Namespaces::jacobians»:: //TODO fill!!! ******************
+            «IF robot.name.equals("Fancy")»
+                «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = «robotNS»::«Names$Namespaces::jacobians»::fr_FancyBase_J_ee;
+            «ELSE»
+                «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»> deleteMe(NULL);
+                «robotNS»::«Names$Types::jacobianLocal»<«robot.joints.size»>& J = deleteMe; //«robotNS»::«Names$Namespaces::jacobians»:: ... //TODO fill!!! ******************
+            «ENDIF»
             «robotNS»::«Names$Types::jspaceMLocal»& M = «robotNS»::«Names$GlobalVars::jsInertia»;
+            const «robotNS»::«Names$Types::jspaceMLocal»::MatrixType& Minv = «robotNS»::«Names$GlobalVars::jsInertia».getInv();
 
             std::srand(std::time(NULL)); // initialize random number generator
             static const int numOfTests = 5;
@@ -550,10 +568,9 @@ class RigidBodyDynamics {
                     t0 = std::clock();
                         M(q); // this is actually performing computations
                         J(q); // this is actually performing computations
-                        «robotNS»::«Names$GlobalVars::jsInertia».getL();
-                        Linv = «robotNS»::«Names$GlobalVars::jsInertia».getLinv();
-                        Minv = Linv * Linv.transpose();
-                        I - J.transpose() * (J * Minv * J.transpose()).inverse() * J*Minv;
+                        M.getL();
+                        M.getLinv();
+                        M.getInv(); // this is actually updating the inverse 'Minv'
                     duration = std::clock() - t0;
                     total += duration;
 
@@ -564,12 +581,19 @@ class RigidBodyDynamics {
             for(int t=0; t<numOfTests; t++) {
                 cout << tests[t] << endl;
             }
+            matlabLog(numOfTests, iterations, tests, "N_proj");
 
-            ///*
-            // Generate simple matlab file with test data
-            ofstream out("«robot.name»_N_speed_test_data.m");
+            //cout << J << endl << Minv << endl << endl;
+            //cout << J * Minv * J.transpose() << endl;
+            //cout << I - J.transpose() * (J * Minv * J.transpose()).inverse() * J*Minv << endl;
+        }
+
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject) {
+            «val prefix = robot.name.toLowerCase + "_test"»
+            std::string fileName = "«robot.name»_" + subject + "_speed_test_data.m";
+            ofstream out(fileName.c_str());
             out << "«prefix».robot       = '«robot.name»';" << std::endl;
-            out << "«prefix».description = 'test of the speed of the calculation of a null space projector';" << std::endl;
+            out << "«prefix».description = 'test of the speed of the calculation of: " << subject << "';" << std::endl;
             out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
 
             // Current date/time based on current system
@@ -590,9 +614,7 @@ class RigidBodyDynamics {
             }
             out << "];" << endl;
             out.close();
-            //*/
         }
-
         '''
 
     def LTLfactorization(Robot robot) '''
