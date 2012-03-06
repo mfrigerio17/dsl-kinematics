@@ -228,6 +228,7 @@ class RigidBodyDynamics {
 
                 const MatrixType& getL();
                 const MatrixType& getLinv();
+                const MatrixType& getInv();
             private:
                 // The inertia tensor of each link
                 «FOR l : robot.links»
@@ -244,6 +245,7 @@ class RigidBodyDynamics {
 
                 MatrixType L;
                 MatrixType Linv;
+                MatrixType inverse;
         };
 
 
@@ -351,6 +353,12 @@ class RigidBodyDynamics {
             «Linverse(robot)»
             return Linv;
         }
+
+        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getInv() {
+            //assumes Linv has been compute already
+            «Minverse(robot)»
+            return inverse;
+        }
     '''
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
@@ -415,8 +423,8 @@ class RigidBodyDynamics {
             std::srand(std::time(NULL)); // initialize random number generator
 
             //speedTest(numOfTests);
-            //testInverse();
-            nullSpaceProj();
+            testInverse();
+            //nullSpaceProj();
 
             return 0;
         }
@@ -488,18 +496,26 @@ class RigidBodyDynamics {
         }
 
         static void testInverse() {
+            «val M = robotNS + "::" + Names$GlobalVars::jsInertia»
             «robotNS»::«Names$Types::jointState» q;
             fillState(q);
 
-            cout << endl << "M:" << endl << «robotNS»::«Names$GlobalVars::jsInertia»(q) << endl;
-            cout << endl << "L:" << endl << «robotNS»::jspaceM.getL() << endl; // L gets computed
-            «robotNS»::JSpaceInertiaMatrix::MatrixType Linv;
-            Linv =  «robotNS»::jspaceM.getLinv(); // computes the inverse
+            cout << endl << "M:" << endl << «M»(q) << endl;
+            cout << endl << "L:" << endl << «M».getL() << endl; // L gets computed
+
+            const «robotNS»::«Names$Types::jspaceMLocal»::MatrixType& Linv = «M».getLinv(); // computes the inverse
             cout << endl << "L inverse:" << endl << Linv << endl;
 
-            «robotNS»::JSpaceInertiaMatrix::MatrixType id;
-            id = «robotNS»::jspaceM * Linv * Linv.transpose();
+            const «robotNS»::«Names$Types::jspaceMLocal»::MatrixType& Minv = «M».getInv();
+            cout << endl << "M inverse:" << endl << Minv << endl;
+
+            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType id;
+            id = «M» * Linv * Linv.transpose();
             std::cout << endl << "M * L^{-1} * L^{-T}:" << endl <<
+                  (id.array().abs() < 1E-6).select(0, id) << std::endl;
+
+            id = «M» * Minv;
+            std::cout << endl << "M * M^{-1}:" << endl <<
                   (id.array().abs() < 1E-6).select(0, id) << std::endl;
         }
 
@@ -618,5 +634,31 @@ class RigidBodyDynamics {
             «ENDFOR»
         «ENDFOR»
     '''
+
+    def Minverse(Robot robot) {
+        val strBuff = new StringConcatenation()
+        for(jo_i : robot.joints) {
+            val i = jo_i.arrayIdx
+            // Get the chain containing all the joints in the chain up to the base, including 'jo_i' itself
+            val chain = getChainJoints(buildChain(jo_i.successorLink, robot.base))
+            for(jo_j : chain) {
+                val j = jo_j.arrayIdx
+                strBuff.append('''inverse(«i», «j») = ''')
+
+                // Get the chain containing all the joints from the base to hoint 'jo_j' itself
+                val chain2 = getChainJoints(buildChain(robot.base, jo_j.successorLink))
+                for(jo_k : chain2) {
+                    val k = jo_k.arrayIdx
+                    strBuff.append(''' + (Linv(«i», «k») * Linv(«j», «k»))''')
+                }
+                strBuff.append(";\n")
+                if(i != j) {
+                    strBuff.append('''inverse(«j», «i») = inverse(«i», «j»);
+                    ''')
+                }
+            }
+        }
+        return strBuff
+    }
 
 }
