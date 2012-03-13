@@ -343,4 +343,138 @@ class RobotUserFiles {
             freeze_base = TRUE;//
         }
         '''
+
+
+    def Makefile(Robot robot) '''
+        «val nameLower = robot.name.toLowerCase»
+        «val String TAB = "\t"»
+        DIR_SRCS = src
+        DIR_OBJS = $(MACHTYPE)
+        DIR_LIBS = $(DIR_OBJS)
+        DIR_BINS = $(DIR_OBJS)
+        DIR_DEPS = $(DIR_OBJS)
+
+        DIR_SLCORE = $(SL_ROOT)/SL
+        DIR_SL_LIBS = $(SL_ROOT)/lib/$(MACHTYPE)
+
+        include $(DIR_SLCORE)/Makefile.common
+
+        INCLUDE_PATHS = src \
+        $(SL_ROOT)/include \
+        $(SL_ROOT)/SLRemote/include \
+        $(SL_ROOT)/«nameLower»/include \
+        $(SL_ROOT)/«nameLower»/math \
+        /sw/include \
+        /usr/X11/include \
+        /usr/local/glut/include
+
+        CPPFLAGS += $(patsubst %,-I %,$(INCLUDE_PATHS))
+        CPPFLAGS += -I/usr/local/include/eigen3/
+        CXXFLAGS += -g -Wall -march=native -mtune=native -D $(MACHTYPE) -D UNIX
+        LDFLAGS  += -L$(SL_ROOT)/lib/$(MACHTYPE) -L/opt/local/lib -L/sw/lib -L/usr/X11/lib
+
+        BINARIES = xtask xopengl xsimulation dyntest
+
+        # ------- #
+        # SOURCES #
+        # ------- #
+        # Source files common for any architecture:
+
+        SRCS_xtask   = initUserTasks.c sample_task.c
+        SRCS_xopengl = initUserGraphics.c
+        SRCS_xsimulation = initUserSimulation.c
+
+        SRCS_dyntest = dynTest_main.cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::source(robot)».cpp initUserSimulation.c
+        SRCS_jsMtest = main_inertiaM.cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::inertiaMatrixHeader(robot)».cpp
+
+        #
+        # Architecture dependent source files:
+        ifeq ($(MACHTYPE),i486xeno)
+            # For XENO machine:
+        else
+            # Plain UNIX architecture:
+        endif
+
+        targetToObjects = $(patsubst %,$(DIR_OBJS)/%.o, $(basename $(SRCS_$(1))) )
+
+        OBJECTS    = $(sort $(foreach TARGET,$(BINARIES),$(call targetToObjects,$(TARGET)))) # sort removes duplicates
+        DEPS_FILES = $(patsubst $(DIR_OBJS)/%.o,$(DIR_DEPS)/%.d,$(OBJECTS))
+
+        # ------------------ #
+        # Required libraries #
+        # ------------------ #
+
+        LIBS_OPENGL = glut GL GLU Xmu
+        LIBS_SYS = m readline curses
+
+        LIBS_xtask_SL = SLtask SLcommon «nameLower»_task «nameLower» utility #SLRemote
+        LIBS_xopengl_SL = SLopenGL SLcommon «nameLower»_openGL «nameLower» utility
+        LIBS_xsimulation_SL = SLsimulation SLcommon lwpr «nameLower»_simulation «nameLower» utility
+
+        LIBS_dyntest = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
+        LIBS_jsMtest = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
+
+        LIBS_xtask   = $(LIBS_xtask_SL)
+        LIBS_xopengl = $(LIBS_xopengl_SL) $(LIBS_OPENGL) Xinerama X11
+        LIBS_xsimulation  = $(LIBS_xsimulation_SL) nsl
+
+
+        ifeq ($(MACHTYPE),i486xeno) # For XENO machine:
+
+            LIBS_xtask_SL +=
+            LIBS_xopengl_SL +=
+            LIBS_xsimulation_SL +=
+
+            LIBS_SYS += iitio canfestival canfestival_unix native rtdk analogy rtdm
+
+        else  # Plain UNIX architecture:
+            LIBS_SYS += pthread rt
+        endif
+
+        # Function that takes a target name (either a lib or a binary) and returns
+        # the linker options with the required libraries.
+        targetToLibs = $(patsubst %,-l%,$(LIBS_$(1)) $(LIBS_SYS))
+
+        targetToSLLibNames = $(patsubst %,$(DIR_SL_LIBS)/lib%.a,$(LIBS_$(1)_SL))
+
+        SL_REQUIRED_LIBS = $(sort $(foreach BIN,$(BINARIES),$(call targetToSLLibNames,$(BIN))))
+
+
+        # ------- #
+        # Targets #
+        # ------- #
+        BINARY_FILE_PATTERN = $(DIR_BINS)/%
+        EXECUTABLES = $(patsubst %,$(BINARY_FILE_PATTERN),$(BINARIES))
+
+        all : $(EXECUTABLES)
+
+        $(EXECUTABLES) : | make_folders make_«nameLower»
+        $(OBJECTS) : | make_folders
+
+        .SECONDEXPANSION:
+        $(EXECUTABLES) : $(BINARY_FILE_PATTERN) : $$(call targetToSLLibNames,%) $$(call targetToObjects,%)
+        «TAB»$(CXX) $(CXXFLAGS) $(LDFLAGS) $(filter %.o,$^) $(call targetToLibs,$*)  -o $@
+
+        .SECONDEXPANSION:
+        $(OBJECTS) : $(DIR_OBJS)/%.o : $$(wildcard $(DIR_SRCS)/%.c*)
+        «TAB»$(CXX) $(CPPFLAGS) -MMD -MF $(DIR_DEPS)/$*.d  $(CXXFLAGS) -c $< -o $@
+
+
+        ##$(SL_REQUIRED_LIBS) : make_«nameLower»
+
+        make_«nameLower» :
+        «TAB»$(MAKE) -C $(SL_ROOT)/«nameLower» all install
+
+
+        -include $(DEPS_FILES)
+
+        # -p to avoid warning if directory exists (can be improved with checks)
+        make_folders :
+        «TAB»@mkdir -p $(DIR_OBJS) $(DIR_LIBS) $(DIR_BINS) $(DIR_DEPS)
+
+        clean :
+        «TAB»$(REMOVE) $(OBJECTS) $(DEPS_FILES) $(EXECUTABLES)
+
+        .PHONY = clean all make_«nameLower» make_folders
+    '''
 }

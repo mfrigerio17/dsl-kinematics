@@ -34,7 +34,9 @@ class Generator implements IGenerator {
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/src/SL_user_common.c",
             roboFiles.SL_user_dot_h(robot))
-*/
+//*/
+        fsa.generateFile(slCommon.robotFolderName(robot) +
+            "/Makefile", roboFiles.Makefile(robot))
 ///*
         // ROBOT USER FILES
 //        fsa.generateFile(slCommon.robotUserFolderName(robot) +
@@ -49,6 +51,8 @@ class Generator implements IGenerator {
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/src/" + main_inertiaM_filename(robot) + ".cpp",
             roboUserFiles.main_inertiaM(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/Makefile", roboUserFiles.Makefile(robot))
 //*/
     }
 }
