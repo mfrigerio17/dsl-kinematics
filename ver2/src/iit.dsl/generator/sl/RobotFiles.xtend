@@ -568,7 +568,7 @@ class RobotFiles {
         $(IIT_IO_ROOT) $(FANCY_IO_ROOT)
 
         CPPFLAGS += $(patsubst %,-I %,$(INCLUDE_PATHS))
-        CXXFLAGS += -g -Wall -march=native -mtune=native -D $(MACHTYPE) -D UNIX # -D CLMC
+        CXXFLAGS += -g -Wall -O3 -march=native -mtune=native -D $(MACHTYPE) -D EIGEN_NO_DEBUG -D UNIX # -D CLMC
         LDFLAGS  += -L$(SL_ROOT)/lib/$(MACHTYPE) -L/opt/local/lib -L/sw/lib -L/usr/X11/lib -L/usr/local/RoboLLI/lib
 
         LIBRARIES = «nameLower» «nameLower»_openGL «nameLower»_task «nameLower»_simulation

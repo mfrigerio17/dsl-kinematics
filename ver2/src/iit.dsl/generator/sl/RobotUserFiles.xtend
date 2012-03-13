@@ -174,7 +174,7 @@ class RobotUserFiles {
 
             std::srand(std::time(NULL)); // initialize random number generator
 
-
+            ///*
             // Prints numerical results, for comparison
             fillState(q, qd, qdd, desiredState);
             SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
@@ -187,6 +187,7 @@ class RobotUserFiles {
                 ;
            cout << "Me:" << endl << tau << endl;
            return 1;
+           //*/
 
             ofstream out("«robot.name.toLowerCase()»_testdata.m");
             out << "«robot.name.toLowerCase()»_test.iterations = [";
@@ -370,7 +371,7 @@ class RobotUserFiles {
 
         CPPFLAGS += $(patsubst %,-I %,$(INCLUDE_PATHS))
         CPPFLAGS += -I/usr/local/include/eigen3/
-        CXXFLAGS += -g -Wall -march=native -mtune=native -D $(MACHTYPE) -D UNIX
+        CXXFLAGS += -g -Wall -O3 -march=native -mtune=native -D $(MACHTYPE) -D UNIX -D EIGEN_NO_DEBUG
         LDFLAGS  += -L$(SL_ROOT)/lib/$(MACHTYPE) -L/opt/local/lib -L/sw/lib -L/usr/X11/lib
 
         BINARIES = xtask xopengl xsimulation dyntest
