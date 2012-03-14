@@ -21,8 +21,8 @@ class Generator implements IGenerator {
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
 //        fsa.generateFile(Names$Files::mainHeader(robot)+".h", headers.main(robot))
-//        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
-//        fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
+        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
+        fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
 //        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
 //        generateJacobiansFiles(robot, fsa)
 //        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))

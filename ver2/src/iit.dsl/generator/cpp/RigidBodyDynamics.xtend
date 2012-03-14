@@ -54,11 +54,6 @@ class RigidBodyDynamics {
 
         private:
             iit::rbd::Matrix66d spareMx; // support variable
-            JointVelocity vJ;
-            «FOR Joint j : robot.joints»
-                // Joint '«j.name»' :
-                SubspaceMx «j.subspaceMxName»;
-            «ENDFOR»
             «FOR l : robot.links»
                 // Link '«l.name»' :
                 InertiaMatrix «inertiaMxName(l)»;
@@ -92,10 +87,9 @@ class RigidBodyDynamics {
             #endif
                 gravity.resize(6);
                 gravity.insert(5) = 9.81;
-                vJ.resize(6);
 
-                «FOR Joint j : robot.joints»
-                    «jointSubspaceMx(j)»
+                «FOR l : robot.links»
+                    «velocityName(l)».setZero();
                 «ENDFOR»
                 «FOR l : robot.links»
                     «inertiaMxName(l)».fill(«l.inertiaParams.mass», Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
@@ -117,15 +111,12 @@ class RigidBodyDynamics {
                 «ENDFOR»
             } '''
 
-    def private dispatch jointSubspaceMx(PrismaticJoint j) '''
-        «j.subspaceMxName».resize(6);
-        «j.subspaceMxName».insert(5) = 1.0;
-    '''
-    def private dispatch jointSubspaceMx(RevoluteJoint j) '''
-        «j.subspaceMxName».resize(6);
-        «j.subspaceMxName».insert(2) = 1.0;
-    '''
-
+    def private dispatch subspaceIndex(PrismaticJoint j) {
+        return 5;
+    }
+    def private dispatch subspaceIndex(RevoluteJoint j) {
+        return 2;
+    }
 
     def private dispatch inverseDynamicsPass1(FixedRobotBase base)''''''
     def private dispatch inverseDynamicsPass1(Link l)'''
@@ -136,18 +127,23 @@ class RigidBodyDynamics {
            «val acceler = l.accelerationName»
            «val transform = Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(parentLink, l)»
            «transform»(q); // updates the transform with the joint status
+           «val jid = myJoint.arrayIdx»
+           «val subspaceIdx = myJoint.subspaceIndex»
            «IF parentLink.getID() == 0»
-               «velocity» = «myJoint.subspaceMxName» * qd(«myJoint.ID-1»); // «velocity» = vJ, for the first link of a fixed base robot
-               «acceler» = («transform» * gravity) + («myJoint.subspaceMxName()» * qdd(«myJoint.ID-1»)).toDense();
+               «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
+               «acceler» = («transform» * gravity);
+               «acceler»(«subspaceIdx») += qdd(«jid»);
                Utils::fillAsForceCrossProductMx(«velocity», spareMx); // this could be optimized..
-               «forceName(l)» = «inertiaMxName(l)» * «acceler» + (spareMx * «inertiaMxName(l)» * «velocity»);
+               «forceName(l)» = «inertiaMxName(l)» * «acceler» + ((spareMx * «inertiaMxName(l)»).col(«subspaceIdx») * qd(«jid»));
            «ELSE»
-               vJ = «myJoint.subspaceMxName» * qd(«myJoint.ID-1»);
-               «velocity» = («transform» * «parentLink.velocityName») + vJ.toDense();
+               «velocity» = («transform» * «parentLink.velocityName»);
+               «velocity»(«subspaceIdx») += qd(«jid»);
+
                Utils::fillAsMotionCrossProductMx(«velocity», spareMx); // this could be optimized..
-               «acceler» = («transform» * «parentLink.accelerationName») +
-                        («myJoint.subspaceMxName» * qdd(«myJoint.ID-1»)).toDense() +
-                        (spareMx * vJ);
+
+               «acceler» = («transform» * «parentLink.accelerationName») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+               «acceler»(«subspaceIdx») += qdd(«jid»);
+
                «forceName(l)» = «inertiaMxName(l)» * «acceler» + (-spareMx.transpose() * «inertiaMxName(l)» * «velocity»);
            «ENDIF»
            '''
@@ -156,8 +152,8 @@ class RigidBodyDynamics {
     def private dispatch inverseDynamicsPass2(Link l)'''
         // Second pass, link '«l.name»'
         «val parentLink = l.parent»
-        «val myJoint = l.connectingJoint»
-        torques(«myJoint.ID-1») = «myJoint.subspaceMxName».transpose().dot(«l.forceName»);
+        «val joint      = l.connectingJoint»
+        torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
         «IF parentLink.ID != 0»
             «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
         «ENDIF»
