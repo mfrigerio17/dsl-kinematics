@@ -88,31 +88,26 @@ class RobotUserFiles {
 
         NormalObjRule( $(OBJECTS) )
 
-        MYSRCS = «robot.benchmarkFileName()».cpp «robot.name»_dynamics.cpp
-        MYOBJS = «robot.benchmarkFileName()».o   «robot.name»_dynamics.o
-        MYLIB = /usr/local/lib/librbd.a
-
-        CPPProgramListTarget(foo, $(MYOBJS) $(OBJS_XSIM)  $(MYLIB), $(LIB_SIM))
-        NormalCPPObjRule( $(MYOBJS) )'''
+        CPPProgramListTarget(benchID, «robot.benchmarkIDFileName».o $(OBJS_XSIM), $(LIB_SIM))
+        NormalCPPObjRule(«robot.benchmarkIDFileName».o)'''
 
 
-    def benchmarkMain(Robot robot) '''
+    def main_benchmarkID(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»
         #include <iostream>
         #include <fstream>
         #include <ctime>
-
-        #include "«robot.name»_dynamics.h"
+        #include <cstdlib>
 
         #include "SL.h"
         #include "SL_user.h"
-        #include "SL_kinematics_body.h" //"SL_kinematics.h" does not work
+        #include "SL_kinematics.h"
         #include "SL_dynamics.h"
 
         using namespace std;
-        using namespace «Names$Namespaces::enclosing»;
 
-        static void fillState(«robotNS»::«Names$Types::jointState»& q, «robotNS»::«Names$Types::jointState»& qd, «robotNS»::«Names$Types::jointState»& qdd, SL_DJstate* desiredState);
+        static void fillState(SL_DJstate* desiredState);
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject);
 
         /* This main is supposed to be used to test the inverse dynamics routines */
         int main(int argc, char**argv)
@@ -121,17 +116,12 @@ class RobotUserFiles {
                 cerr << "Please provide the number of tests to perform" << endl;
                 return -1;
             }
-            int numOfIterations =0;//= std::atoi(argv[1]);
             int numOfTests = std::atoi(argv[1]);
             double sl[numOfTests];
-            double me[numOfTests];
+            int iterations[numOfTests];
 
-            double t0, duration, sl_total, my_total;
+            double t0, duration, sl_total;
             sl_total = 0;
-            my_total = 0;
-
-            «robotNS»::«Names$Types::jointState» q, qd, qdd, tau;
-            «robotNS»::Dynamics myDynamics;
 
             int t=0,i=0;
 
@@ -160,7 +150,16 @@ class RobotUserFiles {
                 desiredState[i].uex  = 0;
             }
 
-            setDefaultEndeffector();
+            // Zeroes out every end effector:
+            for(int e=1; e<=N_ENDEFFS; e++) {
+                endeffector[e].m = 0;
+                for(i=0; i<=N_CART; i++) {
+                    endeffector[e].x[i]   = 0;
+                    endeffector[e].a[i]  = 0;
+                }
+            }
+
+
             for(i=0; i<=N_CART; i++) {
                 basePosition.x[i]   = 0;
                 basePosition.xd[i]  = 0;
@@ -171,85 +170,88 @@ class RobotUserFiles {
             baseOrient.q[_Q2_] = 0;
             baseOrient.q[_Q3_] = 0;
 
+            // This restores the default end effector parameters (ie non zero values as opposed
+            //  to what we did above): for some reason this makes inverse dynamics much slower (???)
+            //setDefaultEndeffector();
 
             std::srand(std::time(NULL)); // initialize random number generator
 
-            ///*
+            /*
             // Prints numerical results, for comparison
-            fillState(q, qd, qdd, desiredState);
+            fillState(desiredState);
             SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
-            myDynamics.id(q, qd, qdd, tau);
-
             cout << "SL:" << endl
             «FOR Joint j : robot.joints»
                 << desiredState[«j.name»].uff << endl
             «ENDFOR»
                 ;
-           cout << "Me:" << endl << tau << endl;
            return 1;
            //*/
 
-            ofstream out("«robot.name.toLowerCase()»_testdata.m");
-            out << "«robot.name.toLowerCase()»_test.iterations = [";
-
+            int numOfIterations = 1;
             for(t=0; t<numOfTests; t++) {
                 sl_total = 0;
-                my_total = 0;
-                numOfIterations = std::pow(10,t+1);
-                out << numOfIterations << " ";
+                numOfIterations = numOfIterations * 10;
+                iterations[t] = numOfIterations;
 
                 for(i=0; i<numOfIterations; i++) {
-                    fillState(q, qd, qdd, desiredState);
+                    fillState(desiredState);
 
                     t0 = std::clock();
                     SL_InvDynNE(NULL, desiredState, endeffector, &basePosition, &baseOrient);
                     duration = std::clock() - t0;
                     sl_total += duration;
-
-                    t0 = std::clock();
-                    myDynamics.id(q, qd, qdd, tau);
-                    duration = std::clock() - t0;
-                    my_total += duration;
                 }
                 sl[t] = sl_total/CLOCKS_PER_SEC;
-                me[t] = my_total/CLOCKS_PER_SEC;
             }
 
 
-            out << "];" << endl;
-            // SL times
-            out << "«robot.name.toLowerCase()»_test.sl = [";
-            for(t=0; t<numOfTests; t++) {
-                out << sl[t] << " ";
+           for(int t=0; t<numOfTests; t++) {
+                cout << sl[t] << endl;
             }
-            out << "];" << endl;
-            // My times
-            out << "«robot.name.toLowerCase()»_test.me = [";
-            for(t=0; t<numOfTests; t++) {
-                out << me[t] << " ";
-            }
-            out << "];" << endl;
-
-            for(t=0; t<numOfTests; t++) {
-                cout << "SL: " << sl[t] << "\t Me: " << me[t] << endl;
-            }
+            matlabLog(numOfTests, iterations, sl, "inv_dyn");
 
             return TRUE;
         }
 
 
-        void fillState(«robotNS»::«Names$Types::jointState»& q, «robotNS»::«Names$Types::jointState»& qd, «robotNS»::«Names$Types::jointState»& qdd, SL_DJstate* desiredState) {
+        void fillState(SL_DJstate* desiredState) {
             static const double max = 12.3;
-        «FOR Joint j : robot.joints»
-            q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;
-            qd(«j.getID()-1»)  = ( ((double)std::rand()) / RAND_MAX) * max;
-            qdd(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+            for(int i=0; i<N_ROBOT_DOFS; i++) {
+                desiredState[i].th   = ( ((double)std::rand()) / RAND_MAX) * max;
+                desiredState[i].thd  = ( ((double)std::rand()) / RAND_MAX) * max;
+                desiredState[i].thdd = ( ((double)std::rand()) / RAND_MAX) * max;
+            }
+        }
 
-            desiredState[«j.name»].th   = q(«j.getID()-1»);
-            desiredState[«j.name»].thd  = qd(«j.getID()-1»);
-            desiredState[«j.name»].thdd = qdd(«j.getID()-1»);
-        «ENDFOR»
-        }'''
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject) {
+            «val prefix = robot.name.toLowerCase + "_test"»
+            std::string fileName = "«robot.name»_" + subject + "_speed_test_data.m";
+            ofstream out(fileName.c_str());
+            out << "«prefix».robot       = '«robot.name»';" << std::endl;
+            out << "«prefix».description = 'test of the speed of the calculation of: " << subject << "';" << std::endl;
+            out << "«prefix».software    = 'SL';" << std::endl;
+
+            // Current date/time based on current system
+            time_t now = std::time(0);
+            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
+            char timeStr[64];
+            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
+            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+
+            out << "«prefix».iterations = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << iterations[t];
+            }
+            out << "];" << endl;
+            out << "«prefix».times = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << tests[t];
+            }
+            out << "];" << endl;
+            out.close();
+        }
+        '''
 
 
 

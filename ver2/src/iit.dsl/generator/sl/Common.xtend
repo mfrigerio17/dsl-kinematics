@@ -15,8 +15,8 @@ def String robotUserFolderName(Robot robot) {
     robotFolderName(robot) + "User"
 }
 
-def String benchmarkFileName(Robot robot) {
-    "dynTest_main"
+def String benchmarkIDFileName(Robot robot) {
+    "main_benchmarkID"
 }
 
 def String main_inertiaM_filename(Robot robot) {
