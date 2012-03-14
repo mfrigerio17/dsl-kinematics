@@ -35,6 +35,9 @@ public class Names {
             static public String inertiaMatrixTestMain(Robot r) {
                 return r.getName() + "_JSpaceM_test";
             }
+            static public String main_benchmarkID(Robot r) {
+                return r.getName() + "_main_benchmarkID";
+            }
         }
     }
 

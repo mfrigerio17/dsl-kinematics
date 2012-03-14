@@ -27,7 +27,8 @@ class Generator implements IGenerator {
 //        generateJacobiansFiles(robot, fsa)
 //        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
 //        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+//        fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+        fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))

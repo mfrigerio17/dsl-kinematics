@@ -168,6 +168,116 @@ class RigidBodyDynamics {
     def private parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
         fr_«parent.name»_X_fr_«child.name»'''
 
+    def main_benchmarkID(Robot robot) '''
+        «val robotNS = Names$Namespaces::rob(robot)»
+        #include <iostream>
+        #include <fstream>
+        #include <ctime>
+
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::header(robot)».h"
+
+        using namespace std;
+        using namespace «Names$Namespaces::enclosing»;
+
+        static void fillState(«robotNS»::«Names$Types::jointState»& q, «robotNS»::«Names$Types::jointState»& qd, «robotNS»::«Names$Types::jointState»& qdd);
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject);
+
+        /* This main is supposed to be used to test the inverse dynamics routines */
+        int main(int argc, char**argv)
+        {
+            if(argc < 2) {
+                cerr << "Please provide the number of tests to perform" << endl;
+                return -1;
+            }
+
+            //Make sure all the transforms for this robot are initialized
+            «robotNS»::«Names$Namespaces::transforms6D»::initAll();
+            «robotNS»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
+
+            int numOfTests = std::atoi(argv[1]);
+            double me[numOfTests];
+            int iterations[numOfTests];
+
+            double t0, duration, my_total;
+            my_total = 0;
+
+            «robotNS»::«Names$Types::jointState» q, qd, qdd, tau;
+            «robotNS»::«className(robot)» myDynamics;
+
+            int t=0,i=0;
+
+            std::srand(std::time(NULL)); // initialize random number generator
+
+            int numOfIterations = 1;
+            for(t=0; t<numOfTests; t++) {
+                my_total = 0;
+                numOfIterations = numOfIterations * 10;
+                iterations[t] = numOfIterations;
+
+                for(i=0; i<numOfIterations; i++) {
+                    fillState(q, qd, qdd);
+                    t0 = std::clock();
+                    myDynamics.id(q, qd, qdd, tau);
+                    duration = std::clock() - t0;
+                    my_total += duration;
+                }
+                me[t] = my_total/CLOCKS_PER_SEC;
+            }
+
+           matlabLog(numOfTests, iterations, me, "inv_dyn");
+
+            for(t=0; t<numOfTests; t++) {
+                cout << me[t] << endl;
+            }
+
+            return 0;
+        }
+
+
+        void fillState(«robotNS»::«Names$Types::jointState»& q, «robotNS»::«Names$Types::jointState»& qd, «robotNS»::«Names$Types::jointState»& qdd) {
+            static const double max = 12.3;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1»)   = ( ((double)std::rand()) / RAND_MAX) * max;
+                qd(«j.getID()-1»)  = ( ((double)std::rand()) / RAND_MAX) * max;
+                qdd(«j.getID()-1») = ( ((double)std::rand()) / RAND_MAX) * max;
+            «ENDFOR»
+        }
+
+        static void matlabLog(int numOfTests, int* iterations, double* tests, const std::string& subject) {
+            «val prefix = robot.name.toLowerCase + "_test"»
+            std::string fileName = "«robot.name»_" + subject + "_speed_test_data.m";
+            ofstream out(fileName.c_str());
+            out << "«prefix».robot       = '«robot.name»';" << std::endl;
+            out << "«prefix».description = 'test of the speed of the calculation of: " << subject << "';" << std::endl;
+            out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
+
+            // Current date/time based on current system
+            time_t now = std::time(0);
+            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
+            char timeStr[64];
+            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
+            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+
+            out << "«prefix».iterations = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << iterations[t];
+            }
+            out << "];" << endl;
+            out << "«prefix».times = [";
+            for(int t=0; t<numOfTests; t++) {
+                out << " " << tests[t];
+            }
+            out << "];" << endl;
+            out.close();
+        }
+        '''
+
+
+
+
+
+
     def testMain(Robot robot) '''
         #include <cmath>
         #include <iostream>
