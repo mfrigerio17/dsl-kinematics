@@ -20,19 +20,30 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-//        fsa.generateFile(Names$Files::mainHeader(robot)+".h", headers.main(robot))
-        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
-        fsa.generateFile(Names$Files$RBD::source(robot) + ".cpp", rbd.inverseDynamicsImplementation(robot))
-//        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
-//        generateJacobiansFiles(robot, fsa)
-//        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
-//        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-//        fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
-        fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
+        generateInverseDynamicsStuff(robot, fsa);
+        generateJacobiansFiles(robot, fsa)
+        generateInertiaMatrixStuff(robot, fsa);
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
         //System::out.println(rbd.Minverse(robot))
+    }
+
+    def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(Names$Files::mainHeader(robot)   + ".h"  , headers.main(robot))
+        fsa.generateFile(Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
+        fsa.generateFile(Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
+        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
+        fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
+    }
+
+    def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(Names$Files::mainHeader(robot) + ".h", headers.main(robot))
+        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
+
+        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
+        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
+        fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
