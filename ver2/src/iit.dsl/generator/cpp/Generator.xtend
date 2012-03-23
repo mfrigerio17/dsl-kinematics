@@ -10,6 +10,7 @@ import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
+import java.io.File
 
 
 class Generator implements IGenerator {
@@ -20,9 +21,9 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateInverseDynamicsStuff(robot, fsa);
+        //generateInverseDynamicsStuff(robot, fsa);
         generateJacobiansFiles(robot, fsa)
-        generateInertiaMatrixStuff(robot, fsa);
+        //generateInertiaMatrixStuff(robot, fsa);
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
@@ -47,10 +48,26 @@ class Generator implements IGenerator {
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)
-        if(desiredTransforms != null) {
-            val jacobians = new ArrayList<Jacobian>()
-            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
+                    desiredTrasformsAccessor.getDesiredTransforms(robot)
+        if(desiredJacs != null) {
+            jacobiansFile(robot, fsa, desiredJacs);
+        }
+    }
+
+    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa, File desired) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
+                    desiredTrasformsAccessor.getDesiredTransforms(desired)
+        if(desiredJacs != null) {
+            jacobiansFile(robot, fsa, desiredJacs);
+        }
+    }
+
+    def private jacobiansFile(Robot robot, IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
+    {
+        val jacobians = new ArrayList<Jacobian>()
+            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
                 jacobians.add(new Jacobian(robot, jSpec))
             }
             fsa.generateFile(Names$Files::jacobiansHeader(robot) + ".h", headers.jacobiansHeader(robot, jacobians))
@@ -63,6 +80,3 @@ class Generator implements IGenerator {
         //KinDslStandaloneSetup_Maxima::doSetup();
         //maximaGenerator.generateJacobiansSources(robot, fsa)
 
-
-
-}
