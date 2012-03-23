@@ -1,5 +1,7 @@
 package iit.dsl;
 
+import java.io.File;
+
 import iit.dsl.kinDsl.Robot;
 
 import com.google.inject.Inject;
@@ -37,11 +39,13 @@ public class TransSpecsAccessor {
         return null;
     }
 
-    public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(String modelFilePath) {
+    public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(File modelFile) {
         set = resourceSetProvider.get();
-        if(new java.io.File(modelFilePath).isFile()) {
-            resource = set.getResource(URI.createURI(modelFilePath), true);
+        if(modelFile.isFile()) {
+            resource = set.getResource(URI.createURI(modelFile.getAbsolutePath()), true);
             return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
+        } else {
+            System.err.println("Could not find file " + modelFile.getPath() + ", skipping...");
         }
         return null;
     }
