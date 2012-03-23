@@ -13,6 +13,16 @@ class Converter {
     static String maximaJacobiansPath = "generated_code/maxima"
     static String maximaTransformsPath = maximaLibsPath + "/robots"
 
+    def public static setMaximaLibsPath(String path) {
+        maximaLibsPath = path;
+    }
+    def public static setMaximaJacobiansPath(String path) {
+        maximaJacobiansPath = path;
+    }
+    def public static setMaximaTransformsPath(String path) {
+        maximaTransformsPath = path;
+    }
+
     /**
      * Returns a matrix of strings representing a Jacobian matrix.
      * The Maxima source file with the corresponding definition is retrieved
