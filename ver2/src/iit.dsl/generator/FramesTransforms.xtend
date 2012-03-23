@@ -12,6 +12,7 @@ import iit.dsl.TransSpecsAccessor
 import org.eclipse.xtend2.lib.StringConcatenation
 import com.google.inject.Inject
 import java.util.List
+import java.io.File
 
 
 
@@ -227,7 +228,20 @@ class FramesTransforms {
         return strBuff
     }
 
-    def coordinateTransformsDSLDocument(Robot robot) '''
+    def coordinateTransformsDSLDocument(Robot robot, File desiredTransformsFile) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desired =
+                desiredTrasformsAccessor.getDesiredTransforms(desiredTransformsFile);
+        return coordinateTransformsDSLDocument(robot, desired);
+    }
+
+    def coordinateTransformsDSLDocument(Robot robot) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms =
+                desiredTrasformsAccessor.getDesiredTransforms(robot);
+        return coordinateTransformsDSLDocument(robot, desiredTransforms);
+    }
+
+    def private coordinateTransformsDSLDocument(Robot robot,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms) '''
         Model «robot.name»
         Frames {
             «common.getFrameName(robot.base)»
@@ -248,7 +262,6 @@ class FramesTransforms {
             instance by the inverse dynamics algorithm */
         «parentChildTransforms(robot)»
 
-        «val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)»
         // Additional transforms required by the user
         «IF(desiredTransforms != null)»
             «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.transforms.getSpecs()»
@@ -266,7 +279,8 @@ class FramesTransforms {
                 «transformsForJacobian(robot, jSpec)»
             «ENDFOR»
         «ENDIF»
-        '''
+    '''
+
 
 }
 
