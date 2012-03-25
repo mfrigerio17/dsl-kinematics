@@ -29,16 +29,13 @@ class RigidBodyDynamics {
         #include <iit/robots/«Names$Files::mainHeader(robot)».h>
         #include <iit/robots/«Names$Files::transformsHeader(robot)».h>
         #include <iit/rbd/rbd.h>
-        #include <iit/rbd/CoordinateTransform.h>
         #include <iit/rbd/InertiaMatrix.h>
-        #include <iit/rbd/MotionSubspaceMx.h>
         #include <iit/rbd/utils.h>
 
         namespace iit {
         namespace «Names$Namespaces::rob(robot)» {
 
         typedef iit::rbd::InertiaMatrixDense InertiaMatrix;
-        typedef iit::rbd::MotionSubspaceMxSparse SubspaceMx;
         typedef iit::rbd::SparseColumnd JointVelocity;
 
 
