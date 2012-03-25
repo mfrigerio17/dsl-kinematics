@@ -23,11 +23,8 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-//        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-//        fsa.generateFile(robot.name+".ctdsl", frTransforms.coordinateTransformsDSLDocument(robot))
-        //fsa.generateFile(robot.name+".temp", test(robot))
-        //fsa.generateFile("blabla", temp(resource))
-        //test_getJoint(robot)
+        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
         fsa.generateFile(robot.name + ".m", featherstoneMatlabModel(robot))
     }
 

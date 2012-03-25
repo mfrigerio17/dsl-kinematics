@@ -11,7 +11,6 @@ import iit.dsl.TransSpecsAccessor
 
 import org.eclipse.xtend2.lib.StringConcatenation
 import com.google.inject.Inject
-import java.util.List
 import java.io.File
 
 
@@ -24,6 +23,10 @@ import java.io.File
  */
 class FramesTransforms {
     @Inject TransSpecsAccessor desiredTrasformsAccessor
+
+    def public static fileName(Robot robot) {
+        return robot.name+".ctdsl";
+    }
 
     static Common common = new Common()
 
