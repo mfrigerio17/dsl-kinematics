@@ -35,7 +35,7 @@ class Generator implements IGenerator {
         fsa.generateFile(Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
         fsa.generateFile(Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
         fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
-        fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
+        //fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
@@ -44,7 +44,7 @@ class Generator implements IGenerator {
 
         fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
         fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+        //fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
