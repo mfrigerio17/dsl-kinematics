@@ -12,8 +12,16 @@ import iit.dsl.coord.coordTransDsl.Model
 import iit.dsl.TransformsAccessor
 
 import iit.dsl.generator.Jacobian
+import iit.dsl.generator.FramesTransforms
+import java.io.File
 
 class Jacobians {
+    static String transformsModelPath = "generated_code/misc" // default value
+
+    def static setTransformsModelPath(String path) {
+        transformsModelPath = path;
+    }
+
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
     TransformsAccessor transformsAccessor = new TransformsAccessor()
     @Inject iit.dsl.coord.generator.Maxima coordsMaxima //use injection otherwise you have to manually initialize its sub-members
@@ -22,7 +30,10 @@ class Jacobians {
 
     def jacobian(Jacobian J) {
         val iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
-        val Model transforms = transformsAccessor.getTransformsModel(J.robot)
+
+        val transformsModelFile = new File(
+            transformsModelPath + "/" + FramesTransforms::fileName(J.robot));
+        val Model transforms = transformsAccessor.getTransformsModel(J.robot, transformsModelFile)
 
         val baseFrameName = J.baseFrame.name;
 
