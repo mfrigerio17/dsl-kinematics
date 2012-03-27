@@ -3,72 +3,40 @@ package iit.dsl.generator.maxima
 import com.google.inject.Inject
 import org.eclipse.xtend2.lib.StringConcatenation
 
-import iit.dsl.kinDsl.RefFrame
-import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.Robot
-import iit.dsl.TransformsAccessor
 
-import iit.dsl.coord.coordTransDsl.Model
-import iit.dsl.coord.coordTransDsl.impl.CoordTransDslFactoryImpl
-import iit.dsl.coord.coordTransDsl.CoordTransDslFactory
+import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.PrismaticJoint
+import iit.dsl.coord.coordTransDsl.Model
+import iit.dsl.TransformsAccessor
+
+import iit.dsl.generator.Jacobian
 
 class Jacobians {
-    @Inject TransformsAccessor transformsAccessor
+    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    TransformsAccessor transformsAccessor = new TransformsAccessor()
     @Inject iit.dsl.coord.generator.Maxima coordsMaxima //use injection otherwise you have to manually initialize its sub-members
-    @Inject extension iit.dsl.generator.Common common
 
     def static fileName(Robot robot) '''«robot.name»_jacobians'''
 
-    def static jacName(String baseFrameName, String targetFrameName) '''«baseFrameName»_J_«targetFrameName»'''
-
-    def jacobian(AbstractLink base, AbstractLink targetLink) {
-        return jacobian(base, targetLink, base.defaultFrame, targetLink.defaultFrame)
-    }
-    def jacobian(AbstractLink base, RefFrame targetFrame) {
-        return jacobian(base, common.getContainingLink((base.eContainer() as Robot),targetFrame), base.defaultFrame, targetFrame)
-    }
-    def jacobian(RefFrame baseFrame, AbstractLink movingLink ) {
-        return jacobian(common.getContainingLink((movingLink.eContainer() as Robot),baseFrame), movingLink, baseFrame, movingLink.defaultFrame)
-    }
-    def jacobian(Robot robot, RefFrame baseFrame, RefFrame movingFrame) {
-        return jacobian(
-            robot.getContainingLink(baseFrame),
-            robot.getContainingLink(movingFrame),
-            baseFrame, movingFrame
-        )
-    }
-
-	def private jacobian(AbstractLink base, AbstractLink targetLink, RefFrame baseFr, RefFrame targetFr) {
-        if(baseFr == null || targetLink == null || baseFr == null || targetFr == null) {
-            throw(new RuntimeException("All arguments but be non-null"))
-        }
-
-        //Factory for the coordinate-transformation-DSL classes
-        val CoordTransDslFactory factory = CoordTransDslFactoryImpl::init()
-        var iit.dsl.coord.coordTransDsl.Frame eeFrame  = factory.createFrame()
-        var iit.dsl.coord.coordTransDsl.Frame bsFrame  = factory.createFrame()
-        var iit.dsl.coord.coordTransDsl.Frame tmpFrame = factory.createFrame()
-        bsFrame.setName(baseFr.name)
-        eeFrame.setName(targetFr.name)
-        // Get the model with the coordinate transforms of this robot
-        val Robot robot = base.eContainer() as Robot
-        val Model transforms = transformsAccessor.getTransformsModel(robot)
+    def jacobian(Jacobian J) {
         val iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
+        val Model transforms = transformsAccessor.getTransformsModel(J.robot)
+
+        val baseFrameName = J.baseFrame.name;
 
         // The "longest" transform, between the base link and the moving link
-        val base_X_ee = coordTransCommon.getTransform(transforms, bsFrame, eeFrame)
+        val base_X_ee = coordTransCommon.getTransform(transforms, baseFrameName, J.movingFrame.name)
         if(base_X_ee == null) {
-            throw new RuntimeException("Cannot generate the jacobian file, the transform " +
-                bsFrame.name + "_X_" + eeFrame.name + " is missing");
+            throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
+                J.baseFrame.name + "_X_" + J.movingFrame.name + " (robot " + J.robot.name + ")");
         }
         var maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(base_X_ee)
         // Some variables of help for the code generation
         val variablesList = coordsMaxima.argsListText(base_X_ee)
-        val jacName   = '''«jacName(bsFrame.name, eeFrame.name)»(«variablesList»)'''
-        val eePosName = '''«eeFrame.name»_pos_wrt_«bsFrame.name»(«variablesList»)'''
+        val jacName   = '''«J.getName()»(«variablesList»)'''
+        val eePosName = '''«J.movingFrame.name»_pos_wrt_«J.baseFrame.name»(«variablesList»)'''
 
         var iit.dsl.coord.coordTransDsl.Transform transform
         val StringConcatenation strBuff = new StringConcatenation();
@@ -77,15 +45,13 @@ class Jacobians {
             «jacName» := addcol(matrix()
                 ''');
 
-        val chain = common.buildChain(base, targetLink)
-        val jointsChain = common.getChainJoints(chain)
-        for(Joint el : jointsChain) {
+        for(Joint el : J.jointsChain) {
             // Get the transform 'base_X_<current link>'
-            tmpFrame.setName(common.getFrameName(el).toString())
-            transform = coordTransCommon.getTransform(transforms, bsFrame, tmpFrame)
+            val tmpFrameName = common.getFrameName(el).toString();
+            transform = coordTransCommon.getTransform(transforms, baseFrameName, tmpFrameName)
             if(transform == null) {
-                throw new RuntimeException("Cannot generate the jacobian file, the transform " +
-                    bsFrame.name + "_X_" + tmpFrame.name + " is missing");
+                throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
+                    baseFrameName + "_X_" + tmpFrameName + " (robot " + J.robot.name + ")");
             }
             maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(transform)
             if(el instanceof RevoluteJoint) {
@@ -104,5 +70,8 @@ class Jacobians {
         ''');
 
         return strBuff
+
     }
+
+
 }

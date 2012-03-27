@@ -12,11 +12,11 @@ import iit.dsl.kinDsl.RefFrame
 import iit.dsl.TransSpecsAccessor
 import org.eclipse.xtend2.lib.StringConcatenation
 import java.io.File
+import iit.dsl.generator.Jacobian
 //import java.util.ArrayList
 //import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
-    @Inject extension Common common
     @Inject Jacobians jacs
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
@@ -33,20 +33,17 @@ class Generator implements IGenerator {
     }
 
     def jacobiansFileCode(Robot robot) {
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms = desiredTrasformsAccessor.getDesiredTransforms(robot)
-        if(desiredTransforms != null) {
-//            val jacobians = new ArrayList<Jacobian>()
-//            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()) {
-//                jacobians.add(new Jacobian(robot, jSpec))
-//            } // TODO
-            return jacsCode(robot, desiredTransforms)
-        }
-        return new StringConcatenation();
+        return jacobiansFileCode(robot,
+                    // gets the default desired-jacobians model
+                    desiredTrasformsAccessor.getDesiredTransforms(robot));
     }
 
     def jacobiansFileCode(Robot robot, File desiredJacobians) {
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
-            desiredTrasformsAccessor.getDesiredTransforms(desiredJacobians)
+         return jacobiansFileCode(robot,
+                    desiredTrasformsAccessor.getDesiredTransforms(desiredJacobians));
+    }
+
+    def jacobiansFileCode(Robot robot, iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs) {
         if(desiredJacs != null) {
             return jacsCode(robot, desiredJacs);
         } else {
@@ -54,13 +51,11 @@ class Generator implements IGenerator {
         }
     }
 
+
     def private jacsCode(Robot robot, iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs) {
         val StringConcatenation strBuff = new StringConcatenation();
         for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredJacs.jacobians.getSpecs()) {
-            // Convert the frames to local types
-            val RefFrame base   = common.getFrameByName(robot, jSpec.base.name)
-            val RefFrame target = common.getFrameByName(robot, jSpec.target.name)
-            strBuff.append(jacs.jacobian(robot, base, target))
+            strBuff.append(jacs.jacobian(new Jacobian(robot, jSpec)));
         }
         return strBuff;
     }
