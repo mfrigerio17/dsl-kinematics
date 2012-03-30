@@ -21,8 +21,8 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //generateInverseDynamicsStuff(robot, fsa);
-        generateJacobiansFiles(robot, fsa)
+        generateInverseDynamicsStuff(robot, fsa);
+        //generateJacobiansFiles(robot, fsa)
         //generateInertiaMatrixStuff(robot, fsa);
 
         //System::out.println(rbd.LTLfactorization(robot))
@@ -31,7 +31,7 @@ class Generator implements IGenerator {
     }
 
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(Names$Files::mainHeader(robot)   + ".h"  , headers.main(robot))
+        //fsa.generateFile(Names$Files::mainHeader(robot)   + ".h"  , headers.main(robot))
         fsa.generateFile(Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
         fsa.generateFile(Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
         fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
