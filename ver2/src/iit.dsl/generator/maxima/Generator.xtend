@@ -3,18 +3,14 @@ package iit.dsl.generator.maxima
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtend2.lib.StringConcatenation
 
+import java.io.File
 import com.google.inject.Inject
-import iit.dsl.generator.Common
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.RefFrame
 import iit.dsl.TransSpecsAccessor
-import org.eclipse.xtend2.lib.StringConcatenation
-import java.io.File
 import iit.dsl.generator.Jacobian
-//import java.util.ArrayList
-//import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
     @Inject Jacobians jacs
