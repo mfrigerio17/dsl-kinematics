@@ -14,14 +14,16 @@ import java.io.File
 
 
 class Generator implements IGenerator {
-    @Inject RobotHeaders headers
+    RobotHeaders  headers = new RobotHeaders()
+    Jacobians      jacobs = new Jacobians()
+    Transforms transforms = new Transforms()
     RigidBodyDynamics rbd = new RigidBodyDynamics()
-    @Inject Jacobians jacobs
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         generateCommons(robot, fsa);
+        generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
         generateJacobiansFiles(robot, fsa)
         generateInertiaMatrixStuff(robot, fsa);
@@ -36,6 +38,10 @@ class Generator implements IGenerator {
             Names$Files::folder(robot) + "/" + Names$Files::mainHeader(robot) + ".h",
             headers.main(robot)
         )
+    }
+
+    def generateTransforms(Robot robot, IFileSystemAccess fsa) {
+        transforms.generate(robot, fsa);
     }
 
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {

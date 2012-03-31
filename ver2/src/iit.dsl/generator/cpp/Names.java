@@ -14,6 +14,9 @@ public class Names {
         static public String transformsHeader(Robot robot) {
             return "transforms";
         }
+        static public String transformsSource(Robot robot) {
+            return "transforms";
+        }
 
         static public String jacobiansHeader(Robot robot) {
             return "jacobians";
