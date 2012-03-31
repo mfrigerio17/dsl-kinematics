@@ -21,30 +21,38 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        generateCommons(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
-        //generateJacobiansFiles(robot, fsa)
-        //generateInertiaMatrixStuff(robot, fsa);
+        generateJacobiansFiles(robot, fsa)
+        generateInertiaMatrixStuff(robot, fsa);
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
         //System::out.println(rbd.Minverse(robot))
     }
 
+    def generateCommons(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(
+            Names$Files::folder(robot) + "/" + Names$Files::mainHeader(robot) + ".h",
+            headers.main(robot)
+        )
+    }
+
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
-        //fsa.generateFile(Names$Files::mainHeader(robot)   + ".h"  , headers.main(robot))
-        fsa.generateFile(Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
-        fsa.generateFile(Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
-        fsa.generateFile(Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
-        //fsa.generateFile(Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
+        val String folder = Names$Files::folder(robot);
+        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(Names$Files::mainHeader(robot) + ".h", headers.main(robot))
-        fsa.generateFile(Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
+        val String folder = Names$Files::folder(robot);
 
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
-        fsa.generateFile(Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-        //fsa.generateFile(Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
@@ -67,13 +75,21 @@ class Generator implements IGenerator {
         iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
     {
         val jacobians = new ArrayList<Jacobian>()
-            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
-                jacobians.add(new Jacobian(robot, jSpec))
-            }
-            fsa.generateFile(Names$Files::jacobiansHeader(robot) + ".h", headers.jacobiansHeader(robot, jacobians))
-            fsa.generateFile(Names$Files::jacobiansSource(robot) + ".cpp", jacobs.implementationFile(robot, jacobians))
+        for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+            jacobians.add(new Jacobian(robot, jSpec))
         }
+        val String folder = Names$Files::folder(robot);
+        fsa.generateFile(
+            folder + "/" + Names$Files::jacobiansHeader(robot) + ".h",
+            headers.jacobiansHeader(robot, jacobians)
+        )
+        fsa.generateFile(
+            folder + "/" + Names$Files::jacobiansHeader(robot) + ".cpp",
+            jacobs.implementationFile(robot, jacobians)
+        )
     }
+
+}
 
         // To generate C++ files with Jacobians, I first need to make sure that
         //  we have the corresponding Maxima sources

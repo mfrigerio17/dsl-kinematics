@@ -25,11 +25,12 @@ class RigidBodyDynamics {
         #define IIT_RBD_«Names$Files$RBD::header(robot).toUpperCase()»_DYNAMICS_H_
 
         #include <Eigen/Dense>
-        #include <iit/robots/«Names$Files::mainHeader(robot)».h>
-        #include <iit/robots/«Names$Files::transformsHeader(robot)».h>
         #include <iit/rbd/rbd.h>
         #include <iit/rbd/InertiaMatrix.h>
         #include <iit/rbd/utils.h>
+
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files::transformsHeader(robot)».h"
 
         namespace iit {
         namespace «Names$Namespaces::rob(robot)» {
@@ -354,8 +355,9 @@ class RigidBodyDynamics {
 
         #include <iit/rbd/rbd.h>
         #include <iit/rbd/JStateDependentMatrix.h>
-        #include <iit/robots/«Names$Files::mainHeader(robot)».h>
-        #include <iit/robots/«Names$Files$RBD::header(robot)».h>
+
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::header(robot)».h"
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
@@ -423,7 +425,7 @@ class RigidBodyDynamics {
         '''
 
     def inertiaMatrixSource(Robot robot) '''
-        #include <iit/robots/«Names$Files::transformsHeader(robot)».h>
+        #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
 
         //using namespace «Names$Namespaces$Qualifiers::robot(robot)»;

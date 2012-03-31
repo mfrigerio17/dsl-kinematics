@@ -38,8 +38,8 @@ class RobotHeaders {
         #ifndef «robot.name.toUpperCase()»_JACOBIANS_H_
         #define «robot.name.toUpperCase()»_JACOBIANS_H_
 
-        #include <iit/robots/«robot.name»_declarations.h>
         #include <iit/rbd/JStateDependentMatrix.h>
+        #include "«Names$Files::mainHeader(robot)».h"
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {

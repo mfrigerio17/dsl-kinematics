@@ -4,39 +4,39 @@ import iit.dsl.kinDsl.Robot;
 
 public class Names {
     static public class Files {
+        static public String folder(Robot robot) {
+            return robot.getName().toLowerCase();
+        }
         static public String mainHeader(Robot robot) {
-            return robot.getName() + "_declarations";
+            return "declarations";
         }
 
         static public String transformsHeader(Robot robot) {
-            return robot.getName() + "_transforms";
+            return "transforms";
         }
 
         static public String jacobiansHeader(Robot robot) {
-            return robot.getName() + "_jacobians";
-        }
-        static public String jacobiansSource(Robot robot) {
-            return robot.getName() + "_jacobians";
+            return "jacobians";
         }
 
         static public class RBD {
             static public String header(Robot r) {
-                return r.getName() + "_dynamics";
+                return "dynamics";
             }
             static public String source(Robot r) {
-                return r.getName() + "_dynamics";
+                return "dynamics";
             }
             static public String testMain(Robot r) {
-                return r.getName() + "_main";
+                return "main_test";
             }
             static public String inertiaMatrixHeader(Robot r) {
-                return r.getName() + "_JSpaceM";
+                return "jspaceM";
             }
             static public String inertiaMatrixTestMain(Robot r) {
-                return r.getName() + "_JSpaceM_test";
+                return "jspaceM_test";
             }
             static public String main_benchmarkID(Robot r) {
-                return r.getName() + "_main_benchmarkID";
+                return "main_benchmarkID";
             }
         }
     }
