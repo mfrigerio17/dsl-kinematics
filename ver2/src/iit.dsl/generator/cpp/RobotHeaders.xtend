@@ -1,13 +1,13 @@
 package iit.dsl.generator.cpp
 
+import java.util.List
+
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
-import java.util.List
 import iit.dsl.generator.Jacobian
-import com.google.inject.Inject
 
 class RobotHeaders {
-    @Inject Jacobians jacobians
+    Jacobians jacobians = new Jacobians()
 
     def main(Robot robot)'''
         #ifndef IIT_«Names$Files::mainHeader(robot).toUpperCase()»_H_

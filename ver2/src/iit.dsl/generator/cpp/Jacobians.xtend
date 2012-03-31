@@ -1,7 +1,6 @@
 package iit.dsl.generator.cpp
 
 import java.util.List
-import com.google.inject.Inject
 import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.kinDsl.Robot
@@ -10,10 +9,9 @@ import java.util.Iterator
 
 
 class Jacobians {
-    @Inject iit.dsl.generator.maxima.Converter maximaConverter
-
-    iit.dsl.maxdsl.utils.DSLAccessor maxdslAccess = new iit.dsl.maxdsl.utils.DSLAccessor()
-    iit.dsl.maxdsl.generator.cpp.Utils exprGenerator = new iit.dsl.maxdsl.generator.cpp.Utils()
+    iit.dsl.generator.maxima.Converter maximaConverter = new iit.dsl.generator.maxima.Converter()
+    iit.dsl.maxdsl.utils.DSLAccessor   maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
+    iit.dsl.maxdsl.generator.cpp.Utils exprGenerator   = new iit.dsl.maxdsl.generator.cpp.Utils()
 
 
     def private dynamicAssignmentsCode(Jacobian J, String[][] JasText, String varName) {
