@@ -13,13 +13,20 @@ import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
+    Transforms transforms = new Transforms()
     @Inject Jacobians jacs
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        generateTransformsSources(robot, fsa);
         generateJacobiansSources(robot, fsa);
     }
+
+    def generateTransformsSources(Robot robot, IFileSystemAccess fsa) {
+        transforms.generate(robot, fsa);
+    }
+
 
     def generateJacobiansSources(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(Jacobians::fileName(robot).toString(), jacobiansFileCode(robot))
