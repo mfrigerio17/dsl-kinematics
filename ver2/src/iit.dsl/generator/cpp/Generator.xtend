@@ -18,15 +18,17 @@ class Generator implements IGenerator {
     Jacobians      jacobs = new Jacobians()
     Transforms transforms = new Transforms()
     RigidBodyDynamics rbd = new RigidBodyDynamics()
+    MakefileGenerator mkg = new MakefileGenerator()
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateCommons(robot, fsa);
-        generateTransforms(robot, fsa);
-        generateInverseDynamicsStuff(robot, fsa);
-        generateJacobiansFiles(robot, fsa)
-        generateInertiaMatrixStuff(robot, fsa);
+        //generateCommons(robot, fsa);
+        //generateTransforms(robot, fsa);
+        //generateInverseDynamicsStuff(robot, fsa);
+        //generateJacobiansFiles(robot, fsa)
+        //generateInertiaMatrixStuff(robot, fsa);
+        fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
