@@ -30,7 +30,7 @@ public class Names {
                 return "dynamics";
             }
             static public String testMain(Robot r) {
-                return "main_test";
+                return "test";
             }
             static public String inertiaMatrixHeader(Robot r) {
                 return "jspaceM";
@@ -39,7 +39,7 @@ public class Names {
                 return "jspaceM_test";
             }
             static public String main_benchmarkID(Robot r) {
-                return "main_benchmarkID";
+                return "benchmarkID";
             }
         }
     }
