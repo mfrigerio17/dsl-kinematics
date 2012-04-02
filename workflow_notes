@@ -19,6 +19,8 @@ kindsl
 
     * environment variables
         - MAXIMA_LIBS_PATHS: where to find maxima code for transforms etc.
+        - EIGEN_ROOT: path to the Eigen library root folder (required to generate Makefile)
+        - IITRBD_ROOT: path to the root folder of the IIT-RBD library (required to generate Makefile)
 
 
 === Dependencies of DSLs === (to properly configure Eclipse projects)
