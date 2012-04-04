@@ -23,11 +23,11 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //generateCommons(robot, fsa);
-        //generateTransforms(robot, fsa);
-        //generateInverseDynamicsStuff(robot, fsa);
-        //generateJacobiansFiles(robot, fsa)
-        //generateInertiaMatrixStuff(robot, fsa);
+//        generateCommons(robot, fsa);
+//        generateTransforms(robot, fsa);
+        generateInverseDynamicsStuff(robot, fsa);
+//        generateJacobiansFiles(robot, fsa)
+//        generateInertiaMatrixStuff(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
@@ -60,7 +60,7 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
