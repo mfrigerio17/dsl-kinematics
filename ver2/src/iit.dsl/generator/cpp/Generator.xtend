@@ -11,13 +11,16 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
 import java.io.File
+import iit.dsl.generator.cpp.dynamics.InverseDynamics
+import iit.dsl.generator.cpp.dynamics.JointsSpaceInertia
 
 
 class Generator implements IGenerator {
     RobotHeaders  headers = new RobotHeaders()
     Jacobians      jacobs = new Jacobians()
     Transforms transforms = new Transforms()
-    RigidBodyDynamics rbd = new RigidBodyDynamics()
+    InverseDynamics invdyn= new InverseDynamics()
+    JointsSpaceInertia jsI= new JointsSpaceInertia()
     MakefileGenerator mkg = new MakefileGenerator()
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
@@ -27,7 +30,7 @@ class Generator implements IGenerator {
 //        generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
 //        generateJacobiansFiles(robot, fsa)
-//        generateInertiaMatrixStuff(robot, fsa);
+        generateInertiaMatrixStuff(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
@@ -48,19 +51,18 @@ class Generator implements IGenerator {
 
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot)   + ".h"  , rbd.mainHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot)   + ".cpp", rbd.inverseDynamicsImplementation(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", rbd.testMain(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", rbd.main_benchmarkID(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot)   + ".h"  , invdyn.mainHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot)   + ".cpp", invdyn.inverseDynamicsImplementation(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);
 
-        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot) + ".h", rbd.mainHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   rbd.inertiaMatrixHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", rbd.inertiaMatrixSource(robot))
-        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", rbd.inertiaMatrixTestMain(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
+        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
