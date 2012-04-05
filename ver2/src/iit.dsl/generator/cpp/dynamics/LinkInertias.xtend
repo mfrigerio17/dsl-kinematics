@@ -8,7 +8,8 @@ import iit.dsl.kinDsl.AbstractLink
 class LinkInertias {
 
     def static className(Robot r) '''LinkInertias'''
-    def static getterName(AbstractLink l) '''get_«l.name»'''
+    def static tensorGetterName(AbstractLink l) '''getTensor_«l.name»'''
+    def static massGetterName(AbstractLink l)   '''getMass_«l.name»'''
 
     extension Common common = new Common()
 
@@ -36,11 +37,17 @@ class LinkInertias {
                 «className(robot)»();
                 ~«className(robot)»();
                 «FOR l : robot.links»
-                    const InertiaMatrix& «getterName(l)»() const;
+                    const InertiaMatrix& «tensorGetterName(l)»() const;
+                «ENDFOR»
+                «FOR l : robot.links»
+                    const double& «massGetterName(l)»() const;
                 «ENDFOR»
             private:
                 «FOR l : robot.links»
-                    InertiaMatrix «inertiaMxName(l)»;
+                    InertiaMatrix «memberName_tensor(l)»;
+                «ENDFOR»
+                «FOR l : robot.links»
+                    double «memberName_mass(l)»;
                 «ENDFOR»
         };
 
@@ -48,8 +55,13 @@ class LinkInertias {
         inline «className(robot)»::~«className(robot)»() {}
 
         «FOR l : robot.links»
-            inline const InertiaMatrix& «className(robot)»::«getterName(l)»() const {
-                return this->«inertiaMxName(l)»;
+            inline const InertiaMatrix& «className(robot)»::«tensorGetterName(l)»() const {
+                return this->«memberName_tensor(l)»;
+            }
+        «ENDFOR»
+        «FOR l : robot.links»
+            inline const double& «className(robot)»::«massGetterName(l)»() const {
+                return this->«memberName_mass(l)»;
             }
         «ENDFOR»
 
@@ -70,9 +82,15 @@ class LinkInertias {
 
         «classqualifier»::«className(robot)»() {
             «FOR l : robot.links»
-                «inertiaMxName(l)».fill(«l.inertiaParams.mass», Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
+                «memberName_mass(l)» = «l.inertiaParams.mass»;
+            «ENDFOR»
+            «FOR l : robot.links»
+                «memberName_tensor(l)».fill(«memberName_mass(l)», Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
                     Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
             «ENDFOR»
         }
     '''
+
+    def private memberName_mass(AbstractLink l) '''mass_«l.name»'''
+    def private memberName_tensor(AbstractLink l) '''tensor_«l.name»'''
 }
