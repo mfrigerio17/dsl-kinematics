@@ -50,9 +50,14 @@ class RigidBodyDynamics {
             void G_terms(const «jState»& q, «jState»& torques);
             void G_terms(«jState»& torques);
             ///@}
-            /** The centrifugal and Coriolis terms acting on the joints. */
+            /** \name Centrifugal and Coriolis terms
+             * The torques acting on the joints due to centrifugal and Coriolis effects, for a
+             * specific configuration.
+             */ ///@{
             void C_terms(const «jState»& q, const «jState»& qd, «jState»& torques);
-            /** */
+            void C_terms(const «jState»& qd, «jState»& torques);
+            ///@}
+            /** Updates the kinematics transforms used by the inverse dynamics routine. */
             void setJointStatus(const «jState»& q) const;
         public:
             iit::rbd::SparseColumnd gravity;
@@ -176,6 +181,13 @@ class RigidBodyDynamics {
     def private parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
         fr_«parent.name»_X_fr_«child.name»'''
 
+    def private C_terms__docs_parameters() '''
+        /**
+         * \param q the joint status vector that specifies the robot configuration
+         * \param qd the joint velocities vector
+         * \param torques will be filled with the (generalized) forces acting on the joints
+         */
+        '''
 
     def methodsDefinitions(Robot robot) '''
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
@@ -183,8 +195,8 @@ class RigidBodyDynamics {
         «val sortedLinks = robot.links.sortBy(link | getID(link))»
         «val updateTransformsCode = setJointStatusCode(sortedLinks)»
         /**
-         * \param q the joint status vector that specifies the actual configuration
-         * \param torques will be filled with the torques due to the gravity
+         * \param q the joint status vector that specifies the robot configuration
+         * \param torques will be filled with the (generalized) forces due to the gravity
          */
         void «nsqualifier»::«className(robot)»::G_terms(const «jState»& q, «jState»& torques) {
             «updateTransformsCode»
@@ -196,7 +208,7 @@ class RigidBodyDynamics {
          * It is provided for the sake of efficiency, in case the kinematics transforms
          * of the robot have already been updated elsewhere with the most recent
          * configuration, so that it is useless to compute them again here.
-         * \param torques will be filled with the torques due to the gravity
+         * \param torques will be filled with the (generalized) forces due to the gravity
          */
         void «nsqualifier»::«className(robot)»::G_terms(«jState»& torques) {
             «FOR Link l : sortedLinks»
@@ -223,9 +235,13 @@ class RigidBodyDynamics {
             «ENDFOR»
         }
 
-
+        «C_terms__docs_parameters»
         void «nsqualifier»::«className(robot)»::C_terms(const «jState»& q, const «jState»& qd, «jState»& torques) {
             «updateTransformsCode»
+            C_terms(qd, torques);
+        }
+        «C_terms__docs_parameters»
+        void «nsqualifier»::«className(robot)»::C_terms(const «jState»& qd, «jState»& torques) {
             «FOR Link l : sortedLinks»
                 «val parentLink = l.parent»
                 «val acceler    = l.accelerationName»
@@ -266,9 +282,11 @@ class RigidBodyDynamics {
                     «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
                 «ENDIF»
             «ENDFOR»
-
         }
 
+        /**
+         * \param q the joint status vector that specifies the robot configuration
+         */
         void «nsqualifier»::«className(robot)»::setJointStatus(const «jState»& q) const {
             «updateTransformsCode»
         }
