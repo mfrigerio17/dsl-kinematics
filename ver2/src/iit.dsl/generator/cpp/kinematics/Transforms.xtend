@@ -1,10 +1,12 @@
-package iit.dsl.generator.cpp
+package iit.dsl.generator.cpp.kinematics
 
 import iit.dsl.TransformsAccessor
 import iit.dsl.kinDsl.Robot
+import iit.dsl.generator.FramesTransforms
+import iit.dsl.generator.cpp.Names
+
 import org.eclipse.xtext.generator.IFileSystemAccess
 import java.io.File
-import iit.dsl.generator.FramesTransforms
 
 class Transforms {
     private static String path_transformsModel  = "generated_code/misc" // default value
@@ -27,28 +29,28 @@ class Transforms {
         path_transformsMaxima = path;
     }
 
-	private TransformsAccessor transformsAccessor = new TransformsAccessor()
-	private iit.dsl.coord.generator.cpp.EigenFiles eigenCppTransformsGenerator =
-	   new iit.dsl.coord.generator.cpp.EigenFiles()
+    private TransformsAccessor transformsAccessor = new TransformsAccessor()
+    private iit.dsl.coord.generator.cpp.EigenFiles eigenCppTransformsGenerator =
+       new iit.dsl.coord.generator.cpp.EigenFiles()
 
 
-	
-	def public generate(Robot robot, IFileSystemAccess fsa) {
-	    // Configure the Maxima converter that will be used by the generator
-	    iit::dsl::coord::generator::MaximaConverter::setGenMaximaCodeFolder(path_transformsMaxima);
-	
-	    val File ctdslFile = new File(path_transformsModel + "/" + FramesTransforms::fileName(robot));
+
+    def public generate(Robot robot, IFileSystemAccess fsa) {
+        // Configure the Maxima converter that will be used by the generator
+        iit::dsl::coord::generator::MaximaConverter::setGenMaximaCodeFolder(path_transformsMaxima);
+
+        val File ctdslFile = new File(path_transformsModel + "/" + FramesTransforms::fileName(robot));
         val iit.dsl.coord.coordTransDsl.Model transformsModel =
            transformsAccessor.getTransformsModel(robot, ctdslFile);
-	
-	    val folder = Names$Files::folder(robot);
-	    fsa.generateFile(
-	        folder + "/" + Names$Files::transformsHeader(robot) + ".h",
-	        eigenCppTransformsGenerator.declarationsFileContent(transformsModel)
-	    );
-	    fsa.generateFile(
-	        folder + "/" + Names$Files::transformsSource(robot) + ".cpp",
-	        eigenCppTransformsGenerator.implementationsFileContent(transformsModel)
-	    );
-	}
+
+        val folder = Names$Files::folder(robot);
+        fsa.generateFile(
+            folder + "/" + Names$Files::transformsHeader(robot) + ".h",
+            eigenCppTransformsGenerator.declarationsFileContent(transformsModel)
+        );
+        fsa.generateFile(
+            folder + "/" + Names$Files::transformsSource(robot) + ".cpp",
+            eigenCppTransformsGenerator.implementationsFileContent(transformsModel)
+        );
+    }
 }

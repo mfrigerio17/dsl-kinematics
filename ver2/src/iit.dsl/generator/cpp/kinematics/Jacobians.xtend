@@ -1,11 +1,14 @@
-package iit.dsl.generator.cpp
+package iit.dsl.generator.cpp.kinematics
 
 import java.util.List
+import java.util.Iterator
 import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.generator.Jacobian
-import java.util.Iterator
+import iit.dsl.generator.cpp.Names
+import iit.dsl.generator.cpp.MaximaReplacementSpec
+import iit.dsl.generator.cpp.Common
 
 
 class Jacobians {

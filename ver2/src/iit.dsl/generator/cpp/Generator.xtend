@@ -5,14 +5,16 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
 import java.util.ArrayList
+import java.io.File
 import com.google.inject.Inject
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
-import java.io.File
 import iit.dsl.generator.cpp.dynamics.InverseDynamics
 import iit.dsl.generator.cpp.dynamics.JointsSpaceInertia
+import iit.dsl.generator.cpp.kinematics.Jacobians
+import iit.dsl.generator.cpp.kinematics.Transforms
 
 
 class Generator implements IGenerator {
@@ -26,10 +28,10 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-//        generateCommons(robot, fsa);
-//        generateTransforms(robot, fsa);
+        generateCommons(robot, fsa);
+        generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
-//        generateJacobiansFiles(robot, fsa)
+        generateJacobiansFiles(robot, fsa)
         generateInertiaMatrixStuff(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 

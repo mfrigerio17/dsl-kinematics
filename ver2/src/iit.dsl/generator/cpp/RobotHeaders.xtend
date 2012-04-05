@@ -5,6 +5,7 @@ import java.util.List
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.generator.Jacobian
+import iit.dsl.generator.cpp.kinematics.Jacobians
 
 class RobotHeaders {
     Jacobians jacobians = new Jacobians()
