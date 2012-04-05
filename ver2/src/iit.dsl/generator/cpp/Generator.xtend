@@ -15,6 +15,7 @@ import iit.dsl.generator.cpp.dynamics.InverseDynamics
 import iit.dsl.generator.cpp.dynamics.JointsSpaceInertia
 import iit.dsl.generator.cpp.kinematics.Jacobians
 import iit.dsl.generator.cpp.kinematics.Transforms
+import iit.dsl.generator.cpp.dynamics.LinkInertias
 
 
 class Generator implements IGenerator {
@@ -23,16 +24,18 @@ class Generator implements IGenerator {
     Transforms transforms = new Transforms()
     InverseDynamics invdyn= new InverseDynamics()
     JointsSpaceInertia jsI= new JointsSpaceInertia()
+    LinkInertias inertias = new LinkInertias()
     MakefileGenerator mkg = new MakefileGenerator()
     @Inject TransSpecsAccessor desiredTrasformsAccessor
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateCommons(robot, fsa);
-        generateTransforms(robot, fsa);
-        generateInverseDynamicsStuff(robot, fsa);
-        generateJacobiansFiles(robot, fsa)
-        generateInertiaMatrixStuff(robot, fsa);
+        //generateCommons(robot, fsa);
+        //generateTransforms(robot, fsa);
+        //generateInverseDynamicsStuff(robot, fsa);
+        //generateJacobiansFiles(robot, fsa)
+        //generateInertiaMatrixStuff(robot, fsa);
+        generateLinkInertias(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
@@ -65,6 +68,12 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
         //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))
+    }
+
+    def generateLinkInertias(Robot robot, IFileSystemAccess fsa) {
+        val String folder = Names$Files::folder(robot);
+        fsa.generateFile(folder + "/" + Names$Files$LinkInertias::header(robot) + ".h", inertias.header(robot))
+        fsa.generateFile(folder + "/" + Names$Files$LinkInertias::source(robot) + ".cpp", inertias.source(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {

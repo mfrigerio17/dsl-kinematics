@@ -42,6 +42,15 @@ public class Names {
                 return "benchmarkID";
             }
         }
+
+        static public class LinkInertias {
+            static public String header(Robot r) {
+                return "LinkInertias";
+            }
+            static public String source(Robot r) {
+                return header(r);
+            }
+        }
     }
 
     static public class Namespaces {
@@ -52,6 +61,7 @@ public class Names {
         static public String rob(Robot r) {
             return r.getName();
         }
+        static final public String dynamics = "dyn";
         static final public String jacobians = "jacs";
         static final public String internal = "internal";
 
@@ -62,6 +72,7 @@ public class Names {
             static public String roboJacs(Robot rob) {
                 return robot(rob) + "::" + jacobians;
             }
+            static final public String iit_rbd = "iit::rbd";
         }
 
     }
