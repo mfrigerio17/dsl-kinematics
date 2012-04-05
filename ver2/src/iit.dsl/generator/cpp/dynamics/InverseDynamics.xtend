@@ -13,10 +13,10 @@ import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Utils
 
 import java.util.List
+import iit.dsl.generator.cpp.kinematics.Transforms
 
 class InverseDynamics {
 	extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
-	extension Common mycommon = new Common()
 
     def static className(Robot r) '''Dynamics'''
 
@@ -143,7 +143,7 @@ class InverseDynamics {
            «val myJoint = l.connectingJoint»
            «val velocity = l.velocityName»
            «val acceler = l.accelerationName»
-           «val transform = Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(parentLink, l)»
+           «val transform = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
            «transform»(q); // updates the transform with the joint status
            «val jid = myJoint.arrayIdx»
            «val subspaceIdx = myJoint.subspaceIndex»
@@ -174,7 +174,7 @@ class InverseDynamics {
         «val joint      = l.connectingJoint»
         torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
         «IF parentLink.ID != 0»
-            «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
+            «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«Transforms::child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
         «ENDIF»
         '''
 
@@ -212,7 +212,7 @@ class InverseDynamics {
                 // Link '«l.name»'
                 «val parentLink = l.parent»
                 «val acceler    = l.accelerationName»
-                «val transform  = Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(parentLink, l)»
+                «val transform  = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
                 «IF parentLink.getID() == 0»
                     «acceler» = «transform».col(«Utils::Z_L») * ( - «Names$Namespaces::enclosing»::«Names$Namespaces::rbd»::g);
                     «forceName(l)» = «inertiaMxName(l)» * «acceler»;
@@ -227,7 +227,7 @@ class InverseDynamics {
                 «val joint      = l.connectingJoint»
                 torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
                 «IF parentLink.ID != 0»
-                    «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
+                    «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«Transforms::child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
                 «ENDIF»
             «ENDFOR»
         }
@@ -246,7 +246,7 @@ class InverseDynamics {
                 «val jid        = myJoint.arrayIdx»
                 «val subspaceIdx= myJoint.subspaceIndex»
                 «val velocity   = l.velocityName»
-                «val transform  = Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(parentLink, l)»
+                «val transform  = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
 
                 // Link '«l.name»'
                 «IF parentLink.equals(robot.base)»
@@ -276,7 +276,7 @@ class InverseDynamics {
                 «val joint      = l.connectingJoint»
                 torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
                 «IF parentLink.ID != 0»
-                    «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
+                    «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«Transforms::child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
                 «ENDIF»
             «ENDFOR»
         }
@@ -291,7 +291,7 @@ class InverseDynamics {
 
     def private setJointStatusCode(List<Link> sortedLinks) '''
         «FOR Link l : sortedLinks»
-            «Names$Namespaces::transforms6D + "::" + child_X_parent__mxName(l.parent, l)»(q);
+            «Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(l.parent, l)»(q);
         «ENDFOR»
     '''
 

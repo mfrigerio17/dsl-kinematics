@@ -9,10 +9,10 @@ import iit.dsl.kinDsl.Robot
 
 import java.util.List
 import org.eclipse.xtend2.lib.StringConcatenation
+import iit.dsl.generator.cpp.kinematics.Transforms
 
 class JointsSpaceInertia {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
-    extension Common mycommon = new Common()
 
     def inertiaMatrixHeader(Robot robot)'''
         #ifndef IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
@@ -131,8 +131,8 @@ class JointsSpaceInertia {
             «FOR l : sortedLinks»
                 «val parent = l.parent»
                 «IF !(parent.equals(robot.base))»
-                    «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)»(state);
-                    «child_X_parent__mxName(parent, l)»(state);
+                    «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
+                    «Transforms::child_X_parent__mxName(parent, l)»(state);
                 «ENDIF»
             «ENDFOR»
 
@@ -143,7 +143,7 @@ class JointsSpaceInertia {
 
                 «val parent = l.parent»
                 «IF !(parent.equals(robot.base))»
-                    «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «child_X_parent__mxName(parent, l)»;
+                    «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
                 «val linkJoint = getJoint(parent, l)»
@@ -205,7 +205,7 @@ class JointsSpaceInertia {
             if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
                 parentJ = getConnectingJoint(parent);
                 strBuff.append('''
-                F = «Names$Namespaces::T6D_force»::«parent_X_child__mxName(parent, link)» * F;
+                F = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, link)» * F;
                 DATA(«rowIndex», «parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
                 DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex», «parentJ.ID-1»); //the matrix is symmetric
                 ''');

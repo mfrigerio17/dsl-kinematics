@@ -1,12 +1,14 @@
 package iit.dsl.generator.cpp.kinematics
 
+import org.eclipse.xtext.generator.IFileSystemAccess
+import java.io.File
+
 import iit.dsl.TransformsAccessor
 import iit.dsl.kinDsl.Robot
+import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.generator.FramesTransforms
 import iit.dsl.generator.cpp.Names
 
-import org.eclipse.xtext.generator.IFileSystemAccess
-import java.io.File
 
 class Transforms {
     private static String path_transformsModel  = "generated_code/misc" // default value
@@ -28,6 +30,11 @@ class Transforms {
     def static setPath_transformsMaxima(String path) {
         path_transformsMaxima = path;
     }
+
+    def public static child_X_parent__mxName(AbstractLink parent, AbstractLink child) '''
+        fr_«child.name»_X_fr_«parent.name»'''
+    def public static parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
+        fr_«parent.name»_X_fr_«child.name»'''
 
     private TransformsAccessor transformsAccessor = new TransformsAccessor()
     private iit.dsl.coord.generator.cpp.EigenFiles eigenCppTransformsGenerator =
