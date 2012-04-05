@@ -24,10 +24,10 @@ public class Names {
 
         static public class RBD {
             static public String header(Robot r) {
-                return "dynamics";
+                return "inverse_dynamics";
             }
             static public String source(Robot r) {
-                return "dynamics";
+                return "inverse_dynamics";
             }
             static public String testMain(Robot r) {
                 return "test";

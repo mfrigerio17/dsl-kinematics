@@ -18,7 +18,7 @@ import iit.dsl.generator.cpp.kinematics.Transforms
 class InverseDynamics {
 	extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
-    def static className(Robot r) '''Dynamics'''
+    def static className(Robot r) '''InverseDynamics'''
 
     def mainHeader(Robot robot) '''
         «val jState = Names$Types::jointState»
