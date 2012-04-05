@@ -16,6 +16,46 @@ class Jacobians {
     iit.dsl.maxdsl.utils.DSLAccessor   maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
     iit.dsl.maxdsl.generator.cpp.Utils exprGenerator   = new iit.dsl.maxdsl.generator.cpp.Utils()
 
+    def headerFile(Robot robot, List<Jacobian> jacs) '''
+        #ifndef «robot.name.toUpperCase()»_JACOBIANS_H_
+        #define «robot.name.toUpperCase()»_JACOBIANS_H_
+
+        #include <iit/rbd/JStateDependentMatrix.h>
+        #include "«Names$Files::mainHeader(robot)».h"
+
+        namespace «Names$Namespaces::enclosing» {
+        namespace «Names$Namespaces::rob(robot)» {
+
+        template<int COLS>
+        class «Names$Types::jacobianLocal» : public «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> {
+            private:
+                typedef «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> Base;
+            public:
+                JacobianT(typename Base::JointStateSetter setter) : Base(setter) {}
+        };
+
+
+        /**
+         * The namespace with the Jacobian matrices for the robot «robot.name»
+         */
+        namespace «Names$Namespaces::jacobians» {
+            /* Declarations */
+            «declarations(robot, jacs)»
+
+
+            /**
+             * Call this function once at initialization time, to prepare the
+             * transform matrices.
+             **/
+            void initAll();
+
+        } // end of namespace '«Names$Namespaces::jacobians»'
+        } // end of namespace '«Names$Namespaces::rob(robot)»'
+        } // end of namespace '«Names$Namespaces::enclosing»'
+
+        #endif
+        '''
+
 
     def private dynamicAssignmentsCode(Jacobian J, String[][] JasText, String varName) {
         val StringConcatenation strBuff = new StringConcatenation();

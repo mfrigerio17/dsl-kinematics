@@ -93,7 +93,7 @@ class Generator implements IGenerator {
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(
             folder + "/" + Names$Files::jacobiansHeader(robot) + ".h",
-            headers.jacobiansHeader(robot, jacobians)
+            jacobs.headerFile(robot, jacobians)
         )
         fsa.generateFile(
             folder + "/" + Names$Files::jacobiansHeader(robot) + ".cpp",
