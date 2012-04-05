@@ -9,7 +9,7 @@ public class MaximaReplacementSpec implements iit.dsl.maxdsl.generator.IIdentifi
     private final iit.dsl.generator.Common utils;
     private final Robot robot;
 
-    MaximaReplacementSpec(Robot rob) {
+    public MaximaReplacementSpec(Robot rob) {
         this.robot = rob;
         this.utils = new iit.dsl.generator.Common();
     }
