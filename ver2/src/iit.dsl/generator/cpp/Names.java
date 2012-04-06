@@ -87,6 +87,7 @@ public class Names {
         }
         public static final String jacobianLocal = "JacobianT";
         public static final String jspaceMLocal = "JSpaceInertiaMatrix";
+        public static final String vector3d = Namespaces.Qualifiers.iit_rbd + "::Vector3d";
     }
 
     static public class GlobalVars {
