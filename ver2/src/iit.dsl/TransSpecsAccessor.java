@@ -1,16 +1,16 @@
 package iit.dsl;
 
 import java.io.File;
+import java.util.List;
 
 import iit.dsl.kinDsl.Robot;
 
-import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.xtext.resource.XtextResource;
+import org.eclipse.xtext.resource.XtextResourceSet;
 
 
 /**
@@ -21,32 +21,48 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
  *
  */
 public class TransSpecsAccessor {
-    @Inject
-    Provider<ResourceSet> resourceSetProvider;
-
     private Resource resource;
-    private ResourceSet set;
+    private final XtextResourceSet set;
 
-    private static Injector injector = new iit.dsl.transspecs.TransSpecsStandaloneSetup().createInjectorAndDoEMFRegistration();
+    public TransSpecsAccessor() {
+        Injector injector = new iit.dsl.transspecs.TransSpecsStandaloneSetup().
+                createInjectorAndDoEMFRegistration();
+
+        set = injector.getInstance(XtextResourceSet.class);
+        set.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+    }
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(Robot robot) {
-        set = resourceSetProvider.get();
         String modelFilePath = "models/"+robot.getName() + ".dtdsl";
         if(new java.io.File(modelFilePath).isFile()) {
-            resource = set.getResource(URI.createURI(modelFilePath), true);
-            return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
+            return getModel(URI.createURI(modelFilePath));
+        } else {
+            System.err.println("Could not find file " + modelFilePath + ", skipping...");
         }
         return null;
     }
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(File modelFile) {
-        set = resourceSetProvider.get();
         if(modelFile.isFile()) {
-            resource = set.getResource(URI.createURI(modelFile.getAbsolutePath()), true);
-            return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
+            return getModel(URI.createURI(modelFile.getAbsolutePath()));
         } else {
             System.err.println("Could not find file " + modelFile.getPath() + ", skipping...");
         }
         return null;
+    }
+
+    private iit.dsl.transspecs.transSpecs.DesiredTransforms getModel(final URI uri) {
+        resource = set.getResource(uri, true);
+        List<Resource.Diagnostic> errors = resource.getErrors();
+        if(errors.size() > 0) {
+            StringBuffer msg = new StringBuffer();
+            msg.append("Errors while loading a document of the Transforms-specs-DSL ("
+                        + uri.toString() + "):\n");
+            for(Resource.Diagnostic err : errors) {
+                msg.append("\n\t " + err.getMessage() + "\n");
+            }
+            throw new RuntimeException(msg.toString());
+        }
+        return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
     }
 }
