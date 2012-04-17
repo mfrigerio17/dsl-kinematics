@@ -22,6 +22,7 @@ class InverseDynamics {
 
     def mainHeader(Robot robot) '''
         «val jState = Names$Types::jointState»
+        «val rbd_ns = Names$Namespaces$Qualifiers::iit_rbd»
         #ifndef IIT_RBD_«Names$Files$RBD::header(robot).toUpperCase()»_DYNAMICS_H_
         #define IIT_RBD_«Names$Files$RBD::header(robot).toUpperCase()»_DYNAMICS_H_
 
@@ -36,8 +37,8 @@ class InverseDynamics {
         namespace iit {
         namespace «Names$Namespaces::rob(robot)» {
 
-        typedef iit::rbd::InertiaMatrixDense InertiaMatrix;
-        typedef iit::rbd::SparseColumnd JointVelocity;
+        typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
+        typedef «rbd_ns»::SparseColumnd JointVelocity;
 
 
         class «className(robot)» {
@@ -62,16 +63,17 @@ class InverseDynamics {
             /** Updates the kinematics transforms used by the inverse dynamics routine. */
             void setJointStatus(const «jState»& q) const;
         public:
-            iit::rbd::SparseColumnd gravity;
+            «rbd_ns»::SparseColumnd gravity;
+        private:
 
         private:
-            iit::rbd::Matrix66d spareMx; // support variable
+            «rbd_ns»::Matrix66d spareMx; // support variable
             «FOR l : robot.links»
                 // Link '«l.name»' :
                 InertiaMatrix «inertiaMxName(l)»;
-                iit::rbd::VelocityVector «velocityName(l)»;
-                iit::rbd::VelocityVector «accelerationName(l)»;
-                iit::rbd::ForceVector  «forceName(l)»;
+                «rbd_ns»::VelocityVector «velocityName(l)»;
+                «rbd_ns»::VelocityVector «accelerationName(l)»;
+                «rbd_ns»::ForceVector  «forceName(l)»;
             «ENDFOR»
 
         };
@@ -91,7 +93,7 @@ class InverseDynamics {
             #endif
             «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
             using namespace std;
-            using namespace iit::rbd;
+            using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
             using namespace «nsqualifier»;
 
             «nsqualifier»::«className(robot)»::«className(robot)»() {
@@ -119,6 +121,7 @@ class InverseDynamics {
 
                 «ENDFOR»
                 «FOR AbstractLink l : sortedLinks.reverse()»
+                    // Second pass, link '«l.name»'
                     «inverseDynamicsPass2(l)»
 
                 «ENDFOR»
@@ -169,7 +172,6 @@ class InverseDynamics {
     def private dispatch inverseDynamicsPass2(FixedRobotBase base)''''''
     def private dispatch inverseDynamicsPass2(FloatingRobotBase base)'''// **** WARNING: floating base is not supported yet //TODO'''
     def private dispatch inverseDynamicsPass2(Link l)'''
-        // Second pass, link '«l.name»'
         «val parentLink = l.parent»
         «val joint      = l.connectingJoint»
         torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
@@ -414,7 +416,7 @@ class InverseDynamics {
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
-        using namespace iit::rbd;
+        using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
 
         int main(int argc, char** argv) {
             «Names$Types::jointState» q, qd, qdd, tau, tau2;
