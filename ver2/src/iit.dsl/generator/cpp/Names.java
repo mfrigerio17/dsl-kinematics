@@ -10,6 +10,9 @@ public class Names {
         static public String mainHeader(Robot robot) {
             return "declarations";
         }
+        static public String linkDataMapHeader(Robot robot) {
+            return "link_data_map";
+        }
 
         static public String transformsHeader(Robot robot) {
             return "transforms";
