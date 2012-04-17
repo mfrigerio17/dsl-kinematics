@@ -64,7 +64,8 @@ class InverseDynamics {
             void setJointStatus(const «jState»& q) const;
         public:
             «rbd_ns»::SparseColumnd gravity;
-        private:
+        protected:
+            void secondPass(«jState»& torques);
 
         private:
             «rbd_ns»::Matrix66d spareMx; // support variable
@@ -120,11 +121,7 @@ class InverseDynamics {
                     «inverseDynamicsPass1(l)»
 
                 «ENDFOR»
-                «FOR AbstractLink l : sortedLinks.reverse()»
-                    // Second pass, link '«l.name»'
-                    «inverseDynamicsPass2(l)»
-
-                «ENDFOR»
+                secondPass(torques);
             }
 
 
@@ -223,15 +220,7 @@ class InverseDynamics {
                     «forceName(l)» = «inertiaMxName(l)» * «acceler»;
                 «ENDIF»
             «ENDFOR»
-            «FOR Link l : sortedLinks.reverseView()»
-                // Link '«l.name»'
-                «val parentLink = l.parent»
-                «val joint      = l.connectingJoint»
-                torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
-                «IF parentLink.ID != 0»
-                    «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«Transforms::child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
-                «ENDIF»
-            «ENDFOR»
+            secondPass(torques);
         }
 
         «C_terms__docs_parameters»
@@ -271,8 +260,19 @@ class InverseDynamics {
                     «forceName(l)» = «inertiaMxName(l)» * «acceler» + (-spareMx.transpose() * «inertiaMxName(l)» * «velocity»);
                 «ENDIF»
             «ENDFOR»
-            «FOR Link l : sortedLinks.reverseView()»
 
+            secondPass(torques);
+        }
+
+        /**
+         * \param q the joint status vector that specifies the robot configuration
+         */
+        void «nsqualifier»::«className(robot)»::setJointStatus(const «jState»& q) const {
+            «updateTransformsCode»
+        }
+
+        void «nsqualifier»::«className(robot)»::secondPass(«jState»& torques) {
+            «FOR Link l : sortedLinks.reverseView()»
                 // Link '«l.name»'
                 «val parentLink = l.parent»
                 «val joint      = l.connectingJoint»
@@ -282,14 +282,9 @@ class InverseDynamics {
                 «ENDIF»
             «ENDFOR»
         }
-
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         */
-        void «nsqualifier»::«className(robot)»::setJointStatus(const «jState»& q) const {
-            «updateTransformsCode»
-        }
     '''
+
+
 
     def private setJointStatusCode(List<Link> sortedLinks) '''
         «FOR Link l : sortedLinks»
