@@ -14,6 +14,8 @@ import iit.dsl.generator.cpp.Utils
 
 import java.util.List
 import iit.dsl.generator.cpp.kinematics.Transforms
+import iit.dsl.generator.cpp.RobotHeaders
+import iit.dsl.generator.cpp.Common
 
 class InverseDynamics {
 	extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -23,8 +25,8 @@ class InverseDynamics {
     def mainHeader(Robot robot) '''
         «val jState = Names$Types::jointState»
         «val rbd_ns = Names$Namespaces$Qualifiers::iit_rbd»
-        #ifndef IIT_RBD_«Names$Files$RBD::header(robot).toUpperCase()»_DYNAMICS_H_
-        #define IIT_RBD_«Names$Files$RBD::header(robot).toUpperCase()»_DYNAMICS_H_
+        #ifndef IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::header(robot).toUpperCase()»_H_
+        #define IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::header(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
         #include <iit/rbd/rbd.h>
@@ -33,19 +35,23 @@ class InverseDynamics {
 
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«Names$Files::transformsHeader(robot)».h"
+        #include "«Names$Files::linkDataMapHeader(robot)».h"
 
         namespace iit {
         namespace «Names$Namespaces::rob(robot)» {
 
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
-        typedef «rbd_ns»::SparseColumnd JointVelocity;
-
+        typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> ExtForces;
 
         class «className(robot)» {
         public:
             «className(robot)»();
-            /** The inverse dynamics routine for this robot */
+            /** \name Inverse dynamics
+             * The full Newton-Euler algorithm for inverse dynamics for this robot
+             */ ///@{
             void id(const «jState»& q, const «jState»& qd, const «jState»& qdd, «jState»& torques);
+            void id(const «jState»& q, const «jState»& qd, const «jState»& qdd, const ExtForces& fext, «jState»& torques);
+            ///@}
             /** \name Gravity terms
              *  The torques acting on the joints due to gravity, for a specific configuration.
              *  In order to do gravity compensation, torques with the opposite sign should be applied.
@@ -65,6 +71,7 @@ class InverseDynamics {
         public:
             «rbd_ns»::SparseColumnd gravity;
         protected:
+            void firstPass(const «jState»& q, const «jState»& qd, const «jState»& qdd);
             void secondPass(«jState»& torques);
 
         private:
@@ -78,6 +85,13 @@ class InverseDynamics {
             «ENDFOR»
 
         };
+        
+        /**
+         * \param q the joint status vector that specifies the robot configuration
+         */
+        inline void «className(robot)»::setJointStatus(const «jState»& q) const {
+            «setJointStatusCode(robot.links.sortBy(link | getID(link)))»
+        }
 
         }
         }
@@ -86,8 +100,6 @@ class InverseDynamics {
         '''
 
     def inverseDynamicsImplementation(Robot robot)'''
-            «val jState = Names$Types::jointState»
-            «val sortedLinks = robot.abstractLinks.sortBy(link | getID(link))»
             #include "«Names$Files$RBD::header(robot)».h"
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
@@ -116,15 +128,6 @@ class InverseDynamics {
                 «Names$Namespaces::transforms6D»::initAll(); // initializes coordinates transforms
             }
 
-            void «nsqualifier»::«className(robot)»::id(const «jState»& q, const «jState»& qd, const «jState»& qdd, «jState»& torques) {
-                «FOR AbstractLink l : sortedLinks»
-                    «inverseDynamicsPass1(l)»
-
-                «ENDFOR»
-                secondPass(torques);
-            }
-
-
             «methodsDefinitions(robot)»
             '''
 
@@ -134,48 +137,6 @@ class InverseDynamics {
     def private dispatch subspaceIndex(RevoluteJoint j) {
         return 2;
     }
-
-    def private dispatch inverseDynamicsPass1(FixedRobotBase base)''''''
-    def private dispatch inverseDynamicsPass1(FloatingRobotBase base)'''// **** WARNING: floating base is not supported yet //TODO'''
-    def private dispatch inverseDynamicsPass1(Link l)'''
-           // First pass, link '«l.name»'
-           «val parentLink = l.parent»
-           «val myJoint = l.connectingJoint»
-           «val velocity = l.velocityName»
-           «val acceler = l.accelerationName»
-           «val transform = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
-           «transform»(q); // updates the transform with the joint status
-           «val jid = myJoint.arrayIdx»
-           «val subspaceIdx = myJoint.subspaceIndex»
-           «IF parentLink.getID() == 0»
-               «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
-               «acceler» = («transform» * gravity);
-               «acceler»(«subspaceIdx») += qdd(«jid»);
-               Utils::fillAsForceCrossProductMx(«velocity», spareMx); // this could be optimized..
-               «forceName(l)» = «inertiaMxName(l)» * «acceler» + ((spareMx * «inertiaMxName(l)»).col(«subspaceIdx») * qd(«jid»));
-           «ELSE»
-               «velocity» = («transform» * «parentLink.velocityName»);
-               «velocity»(«subspaceIdx») += qd(«jid»);
-
-               Utils::fillAsMotionCrossProductMx(«velocity», spareMx); // this could be optimized..
-
-               «acceler» = («transform» * «parentLink.accelerationName») + (spareMx.col(«subspaceIdx») * qd(«jid»));
-               «acceler»(«subspaceIdx») += qdd(«jid»);
-
-               «forceName(l)» = «inertiaMxName(l)» * «acceler» + (-spareMx.transpose() * «inertiaMxName(l)» * «velocity»);
-           «ENDIF»
-           '''
-
-    def private dispatch inverseDynamicsPass2(FixedRobotBase base)''''''
-    def private dispatch inverseDynamicsPass2(FloatingRobotBase base)'''// **** WARNING: floating base is not supported yet //TODO'''
-    def private dispatch inverseDynamicsPass2(Link l)'''
-        «val parentLink = l.parent»
-        «val joint      = l.connectingJoint»
-        torques(«joint.arrayIdx») = «l.forceName»(«joint.subspaceIndex»);
-        «IF parentLink.ID != 0»
-            «parentLink.forceName» = «parentLink.forceName» + «Names$Namespaces::transforms6D»::«Transforms::child_X_parent__mxName(parentLink, l)».transpose() * «l.forceName»;
-        «ENDIF»
-        '''
 
     def private C_terms__docs_parameters() '''
         /**
@@ -190,6 +151,25 @@ class InverseDynamics {
         «val jState = Names$Types::jointState»
         «val sortedLinks = robot.links.sortBy(link | getID(link))»
         «val updateTransformsCode = setJointStatusCode(sortedLinks)»
+
+        void «nsqualifier»::«className(robot)»::id(const «jState»& q, const «jState»& qd, const «jState»& qdd, «jState»& torques) {
+            «updateTransformsCode»
+            firstPass(q, qd, qdd);
+            secondPass(torques);
+        }
+        
+        void «nsqualifier»::«className(robot)»::id(const «jState»& q, const «jState»& qd, const «jState»& qdd,
+                                                               const ExtForces& fext, «jState»& torques)
+        {
+            «updateTransformsCode»
+            firstPass(q, qd, qdd);
+            // Add the external forces:
+            «FOR l : robot.links»
+                «forceName(l)» -= fext[«Common::linkIdentifier(l)»];
+            «ENDFOR»
+            secondPass(torques);
+        }
+        
         /**
          * \param q the joint status vector that specifies the robot configuration
          * \param torques will be filled with the (generalized) forces due to the gravity
@@ -264,11 +244,34 @@ class InverseDynamics {
             secondPass(torques);
         }
 
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         */
-        void «nsqualifier»::«className(robot)»::setJointStatus(const «jState»& q) const {
-            «updateTransformsCode»
+        void «nsqualifier»::«className(robot)»::firstPass(const «jState»& q, const «jState»& qd, const «jState»& qdd) {
+            «FOR l : sortedLinks»
+                «val parentLink = l.parent»
+                «val myJoint = l.connectingJoint»
+                «val velocity = l.velocityName»
+                «val acceler = l.accelerationName»
+                «val transform = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
+                «val jid = myJoint.arrayIdx»
+                «val subspaceIdx = myJoint.subspaceIndex»
+                // First pass, link '«l.name»'
+                «IF parentLink.getID() == 0»
+                    «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
+                    «acceler» = («transform» * gravity);
+                    «acceler»(«subspaceIdx») += qdd(«jid»);
+                    Utils::fillAsForceCrossProductMx(«velocity», spareMx);
+                    «forceName(l)» = «inertiaMxName(l)» * «acceler» + ((spareMx * «inertiaMxName(l)»).col(«subspaceIdx») * qd(«jid»));
+                «ELSE»
+                    «velocity» = («transform» * «parentLink.velocityName»);
+                    «velocity»(«subspaceIdx») += qd(«jid»);
+
+                    Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
+
+                    «acceler» = («transform» * «parentLink.accelerationName») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+                    «acceler»(«subspaceIdx») += qdd(«jid»);
+
+                    «forceName(l)» = «inertiaMxName(l)» * «acceler» + (-spareMx.transpose() * «inertiaMxName(l)» * «velocity»);
+                «ENDIF»
+            «ENDFOR»
         }
 
         void «nsqualifier»::«className(robot)»::secondPass(«jState»& torques) {
