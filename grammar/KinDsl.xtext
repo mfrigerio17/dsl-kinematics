@@ -52,6 +52,7 @@ InertiaParams:
         'mass' '=' mass=FLOAT
         'CoM'  '=' com= Vector3
         ('Ix''=' ix  = FLOAT & 'Iy''=' iy  = FLOAT & 'Iz''=' iz  = FLOAT & 'Ixy''=' ixy = FLOAT & 'Ixz''=' ixz = FLOAT & 'Iyz''=' iyz = FLOAT)
+        ('ref_frame' '=' frame=[RefFrame])?
     '}'
 ;
 
