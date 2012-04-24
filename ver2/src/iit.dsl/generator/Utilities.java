@@ -11,13 +11,22 @@ public class Utilities {
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
 
 	/**
-     * Express the inertia parameters in a frame parallel to the current one
-     * @param inertia the input parameters to be expressed in the new frame
-     * @param
-     * TODO
+     * Computes the inertia parameters of a rigid body in a different frame.
+     * The last arguments of these function specify the rotation and the translation
+     * which encode the pose of the new frame, with respect to the frame
+     * in which the inertia-parameters are currently expressed.
+     * @param inertia the input inertia parameters to be expressed in the new frame
+     * @param tx translation along the X axis
+     * @param ty translation along the Y axis
+     * @param tz translation along the Z axis
+     * @param rx rotation about the X axis
+     * @param ry rotation about the Y axis
+     * @param rz rotation about the Z axis
+     * The translation is expressed in the current frame. Rotation values are basically
+     * euler angles, consecutive rotations about x, y, and z axis, in this order, of the
+     * current frame; each rotation is about the axis rotated by the previous one.
      * @return a new instance of InertiaParams that specifies the same inertial
-     *         properties of the first parameter, but expressed in a frame translated
-     *         by 'vector'
+     *         properties of the first parameter, but expressed in a different frame
      */
     public static InertiaParams rototranslate(InertiaParams inertia,
             float tx, float ty, float tz, float rx, float ry, float rz)
