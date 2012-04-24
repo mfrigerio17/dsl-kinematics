@@ -85,17 +85,14 @@ public class Utilities {
         new_com.setZ(tmpLiteral);
 
         // Now computes the inertia tensor in the new frame
-        // First use the parallel axis theorem for the translation
-        //   (note that the formula to translate the centrifugal moment has a '+',
-        //    but since we are updating the elements of the inertia tensor, we
-        //    use the minus sign in front of 'mass * ...')
 
-        ixx = ixx + mass * (ty*ty + tz*tz);
-        iyy = iyy + mass * (tx*tx + tz*tz);
-        izz = izz + mass * (tx*tx + ty*ty);
-        ixy = ixy - mass * (tx*ty);
-        ixz = ixz - mass * (tx*tz);
-        iyz = iyz - mass * (ty*tz);
+        // First use the parallel axis theorem for the translation
+        ixx += mass * (ty*ty + tz*tz);
+        iyy += mass * (tx*tx + tz*tz);
+        izz += mass * (tx*tx + ty*ty);
+        ixy += mass * (tx * ty);
+        ixz += mass * (tx * tz);
+        iyz += mass * (ty * tz);
 
         // Then do M * I * M^T, where M is the rotation matrix...
         // Ixx
