@@ -86,7 +86,7 @@ public class Utilities {
 
         // Now computes the inertia tensor in the new frame
 
-        // First use the parallel axis theorem for the translation
+        // First use the parallel axis theorem for the translation ...
         ixx += mass * (ty*ty + tz*tz);
         iyy += mass * (tx*tx + tz*tz);
         izz += mass * (tx*tx + ty*ty);
@@ -94,42 +94,73 @@ public class Utilities {
         ixz += mass * (tx * tz);
         iyz += mass * (ty * tz);
 
-        // Then do M * I * M^T, where M is the rotation matrix...
+        //... then consider the rotation of the axes.
+        // The following is the matrix M that transform coordinates in the original frame
+        //  into coordinates of the new frame:
+        // [  cos(ry)*cos(rz)    cos(rx)*sin(rz) + sin(rx)*sin(ry)*cos(rz)     sin(rx)*sin(rz) - cos(rx)*sin(ry)*cos(rz) ]
+        // [                                                                                                             ]
+        // [ - cos(ry)*sin(rz)   cos(rx)*cos(rz) - sin(rx)*sin(ry)*sin(rz)     cos(rx)*sin(ry)*sin(rz) + sin(rx)*cos(rz) ]
+        // [                                                                                                             ]
+        // [      sin(ry)                    - sin(rx)*cos(ry)                              cos(rx)*cos(ry)              ]
+        float[][] M = {
+                { cy*cz,   cx*sz + sx*sy*cz,     sx*sz - cx*sy*cz },
+                {-cy*sz,   cx*cz - sx*sy*sz,     cx*sy*sz + sx*cz },
+                {  sy  ,     - sx*cy       ,     cx*cy }
+        };
+        // The equations to transform the inertia-moments are very similar to the
+        // equation in matrix form for the inertia tensor
+        //  I' =  M * I * M^T
+        // but some signs are different! Remember that our convention
+        // states that ixy, ixz and iyz are the centrifugal moments, and NOT the elements of
+        // the inertia tensor; they differ only for the minus sign.
+
         // Ixx
-        tmp = (sx*sz - cx*sy*cz) *
-              (izz*(sx*sz - cx*sy*cz) - iyz*(cx*sz + sx*sy*cz) - ixz*cy*cz) + (cx*sz + sx*sy*cz) *
-              (- iyz * (sx*sz - cx*sy*cz) + iyy*(cx*sz + sx*sy*cz) - ixy*cy*cz) +
-              cy*cz*(- ixz*(sx*sz - cx*sy*cz)- ixy*(cx*sz + sx*sy*cz) + ixx*cy*cz);
+        tmp =     M[0][0] * M[0][0] * ixx +
+                  M[0][1] * M[0][1] * iyy +
+                  M[0][2] * M[0][2] * izz +
+             -2 * M[0][0] * M[0][1] * ixy +
+             -2 * M[0][0] * M[0][2] * ixz +
+             -2 * M[0][1] * M[0][2] * iyz;
         translated.setIx(tmp);
         // Iyy
-        tmp = (cx*sy*sz + sx*cz) *
-              (- iyz*(cx*cz - sx*sy*sz) + izz*(cx*sy*sz + sx*cz) + ixz*cy*sz) +
-              (cx*cz - sx*sy*sz) *
-              (iyy*(cx*cz - sx*sy*sz) - iyz*(cx*sy*sz + sx*cz) + ixy*cy*sz) -
-              cy*sz*(- ixy*(cx*cz - sx*sy*sz) - ixz*(cx*sy*sz + sx*cz) - ixx*cy*sz);
+        tmp =     M[1][0] * M[1][0] * ixx +
+                  M[1][1] * M[1][1] * iyy +
+                  M[1][2] * M[1][2] * izz +
+             -2 * M[1][0] * M[1][1] * ixy +
+             -2 * M[1][0] * M[1][2] * ixz +
+             -2 * M[1][1] * M[1][2] * iyz;
         translated.setIy(tmp);
         // Izz
-        tmp = cx*cy*(- ixz*sy + iyz*sx*cy + izz*cx*cy) - sx*cy*(- ixy*sy - iyy*sx*cy - iyz*cx*cy)
-                + sy*(ixx*sy + ixy*sx*cy - ixz*cx*cy);
+        tmp =     M[2][0] * M[2][0] * ixx +
+                  M[2][1] * M[2][1] * iyy +
+                  M[2][2] * M[2][2] * izz +
+             -2 * M[2][0] * M[2][1] * ixy +
+             -2 * M[2][0] * M[2][2] * ixz +
+             -2 * M[2][1] * M[2][2] * iyz;
         translated.setIz(tmp);
         // Ixy
-        tmp = (sx*sz - cx*sy*cz) * (- iyz*(cx*cz - sx*sy*sz) + izz*(cx*sy*sz + sx*cz) + ixz*cy*sz)
-                        + (cx*sz + sx*sy*cz)*(iyy*(cx*cz - sx*sy*sz)
-                        - iyz*(cx*sy*sz + sx*cz) + ixy*cy*sz)
-                        + cy*cz*(- ixy*(cx*cz - sx*sy*sz)
-                        - ixz*(cx*sy*sz + sx*cz) - ixx*cy*sz);
+        tmp =- M[0][0] * M[1][0] * ixx +
+             - M[0][1] * M[1][1] * iyy +
+             - M[0][2] * M[1][2] * izz +
+             (M[0][0]*M[1][1] + M[0][1]*M[1][0]) * ixy +
+             (M[0][0]*M[1][2] + M[0][2]*M[1][0]) * ixz +
+             (M[0][1]*M[1][2] + M[0][2]*M[1][1]) * iyz;
         translated.setIxy(tmp);
         // Ixz
-        tmp = (- ixz*sy + iyz*sx*cy + izz*cx*cy)
-                *(sx*sz - cx*sy*cz) + (- ixy*sy - iyy*sx*cy
-                        - iyz*cx*cy)*(cx*sz + sx*sy*cz)
-                        + cy*(ixx*sy + ixy*sx*cy - ixz*cx*cy)*cz;
+        tmp =- M[0][0] * M[2][0] * ixx +
+             - M[0][1] * M[2][1] * iyy +
+             - M[0][2] * M[2][2] * izz +
+            (M[0][0]*M[2][1] + M[0][1]*M[2][0]) * ixy +
+            (M[0][0]*M[2][2] + M[0][2]*M[2][0]) * ixz +
+            (M[0][1]*M[2][2] + M[0][2]*M[2][1]) * iyz;
         translated.setIxz(tmp);
         // Iyz
-        tmp = (- ixy*sy - iyy*sx*cy - iyz*cx*cy)
-                *(cx*cz - sx*sy*sz) + (- ixz*sy + iyz*sx*cy
-                        + izz*cx*cy)*(cx*sy*sz + sx*cz)
-                        - cy*(ixx*sy + ixy*sx*cy - ixz*cx*cy)*sz;
+        tmp =- M[1][0] * M[2][0] * ixx +
+             - M[1][1] * M[2][1] * iyy +
+             - M[1][2] * M[2][2] * izz +
+             (M[1][0]*M[2][1] + M[1][1]*M[2][0]) * ixy +
+             (M[1][0]*M[2][2] + M[1][2]*M[2][0]) * ixz +
+             (M[1][1]*M[2][2] + M[1][2]*M[2][1]) * iyz;
         translated.setIyz(tmp);
 
         return translated;
