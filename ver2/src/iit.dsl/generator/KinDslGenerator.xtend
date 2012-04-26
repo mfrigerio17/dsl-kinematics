@@ -23,9 +23,29 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
-        fsa.generateFile(robot.name + ".m", featherstoneMatlabModel(robot))
+        if(robot.name.equals("HyL")) {
+            testITensorRotation(robot)
+        }
+//        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+//        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
+//        fsa.generateFile(robot.name + ".m", featherstoneMatlabModel(robot))
+    }
+
+    def testITensorRotation(Robot hyl) {
+        val hip = hyl.getLinkByName("hip")
+        val original = hip.inertiaParams;
+        val comFrame = hip.frames.get(0);
+        val transf   = Utilities::rototranslate(original,
+            comFrame.transform.translation.x.asFloat,
+            comFrame.transform.translation.y.asFloat,
+            comFrame.transform.translation.z.asFloat,
+            0,//comFrame.transform.rotation.x.asFloat,  //(-Math::PI/5) as float,//
+            0,//comFrame.transform.rotation.y.asFloat,  //(-Math::PI/6) as float,//
+            0);//comFrame.transform.rotation.z.asFloat); //(-Math::PI/3) as float)//
+        System::out.println(transf.mass)
+        System::out.println('''«transf.com.x.asFloat»  «transf.com.y.asFloat»  «transf.com.z.asFloat»''')
+        System::out.println('''«transf.ix»  «transf.iy»  «transf.iz»  «transf.ixy»  «transf.ixz»  «transf.iyz»''')
+        //System::out.println(transf.mass)
     }
 
     /**
