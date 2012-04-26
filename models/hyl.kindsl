@@ -35,6 +35,13 @@ link hip {
 	children {
 		leg via jHFE
 	}
+
+	frames {
+		com {
+			translation = (0.041867, 0.00027033, 0.16726)
+			rotation = (-PI/2.0, 0.0, -PI/2.0 )
+		}
+	}
 }
 
 link leg {
