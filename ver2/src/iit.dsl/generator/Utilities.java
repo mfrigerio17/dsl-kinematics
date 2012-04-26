@@ -68,19 +68,23 @@ public class Utilities {
         Vector3 new_com = factory.createVector3();
         translated.setCom(new_com);
         FloatLiteral tmpLiteral;
+        // translation:
+        comx -= tx;
+        comy -= ty;
+        comz -= tz;
         // X ...
+        tmp = comz*(sx*sz - cx*sy*cz) + comy*(cx*sz + sx*sy*cz) + comx*cy*cz;
         tmpLiteral = factory.createFloatLiteral();
-        tmp = comz*(sx*sz - cx*sy*cz) + comy*(cx*sz + sx*sy*cz) + comx*cy*cz  - tx;
         tmpLiteral.setValue(tmp);
         new_com.setX(tmpLiteral);
         // Y ...
+        tmp = comy*(cx*cz - sx*sy*sz) + comz*(cx*sy*sz + sx*cz) - comx*cy*sz;
         tmpLiteral = factory.createFloatLiteral();
-        tmp = comy*(cx*cz - sx*sy*sz) + comz*(cx*sy*sz + sx*cz) - comx*cy*sz  - ty;
         tmpLiteral.setValue(tmp);
         new_com.setY(tmpLiteral);
         // Z ...
         tmpLiteral = factory.createFloatLiteral();
-        tmp = comx*sy - comy*sx*cy + comz*cx*cy  - tz;
+        tmp = comx*sy - comy*sx*cy + comz*cx*cy;
         tmpLiteral.setValue(tmp);
         new_com.setZ(tmpLiteral);
 
