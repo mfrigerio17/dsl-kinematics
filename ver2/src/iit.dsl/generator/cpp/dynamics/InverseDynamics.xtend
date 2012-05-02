@@ -43,6 +43,20 @@ class InverseDynamics {
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
         typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> ExtForces;
 
+        /**
+         * The Inverse Dynamics routine for the robot «robot.name».
+         *
+         * In addition to the full Newton-Euler algorithm, specialized versions to compute
+         * only certain terms are provided.
+         * The parameters common to most of the methods are the joint status \c q, the
+         * joint velocities \c qd and the accelerations \c qdd. The \c torques parameter
+         * will be filled with the computed values.
+         * Additional overloaded methods are provided without the \c q parameter. These
+         * methods use the current configuration of the robot; they are provided for the
+         * sake of efficiency, in case the kinematics transforms of the robot have already
+         * been updated elsewhere with the most recent configuration (eg by a call to
+         * setJointStatus()), so that it is useless to compute them again.
+         */
         class «className(robot)» {
         public:
             «className(robot)»();
@@ -66,7 +80,7 @@ class InverseDynamics {
             void C_terms(const «jState»& q, const «jState»& qd, «jState»& torques);
             void C_terms(const «jState»& qd, «jState»& torques);
             ///@}
-            /** Updates the kinematics transforms used by the inverse dynamics routine. */
+            /** Updates all the kinematics transforms used by the inverse dynamics routine. */
             void setJointStatus(const «jState»& q) const;
         public:
             «rbd_ns»::SparseColumnd gravity;
@@ -86,9 +100,6 @@ class InverseDynamics {
 
         };
         
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         */
         inline void «className(robot)»::setJointStatus(const «jState»& q) const {
             «setJointStatusCode(robot.links.sortBy(link | getID(link)))»
         }
@@ -157,7 +168,10 @@ class InverseDynamics {
             firstPass(q, qd, qdd);
             secondPass(torques);
         }
-        
+        /**
+         * \param fext the external forces acting on the links. Each external force must be expressed in
+                  the frame of the link it is exerted on.
+         */
         void «nsqualifier»::«className(robot)»::id(const «jState»& q, const «jState»& qd, const «jState»& qdd,
                                                                const ExtForces& fext, «jState»& torques)
         {
@@ -170,22 +184,11 @@ class InverseDynamics {
             secondPass(torques);
         }
         
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         * \param torques will be filled with the (generalized) forces due to the gravity
-         */
         void «nsqualifier»::«className(robot)»::G_terms(const «jState»& q, «jState»& torques) {
             «updateTransformsCode»
             G_terms(torques);
         }
 
-        /**
-         * This version of the function uses the current configuration of the robot.
-         * It is provided for the sake of efficiency, in case the kinematics transforms
-         * of the robot have already been updated elsewhere with the most recent
-         * configuration, so that it is useless to compute them again here.
-         * \param torques will be filled with the (generalized) forces due to the gravity
-         */
         void «nsqualifier»::«className(robot)»::G_terms(«jState»& torques) {
             «FOR Link l : sortedLinks»
                 // Link '«l.name»'
@@ -203,12 +206,11 @@ class InverseDynamics {
             secondPass(torques);
         }
 
-        «C_terms__docs_parameters»
         void «nsqualifier»::«className(robot)»::C_terms(const «jState»& q, const «jState»& qd, «jState»& torques) {
             «updateTransformsCode»
             C_terms(qd, torques);
         }
-        «C_terms__docs_parameters»
+
         void «nsqualifier»::«className(robot)»::C_terms(const «jState»& qd, «jState»& torques) {
             «FOR Link l : sortedLinks»
                 «val parentLink = l.parent»
