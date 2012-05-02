@@ -10,7 +10,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.RefFrame
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.Joint
@@ -21,11 +20,12 @@ class KinDslGenerator implements IGenerator {
     @Inject extension Common common
     @Inject FramesTransforms frTransforms
 
+    iit.dsl.generator.matlab.Generator matlab = new iit.dsl.generator.matlab.Generator()
+
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        if(robot.name.equals("HyL")) {
-            testITensorRotation(robot)
-        }
+        fsa.generateFile(robot.name.toLowerCase() + "inertia.m", matlab.inertiaParams(robot))
 //        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
 //        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
 //        fsa.generateFile(robot.name + ".m", featherstoneMatlabModel(robot))
@@ -39,9 +39,9 @@ class KinDslGenerator implements IGenerator {
             comFrame.transform.translation.x.asFloat,
             comFrame.transform.translation.y.asFloat,
             comFrame.transform.translation.z.asFloat,
-            0,//comFrame.transform.rotation.x.asFloat,  //(-Math::PI/5) as float,//
-            0,//comFrame.transform.rotation.y.asFloat,  //(-Math::PI/6) as float,//
-            0);//comFrame.transform.rotation.z.asFloat); //(-Math::PI/3) as float)//
+            comFrame.transform.rotation.x.asFloat,  //(-Math::PI/5) as float,//
+            comFrame.transform.rotation.y.asFloat,  //(-Math::PI/6) as float,//
+            comFrame.transform.rotation.z.asFloat); //(-Math::PI/3) as float)//
         System::out.println(transf.mass)
         System::out.println('''«transf.com.x.asFloat»  «transf.com.y.asFloat»  «transf.com.z.asFloat»''')
         System::out.println('''«transf.ix»  «transf.iy»  «transf.iz»  «transf.ixy»  «transf.ixz»  «transf.iyz»''')
