@@ -13,9 +13,11 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        generateRobotFiles(robot, fsa);
+        generateRobotUserFiles(robot, fsa);
+    }
 
-        // ROBOT FILES
-///*
+     def generateRobotFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
             Utilities::makefileFolder +"/imakefile.unix",
             roboFiles.makefileUnix(robot))
@@ -34,8 +36,9 @@ class Generator implements IGenerator {
             roboFiles.SL_user_dot_h(robot))
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/Makefile", roboFiles.Makefile(robot))
-//*/
+    }
 
+    def generateRobotUserFiles(Robot robot, IFileSystemAccess fsa) {
 ///*
         // ROBOT USER FILES
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
@@ -53,4 +56,5 @@ class Generator implements IGenerator {
         fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
 //*/
     }
+
 }
