@@ -1,14 +1,12 @@
 package iit.dsl.generator.sl
 
 import iit.dsl.kinDsl.Robot
-
-import com.google.inject.Inject
 import iit.dsl.kinDsl.Joint
 import iit.dsl.generator.cpp.Names
 
 class RobotUserFiles {
-    @Inject extension iit.dsl.generator.Common common
-    @Inject extension iit.dsl.generator.sl.Common slCommon
+    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
 
 
 	/**
@@ -93,7 +91,6 @@ class RobotUserFiles {
 
 
     def main_benchmarkID(Robot robot) '''
-        «val robotNS = Names$Namespaces::rob(robot)»
         #include <iostream>
         #include <fstream>
         #include <ctime>

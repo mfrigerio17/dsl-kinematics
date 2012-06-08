@@ -4,14 +4,12 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
-
-import com.google.inject.Inject
 import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.Link
 
 class RobotFiles {
-    @Inject extension iit.dsl.generator.Common common
-    @Inject extension iit.dsl.generator.sl.Common slCommon
+    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
 
     def dynModel(Robot robot) '''
         { (* Base Coordinate System *)
