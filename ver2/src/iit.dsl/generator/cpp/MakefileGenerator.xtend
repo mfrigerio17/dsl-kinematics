@@ -22,7 +22,7 @@ class MakefileGenerator {
         SRCS = $(wildcard «dir_src»*.cpp)
         OBJS = $(patsubst %.cpp,$(DIR_OBJS)/%.o,$(SRCS))
 
-        EXE_OBJS = $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::main_benchmarkID(robot)».o)
+        EXE_OBJS = $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::main_benchmarkID(robot)».o «Names$Files$RBD::main_sine_task_ID(robot)».o)
         LIB_OBJS = $(filter-out $(EXE_OBJS), $(OBJS))
 
         EXES = $(patsubst $(DIR_OBJS)/%.o,$(DIR_BIN)/%,$(EXE_OBJS))
@@ -53,6 +53,10 @@ class MakefileGenerator {
         «TAB»$(BUILD)
 
         $(DIR_BIN)/test : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::source(robot)».o «Names$Files::transformsSource(robot)».o)
+        «TAB»@echo "   * Building binary $@"
+        «TAB»$(BUILD)
+
+        $(DIR_BIN)/sine_task_ID : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_sine_task_ID(robot)».o «Names$Files$RBD::source(robot)».o «Names$Files::transformsSource(robot)».o)
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 
