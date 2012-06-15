@@ -69,7 +69,7 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_sine_task_ID(robot) + ".cpp", invdyn.main_sine_task(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))    
+        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))    
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
