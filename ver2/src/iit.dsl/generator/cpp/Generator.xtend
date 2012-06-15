@@ -30,9 +30,10 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateCommons(robot, fsa);
+        //generateCommons(robot, fsa);
         //generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
+        generateDynamicsTests(robot, fsa);
         //generateJacobiansFiles(robot, fsa)
         //generateInertiaMatrixStuff(robot, fsa);
         generateLinkInertias(robot, fsa);
@@ -62,8 +63,13 @@ class Generator implements IGenerator {
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot)   + ".h"  , invdyn.mainHeader(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot)   + ".cpp", invdyn.inverseDynamicsImplementation(robot))
+    }
+    def generateDynamicsTests(Robot robot, IFileSystemAccess fsa) {
+        val String folder = Names$Files::folder(robot);
+        fsa.generateFile(folder + "/" + Names$Files$RBD::main_sine_task_ID(robot) + ".cpp", invdyn.main_sine_task(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))    
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
@@ -71,7 +77,6 @@ class Generator implements IGenerator {
 
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
-        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))
     }
 
     def generateLinkInertias(Robot robot, IFileSystemAccess fsa) {
@@ -115,9 +120,4 @@ class Generator implements IGenerator {
     }
 
 }
-
-        // To generate C++ files with Jacobians, I first need to make sure that
-        //  we have the corresponding Maxima sources
-        //KinDslStandaloneSetup_Maxima::doSetup();
-        //maximaGenerator.generateJacobiansSources(robot, fsa)
 
