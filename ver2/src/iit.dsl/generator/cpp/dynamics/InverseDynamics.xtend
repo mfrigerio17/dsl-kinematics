@@ -1,10 +1,7 @@
 package iit.dsl.generator.cpp.dynamics
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.FloatingRobotBase
 import iit.dsl.kinDsl.Joint
-import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.FixedRobotBase
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Link
@@ -148,14 +145,6 @@ class InverseDynamics {
     def private dispatch subspaceIndex(RevoluteJoint j) {
         return 2;
     }
-
-    def private C_terms__docs_parameters() '''
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         * \param qd the joint velocities vector
-         * \param torques will be filled with the (generalized) forces acting on the joints
-         */
-        '''
 
     def methodsDefinitions(Robot robot) '''
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
