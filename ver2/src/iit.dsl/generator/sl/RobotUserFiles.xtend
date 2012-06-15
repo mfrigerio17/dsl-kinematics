@@ -262,7 +262,7 @@ class RobotUserFiles {
 
         #include "SL.h"
         #include "SL_user.h"
-        #include "SL_kinematics_body.h" //"SL_kinematics.h" does not work
+        #include "SL_kinematics.h"
         #include "SL_dynamics.h"
 
         using namespace std;
