@@ -34,8 +34,9 @@ class InverseDynamics {
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files::linkDataMapHeader(robot)».h"
 
-        namespace iit {
+        namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
+        namespace «Names$Namespaces::dynamics» {
 
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
         typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> «Names$Types::extForces»;
@@ -103,6 +104,7 @@ class InverseDynamics {
 
         }
         }
+        }
 
         #endif
         '''
@@ -112,7 +114,7 @@ class InverseDynamics {
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
             #endif
-            «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
+            «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
             using namespace std;
             using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
             using namespace «nsqualifier»;
@@ -147,7 +149,7 @@ class InverseDynamics {
     }
 
     def methodsDefinitions(Robot robot) '''
-        «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
+        «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
         «val jState = Names$Types::jointState»
         «val sortedLinks = robot.links.sortBy(link | getID(link))»
         «val updateTransformsCode = setJointStatusCode(sortedLinks)»
@@ -322,7 +324,7 @@ class InverseDynamics {
             my_total = 0;
 
             «robotNS»::«Names$Types::jointState» q, qd, qdd, tau;
-            «robotNS»::«className(robot)» myDynamics;
+            «robotNS»::«Names$Namespaces::dynamics»::«className(robot)» myDynamics;
 
             int t=0,i=0;
 
@@ -405,6 +407,7 @@ class InverseDynamics {
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::dynamics»;
         using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
 
         int main(int argc, char** argv) {
@@ -430,6 +433,7 @@ class InverseDynamics {
 
     def main_sine_task(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»
+        «val robotdynNS = robotNS + "::" + Names$Namespaces::dynamics»
         #include <iostream>
         #include <fstream>
         #include <ctime>
@@ -473,11 +477,11 @@ class InverseDynamics {
             «robotNS»::«Names$Types::jointState»* qdd = new «robotNS»::«Names$Types::jointState»[last];
             «robotNS»::«Names$Types::jointState»* tau = new «robotNS»::«Names$Types::jointState»[last];
 
-            «robotNS»::«className(robot)» myDynamics;
+            «robotdynNS»::«className(robot)» myDynamics;
 
             «Names$Namespaces$Qualifiers::iit_rbd»::ForceVector forceVec;
             forceVec.setZero();
-            «robotNS»::«Names$Types::extForces» extForces(forceVec);
+            «robotdynNS»::«Names$Types::extForces» extForces(forceVec);
 
             std::srand(std::time(NULL)); // initialize random number generator
 
