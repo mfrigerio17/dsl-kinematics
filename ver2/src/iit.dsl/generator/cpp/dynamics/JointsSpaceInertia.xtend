@@ -22,7 +22,7 @@ class JointsSpaceInertia {
         #include <iit/rbd/JStateDependentMatrix.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$RBD::header(robot)».h"
+        #include "«Names$Files$LinkInertias::header(robot)».h"
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
@@ -119,9 +119,9 @@ class JointsSpaceInertia {
 
             this->setZero();
             // Initialize the 6D inertia tensor of each body of the robot
+            «LinkInertias::className(robot)» linkInertias;
             «FOR l : robot.links»
-                «inertiaName(l)».fill(«l.inertiaParams.mass», «Names$Namespaces::rbd»::Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
-                        «Names$Namespaces::rbd»::Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
+                «inertiaName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
             «ENDFOR»
         }
 
