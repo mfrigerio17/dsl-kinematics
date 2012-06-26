@@ -111,6 +111,7 @@ class InverseDynamics {
 
     def inverseDynamicsImplementation(Robot robot)'''
             #include "«Names$Files$RBD::header(robot)».h"
+            #include "«Names$Files$LinkInertias::header(robot)».h"
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
             #endif
@@ -130,9 +131,10 @@ class InverseDynamics {
                 «FOR l : robot.links»
                     «velocityName(l)».setZero();
                 «ENDFOR»
+
+                «LinkInertias::className(robot)» linkInertias;
                 «FOR l : robot.links»
-                    «inertiaMxName(l)».fill(«l.inertiaParams.mass», Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
-                        Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
+                    «inertiaMxName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
                 «ENDFOR»
 
                 «Names$Namespaces::transforms6D»::initAll(); // initializes coordinates transforms
