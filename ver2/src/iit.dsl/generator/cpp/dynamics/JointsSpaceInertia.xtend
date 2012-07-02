@@ -218,6 +218,33 @@ class JointsSpaceInertia {
         return strBuff;
     }
 
+    def main_test(Robot robot) '''
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+
+        using namespace std;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::dynamics»;
+        using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
+
+        int main(int argc, char** argv) {
+            if(argc < «robot.joints.size + 1») {
+                cerr << "Please specify a float value for each joint of the robot" << endl;
+                return -1;
+            }
+            «Names$Types::jointState» q;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
+            «ENDFOR»
+
+            «Names$GlobalVars::jsInertia»(q);
+            cout << "Joint Space Inertia Matrix M" << endl << «Names$GlobalVars::jsInertia» << endl << endl;
+            cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl
+                 << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
+            cout << "Inverse of M" << endl << «Names$GlobalVars::jsInertia».getInv() << endl << endl;
+            return 0;
+        }'''
+
     def inertiaMatrixTestMain(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»
         #include <iostream>

@@ -30,13 +30,13 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //generateCommons(robot, fsa);
-        //generateTransforms(robot, fsa);
+//        generateCommons(robot, fsa);
+//        generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
+        generateInertiaMatrixStuff(robot, fsa);
         generateDynamicsTests(robot, fsa);
-        //generateJacobiansFiles(robot, fsa)
-        //generateInertiaMatrixStuff(robot, fsa);
-        generateLinkInertias(robot, fsa);
+//        generateJacobiansFiles(robot, fsa)
+//        generateLinkInertias(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
@@ -69,7 +69,7 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_sine_task_ID(robot) + ".cpp", invdyn.main_sine_task(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
-        //fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixTestMain(robot) + ".cpp", jsI.inertiaMatrixTestMain(robot))    
+        fsa.generateFile(folder + "/" + Names$Files$RBD::main_JSIM_test(robot) + ".cpp", jsI.main_test(robot))    
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
