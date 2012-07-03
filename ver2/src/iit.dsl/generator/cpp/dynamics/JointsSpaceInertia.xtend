@@ -170,13 +170,13 @@ class JointsSpaceInertia {
         }
 
         const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getLinv() {
-            //assumes L has been compute already
+            //assumes L has been computed already
             «Linverse(robot)»
             return Linv;
         }
 
         const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getInv() {
-            //assumes Linv has been compute already
+            //assumes Linv has been computed already
             «Minverse(robot)»
             return inverse;
         }
@@ -213,6 +213,33 @@ class JointsSpaceInertia {
         }
         return strBuff;
     }
+
+    def main_test(Robot robot) '''
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+
+        using namespace std;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
+
+        int main(int argc, char** argv) {
+            if(argc < «robot.joints.size + 1») {
+                cerr << "Please specify a float value for each joint of the robot" << endl;
+                return -1;
+            }
+            «Names$Types::jointState» q;
+            «FOR Joint j : robot.joints»
+                q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
+            «ENDFOR»
+
+            «Names$GlobalVars::jsInertia»(q);
+            cout << "Joint Space Inertia Matrix M" << endl << «Names$GlobalVars::jsInertia» << endl << endl;
+            cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl;
+            cout << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
+
+            cout << "Inverse of M" << endl << «Names$GlobalVars::jsInertia».getInv() << endl << endl;
+            return 0;
+        }'''
 
     def inertiaMatrixTestMain(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»

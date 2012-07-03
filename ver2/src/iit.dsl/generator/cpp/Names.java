@@ -47,6 +47,9 @@ public class Names {
             static public String main_sine_task_ID(Robot r) {
                 return "main_sine_task_ID";
             }
+            static public String main_JSIM_test(Robot r) {
+                return "test_JSIM";
+            }
         }
 
         static public class LinkInertias {
