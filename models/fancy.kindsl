@@ -1,5 +1,14 @@
 Robot Fancy {
 
+/*
+Kinematic chain without branches.
+All the links are hollow cylinders infinitely thin (internal
+and external radii are the same) with radius equal to 0.05 meters,
+unit length, unit mass.
+They are connected by five joints: revolute, prismatic, revolute,
+prismatic, revolute.
+*/
+
 RobotBase FancyBase {
 	inertia_params {
 		mass = 1.0
