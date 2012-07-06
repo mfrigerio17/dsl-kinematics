@@ -4,7 +4,6 @@ import iit.dsl.kinDsl.Robot
 
 class MakefileGenerator {
     static String basePath_eigen  = System::getenv("EIGEN_ROOT")
-    static String basePath_iitRBD = System::getenv("IITRBD_ROOT")
 
     def makefileBody(Robot robot) '''
         «val String TAB = "\t"»
@@ -16,7 +15,7 @@ class MakefileGenerator {
         DIR_DEPS = $(DIR_OBJS)
         OUT_DIRS = $(DIR_BIN) $(DIR_OBJS) $(DIR_DEPS)
 
-        CPPFLAGS = -I«basePath_eigen» -I«basePath_iitRBD»
+        CPPFLAGS = -I«basePath_eigen» -I$(IIT_RBD_ROOT)
         CXXFLAGS = -g -Wall -O3 -march=native -mtune=native -D EIGEN_NO_DEBUG
 
         SRCS = $(wildcard «dir_src»*.cpp)

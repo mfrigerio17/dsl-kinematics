@@ -239,8 +239,8 @@ class JointsSpaceInertia {
 
             «Names$GlobalVars::jsInertia»(q);
             cout << "Joint Space Inertia Matrix M" << endl << «Names$GlobalVars::jsInertia» << endl << endl;
-            cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl
-                 << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
+            cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl;
+            cout << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
             cout << "Inverse of M" << endl << «Names$GlobalVars::jsInertia».getInv() << endl << endl;
             return 0;
         }'''
