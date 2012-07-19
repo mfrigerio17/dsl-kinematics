@@ -48,15 +48,15 @@ class MakefileGenerator {
         «val jsim_objs = '''«Names$Files$RBD::inertiaMatrixHeader(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
         executables : $(EXES)
         $(EXES) : | $(DIR_BIN)
-        $(DIR_BIN)/benchmarkID : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_benchmarkID(robot)».o «Names$Files$RBD::source(robot)».o «Names$Files::transformsSource(robot)».o)
+        $(DIR_BIN)/«Names$Files$RBD::main_benchmarkID(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_benchmarkID(robot)».o «invdyn_objs»)
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 
-        $(DIR_BIN)/test : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::source(robot)».o «Names$Files::transformsSource(robot)».o)
+        $(DIR_BIN)/«Names$Files$RBD::testMain(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «invdyn_objs»)
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 
-        $(DIR_BIN)/sine_task_ID : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_sine_task_ID(robot)».o «Names$Files$RBD::source(robot)».o «Names$Files::transformsSource(robot)».o)
+        $(DIR_BIN)/«Names$Files$RBD::main_sine_task_ID(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_sine_task_ID(robot)».o «invdyn_objs»)
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 

@@ -22,10 +22,11 @@ class JointsSpaceInertia {
         #include <iit/rbd/JStateDependentMatrix.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$RBD::header(robot)».h"
+        #include "«Names$Files$LinkInertias::header(robot)».h"
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
+        namespace «Names$Namespaces::dynamics» {
 
         //typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> «Names$Types::jspaceMLocal»;
 
@@ -86,6 +87,7 @@ class JointsSpaceInertia {
 
         }
         }
+        }
         #endif
         '''
 
@@ -96,34 +98,36 @@ class JointsSpaceInertia {
         //using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
 
-        «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
+        «val robo_ns_qualifier = Names$Namespaces$Qualifiers::robot(robot)»
+        «val robodyn_ns_qualifier = robo_ns_qualifier + "::" + Names$Namespaces::dynamics»
         «val classname = Names$Types::jspaceMLocal»
+        «val class_qualifier = robodyn_ns_qualifier + "::" + classname»
 
         // The joint space inertia matrix of this robot
-        «nsqualifier»::«Names$Types::jspaceMLocal» «nsqualifier»::«Names$GlobalVars::jsInertia»;
+        «robodyn_ns_qualifier»::«Names$Types::jspaceMLocal» «robodyn_ns_qualifier»::«Names$GlobalVars::jsInertia»;
 
         «val endLinks = chainEndLinks(robot)»
         //Implementation of default constructor
-        «nsqualifier»::«classname»::«classname»()
+        «class_qualifier»::«classname»()
         «IF endLinks.size() > 0»: «inertiaCompositeName(endLinks.get(0))»(«inertiaName(endLinks.get(0))»)
         «FOR l : endLinks.drop(1)», «inertiaCompositeName(l)»(«inertiaName(l)»)«ENDFOR»
         «ENDIF»
         {
             //Make sure all the transforms for this robot are initialized
-            «nsqualifier»::«Names$Namespaces::transforms6D»::initAll();
-            «nsqualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
+            «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
+            «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
 
             this->setZero();
             // Initialize the 6D inertia tensor of each body of the robot
+            «LinkInertias::className(robot)» linkInertias;
             «FOR l : robot.links»
-                «inertiaName(l)».fill(«l.inertiaParams.mass», «Names$Namespaces::rbd»::Vector3d(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»),
-                        «Names$Namespaces::rbd»::Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
+                «inertiaName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
             «ENDFOR»
         }
 
         #define DATA operator()
 
-        const «nsqualifier»::«classname»& «nsqualifier»::«classname»::operator()(const «Names$Types::jointState»& state) {
+        const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
             «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
             static «Names$Namespaces::rbd»::ForceVector F;
 
@@ -164,19 +168,19 @@ class JointsSpaceInertia {
 
         #undef DATA
 
-        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getL() {
+        const «class_qualifier»::MatrixType& «class_qualifier»::getL() {
             «LTLfactorization(robot)»
             return L;
         }
 
-        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getLinv() {
-            //assumes L has been computed already
+        const «class_qualifier»::MatrixType& «class_qualifier»::getLinv() {
+            //assumes L has been compute already
             «Linverse(robot)»
             return Linv;
         }
 
-        const «nsqualifier»::«classname»::MatrixType& «nsqualifier»::«classname»::getInv() {
-            //assumes Linv has been computed already
+        const «class_qualifier»::MatrixType& «class_qualifier»::getInv() {
+            //assumes Linv has been compute already
             «Minverse(robot)»
             return inverse;
         }
@@ -220,6 +224,7 @@ class JointsSpaceInertia {
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::dynamics»;
         using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
 
         int main(int argc, char** argv) {
@@ -236,7 +241,6 @@ class JointsSpaceInertia {
             cout << "Joint Space Inertia Matrix M" << endl << «Names$GlobalVars::jsInertia» << endl << endl;
             cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl;
             cout << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
-
             cout << "Inverse of M" << endl << «Names$GlobalVars::jsInertia».getInv() << endl << endl;
             return 0;
         }'''
@@ -515,7 +519,7 @@ class JointsSpaceInertia {
                 val j = jo_j.arrayIdx
                 strBuff.append('''inverse(«i», «j») = ''')
 
-                // Get the chain containing all the joints from the base to hoint 'jo_j' itself
+                // Get the chain containing all the joints from the base to joint 'jo_j' itself
                 val chain2 = getChainJoints(buildChain(robot.base, jo_j.successorLink))
                 for(jo_k : chain2) {
                     val k = jo_k.arrayIdx
