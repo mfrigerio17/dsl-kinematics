@@ -62,43 +62,6 @@ public class Utilities {
         float cy = (float)Math.cos(ry);
         float cz = (float)Math.cos(rz);
 
-        float tmp = 0;
-        // Compute the COM position in the new frame, applying the rotation
-        //  matrix defined by rx,ry,rz ...
-        Vector3 new_com = factory.createVector3();
-        translated.setCom(new_com);
-        FloatLiteral tmpLiteral;
-        // translation:
-        comx -= tx;
-        comy -= ty;
-        comz -= tz;
-        // X ...
-        tmp = comz*(sx*sz - cx*sy*cz) + comy*(cx*sz + sx*sy*cz) + comx*cy*cz;
-        tmpLiteral = factory.createFloatLiteral();
-        tmpLiteral.setValue(tmp);
-        new_com.setX(tmpLiteral);
-        // Y ...
-        tmp = comy*(cx*cz - sx*sy*sz) + comz*(cx*sy*sz + sx*cz) - comx*cy*sz;
-        tmpLiteral = factory.createFloatLiteral();
-        tmpLiteral.setValue(tmp);
-        new_com.setY(tmpLiteral);
-        // Z ...
-        tmpLiteral = factory.createFloatLiteral();
-        tmp = comx*sy - comy*sx*cy + comz*cx*cy;
-        tmpLiteral.setValue(tmp);
-        new_com.setZ(tmpLiteral);
-
-        // Now computes the inertia tensor in the new frame
-
-        // First use the parallel axis theorem for the translation ...
-        ixx += mass * (ty*ty + tz*tz);
-        iyy += mass * (tx*tx + tz*tz);
-        izz += mass * (tx*tx + ty*ty);
-        ixy += mass * (tx * ty);
-        ixz += mass * (tx * tz);
-        iyz += mass * (ty * tz);
-
-        //... then consider the rotation of the axes.
         // The following is the matrix M that transform coordinates in the original frame
         //  into coordinates of the new frame:
         // [  cos(ry)*cos(rz)    cos(rx)*sin(rz) + sin(rx)*sin(ry)*cos(rz)     sin(rx)*sin(rz) - cos(rx)*sin(ry)*cos(rz) ]
@@ -111,6 +74,44 @@ public class Utilities {
                 {-cy*sz,   cx*cz - sx*sy*sz,     cx*sy*sz + sx*cz },
                 {  sy  ,     - sx*cy       ,     cx*cy }
         };
+
+        float tmp = 0;
+        // Compute the COM position in the new frame, applying the translation
+        //  and the rotation matrix defined by rx,ry,rz ...
+        Vector3 new_com = factory.createVector3();
+        translated.setCom(new_com);
+        FloatLiteral tmpLiteral;
+        // translation:
+        comx -= tx;
+        comy -= ty;
+        comz -= tz;
+        // rotation:
+        // X ...
+        tmp = M[0][0]*comx + M[0][1]*comy + M[0][2]*comz;
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        new_com.setX(tmpLiteral);
+        // Y ...
+        tmp = M[1][0]*comx + M[1][1]*comy + M[1][2]*comz;
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        new_com.setY(tmpLiteral);
+        // Z ...
+        tmpLiteral = factory.createFloatLiteral();
+        tmp = M[2][0]*comx + M[2][1]*comy + M[2][2]*comz;
+        tmpLiteral.setValue(tmp);
+        new_com.setZ(tmpLiteral);
+
+        // Now computes the inertia tensor in the new frame
+        // First use the parallel axis theorem for the translation ...
+        ixx += mass * (ty*ty + tz*tz);
+        iyy += mass * (tx*tx + tz*tz);
+        izz += mass * (tx*tx + ty*ty);
+        ixy += mass * (tx * ty);
+        ixz += mass * (tx * tz);
+        iyz += mass * (ty * tz);
+
+        //... then consider the rotation of the axes.
         // The equations to transform the inertia-moments are very similar to the
         // equation in matrix form for the inertia tensor
         //  I' =  M * I * M^T
