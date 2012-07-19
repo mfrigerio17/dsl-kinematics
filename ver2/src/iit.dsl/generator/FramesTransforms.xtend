@@ -16,8 +16,8 @@ import java.io.File
 
 
 /**
- * Static utilities for the generation of text related to the reference frames
- * of the robot.
+ * Static utilities for the generation of an instance document of the
+ * Coordinate-Transforms-DSL.
  * The functions generate simple strings that represent various coordinate
  * transformations.
  */
@@ -58,7 +58,7 @@ class FramesTransforms {
         val rx = common.invert(joint.refFrame.rotation.x)
         val ry = common.invert(joint.refFrame.rotation.y)
         val rz = common.invert(joint.refFrame.rotation.z)
-        '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RzString(rz)» «RyString(ry)» «RxString(rx)»'''
+        '''«RzString(rz)» «RyString(ry)» «RxString(rx)» «TxString(tx)» «TyString(ty)» «TzString(tz)»'''
     }
 
     def static TxString(Var tx) '''«IF !common.isZero(tx)»Tx(«common.str(tx)»)«ENDIF»'''
@@ -69,14 +69,14 @@ class FramesTransforms {
     def static RzString(Var rz) '''«IF !common.isZero(rz)»Rz(«common.str(rz)»)«ENDIF»'''
 
     /**
-     * Return the transform between a parent and a child link, both directions
+     * Returns the transformation between a parent and a child link, both directions
      */
     def static predecessor_X_successor(Joint j) '''
         «predecessor_X_joint(j)» «joint_X_successor(j)»'''
     def static successor_X_predecessor(Joint j) '''
         «successor_X_joint(j)» «joint_X_predecessor(j)»'''
     /**
-     * Returns the "code" of the transformation 'dest_X_source' for two arbitrary links
+     * Returns the transformation 'dest_X_source' for two arbitrary links
      */
     def static dest_X_source(AbstractLink dest, AbstractLink source) '''
         «val AbstractLink ancestor = common.commonAncestor(source,dest)»

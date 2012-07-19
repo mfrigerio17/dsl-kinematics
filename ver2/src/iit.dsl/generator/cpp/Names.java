@@ -44,6 +44,12 @@ public class Names {
             static public String main_benchmarkID(Robot r) {
                 return "benchmarkID";
             }
+            static public String main_sine_task_ID(Robot r) {
+                return "main_sine_task_ID";
+            }
+            static public String main_JSIM_test(Robot r) {
+                return "test_JSIM";
+            }
         }
 
         static public class LinkInertias {
@@ -91,6 +97,7 @@ public class Names {
         public static final String jacobianLocal = "JacobianT";
         public static final String jspaceMLocal = "JSpaceInertiaMatrix";
         public static final String vector3d = Namespaces.Qualifiers.iit_rbd + "::Vector3d";
+        public static final String extForces = "ExtForces";
     }
 
     static public class GlobalVars {

@@ -4,20 +4,20 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
-import com.google.inject.Inject
-
 import iit.dsl.kinDsl.Robot
 
 class Generator implements IGenerator {
     extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
-    @Inject RobotFiles roboFiles
-    @Inject RobotUserFiles roboUserFiles
+    RobotFiles roboFiles = new RobotFiles()
+    RobotUserFiles roboUserFiles = new RobotUserFiles()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        generateRobotFiles(robot, fsa);
+        generateRobotUserFiles(robot, fsa);
+    }
 
-        // ROBOT FILES
-/*
+     def generateRobotFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(slCommon.robotFolderName(robot)+"/"+
             Utilities::makefileFolder +"/imakefile.unix",
             roboFiles.makefileUnix(robot))
@@ -36,23 +36,25 @@ class Generator implements IGenerator {
             roboFiles.SL_user_dot_h(robot))
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/Makefile", roboFiles.Makefile(robot))
-//*/
+    }
 
+    def generateRobotUserFiles(Robot robot, IFileSystemAccess fsa) {
 ///*
         // ROBOT USER FILES
-//        fsa.generateFile(slCommon.robotUserFolderName(robot) +
-//            "/config/LinkParameters.cf",
-//            roboUserFiles.linkParameters(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/LinkParameters.cf",
+            roboUserFiles.linkParameters(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/" + Utilities::makefileFolder +"/imakefile.unix",
             roboUserFiles.imakefileUnix(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/src/" + benchmarkIDFileName(robot) + ".cpp",
             roboUserFiles.main_benchmarkID(robot))
-//        fsa.generateFile(slCommon.robotUserFolderName(robot) +
-//            "/src/" + main_inertiaM_filename(robot) + ".cpp",
-//            roboUserFiles.main_inertiaM(robot))
-        //fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/src/" + main_inertiaM_filename(robot) + ".cpp",
+            roboUserFiles.main_inertiaM(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
 //*/
     }
+
 }

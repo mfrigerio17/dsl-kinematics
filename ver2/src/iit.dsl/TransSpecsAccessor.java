@@ -34,19 +34,14 @@ public class TransSpecsAccessor {
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(Robot robot) {
         String modelFilePath = "models/"+robot.getName() + ".dtdsl";
-        if(new java.io.File(modelFilePath).isFile()) {
-            return getModel(URI.createURI(modelFilePath));
-        } else {
-            System.err.println("Could not find file " + modelFilePath + ", skipping...");
-        }
-        return null;
+        return getDesiredTransforms(new java.io.File(modelFilePath));
     }
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(File modelFile) {
         if(modelFile.isFile()) {
             return getModel(URI.createURI(modelFile.getAbsolutePath()));
         } else {
-            System.err.println("Could not find file " + modelFile.getPath() + ", skipping...");
+            System.out.println("Did not find the file " + modelFile.getPath());
         }
         return null;
     }

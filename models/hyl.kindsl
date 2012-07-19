@@ -26,10 +26,10 @@ link slider {
 link hip {
 	id = 2
 	inertia_params {
-		mass = 2.9594
-		CoM = (0.041867, 0.00027033, 0.16726)
-		Ix = 0.1349	Iy = 0.1442	Iz = 0.0109
-		Ixy= 0.0001	Ixz= 0.0227	Iyz= 0.0001
+        mass = 2.7754
+        CoM = (0.03951, 0.00023, 0.16045)
+        Ix  = 0.122710    Iy  = 0.130957  Iz  = 0.009731
+        Ixy = 0.000022    Ixz  = 0.018692 Iyz  = 0.000007
 	}
 
 	children {
@@ -63,6 +63,7 @@ link leg {
 link lowerleg {
 	id = 4
 	inertia_params {
+	    // Parameters taken from HyQ Leg v2.4, inertia params v2.2 (params in the HyQ Leg v2.3 are wrong)
         mass = 0.80669
         CoM = (0.12185, 0.00058, -0.00012)
 		Ix = 0.00042

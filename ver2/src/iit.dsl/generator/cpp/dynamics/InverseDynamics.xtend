@@ -1,10 +1,7 @@
 package iit.dsl.generator.cpp.dynamics
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.FloatingRobotBase
 import iit.dsl.kinDsl.Joint
-import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.FixedRobotBase
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Link
@@ -41,8 +38,22 @@ class InverseDynamics {
         namespace «Names$Namespaces::rob(robot)» {
 
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
-        typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> ExtForces;
+        typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> «Names$Types::extForces»;
 
+        /**
+         * The Inverse Dynamics routine for the robot «robot.name».
+         *
+         * In addition to the full Newton-Euler algorithm, specialized versions to compute
+         * only certain terms are provided.
+         * The parameters common to most of the methods are the joint status \c q, the
+         * joint velocities \c qd and the accelerations \c qdd. The \c torques parameter
+         * will be filled with the computed values.
+         * Additional overloaded methods are provided without the \c q parameter. These
+         * methods use the current configuration of the robot; they are provided for the
+         * sake of efficiency, in case the kinematics transforms of the robot have already
+         * been updated elsewhere with the most recent configuration (eg by a call to
+         * setJointStatus()), so that it is useless to compute them again.
+         */
         class «className(robot)» {
         public:
             «className(robot)»();
@@ -66,7 +77,7 @@ class InverseDynamics {
             void C_terms(const «jState»& q, const «jState»& qd, «jState»& torques);
             void C_terms(const «jState»& qd, «jState»& torques);
             ///@}
-            /** Updates the kinematics transforms used by the inverse dynamics routine. */
+            /** Updates all the kinematics transforms used by the inverse dynamics routine. */
             void setJointStatus(const «jState»& q) const;
         public:
             «rbd_ns»::SparseColumnd gravity;
@@ -85,10 +96,7 @@ class InverseDynamics {
             «ENDFOR»
 
         };
-        
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         */
+
         inline void «className(robot)»::setJointStatus(const «jState»& q) const {
             «setJointStatusCode(robot.links.sortBy(link | getID(link)))»
         }
@@ -138,14 +146,6 @@ class InverseDynamics {
         return 2;
     }
 
-    def private C_terms__docs_parameters() '''
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         * \param qd the joint velocities vector
-         * \param torques will be filled with the (generalized) forces acting on the joints
-         */
-        '''
-
     def methodsDefinitions(Robot robot) '''
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot)»
         «val jState = Names$Types::jointState»
@@ -157,7 +157,10 @@ class InverseDynamics {
             firstPass(q, qd, qdd);
             secondPass(torques);
         }
-        
+        /**
+         * \param fext the external forces acting on the links. Each external force must be expressed in
+                  the frame of the link it is exerted on.
+         */
         void «nsqualifier»::«className(robot)»::id(const «jState»& q, const «jState»& qd, const «jState»& qdd,
                                                                const ExtForces& fext, «jState»& torques)
         {
@@ -169,23 +172,12 @@ class InverseDynamics {
             «ENDFOR»
             secondPass(torques);
         }
-        
-        /**
-         * \param q the joint status vector that specifies the robot configuration
-         * \param torques will be filled with the (generalized) forces due to the gravity
-         */
+
         void «nsqualifier»::«className(robot)»::G_terms(const «jState»& q, «jState»& torques) {
             «updateTransformsCode»
             G_terms(torques);
         }
 
-        /**
-         * This version of the function uses the current configuration of the robot.
-         * It is provided for the sake of efficiency, in case the kinematics transforms
-         * of the robot have already been updated elsewhere with the most recent
-         * configuration, so that it is useless to compute them again here.
-         * \param torques will be filled with the (generalized) forces due to the gravity
-         */
         void «nsqualifier»::«className(robot)»::G_terms(«jState»& torques) {
             «FOR Link l : sortedLinks»
                 // Link '«l.name»'
@@ -203,12 +195,11 @@ class InverseDynamics {
             secondPass(torques);
         }
 
-        «C_terms__docs_parameters»
         void «nsqualifier»::«className(robot)»::C_terms(const «jState»& q, const «jState»& qd, «jState»& torques) {
             «updateTransformsCode»
             C_terms(qd, torques);
         }
-        «C_terms__docs_parameters»
+
         void «nsqualifier»::«className(robot)»::C_terms(const «jState»& qd, «jState»& torques) {
             «FOR Link l : sortedLinks»
                 «val parentLink = l.parent»
@@ -436,4 +427,150 @@ class InverseDynamics {
             std::cout << std::endl << "-G + C:" << std::endl << -tau + tau2 << std::endl;
             return 0;
         }'''
+
+    def main_sine_task(Robot robot) '''
+        «val robotNS = Names$Namespaces::rob(robot)»
+        #include <iostream>
+        #include <fstream>
+        #include <ctime>
+
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::header(robot)».h"
+
+        using namespace std;
+        using namespace «Names$Namespaces::enclosing»;
+
+        static void matlabLog(«robotNS»::«Names$Types::jointState»* q,
+        «robotNS»::«Names$Types::jointState»* qd,
+        «robotNS»::«Names$Types::jointState»* qdd,
+        «robotNS»::«Names$Types::jointState»* tau,
+        int count);
+
+        static const double vis_coef = 0.1;
+        static const double sampF = 250;
+        static const double deltaT = 1/sampF;
+
+        /* Applies a sinusoidal trajectory to the joints, to test the inverse dynamics routine */
+        int main(int argc, char**argv)
+        {
+            if(argc < 2) {
+                cerr << "Please provide the duration of the task" << endl;
+                return -1;
+            }
+            double duration = std::atof(argv[1]);
+            int last = duration/deltaT;
+
+
+            «FOR Joint j : robot.joints»
+                double offs_«j.name» = 0;
+                double ampl_«j.name» = 0;
+                double phas_«j.name» = 0;
+                double freq_«j.name» = 1;
+
+            «ENDFOR»
+            «robotNS»::«Names$Types::jointState»* q   = new «robotNS»::«Names$Types::jointState»[last];
+            «robotNS»::«Names$Types::jointState»* qd  = new «robotNS»::«Names$Types::jointState»[last];
+            «robotNS»::«Names$Types::jointState»* qdd = new «robotNS»::«Names$Types::jointState»[last];
+            «robotNS»::«Names$Types::jointState»* tau = new «robotNS»::«Names$Types::jointState»[last];
+
+            «robotNS»::«className(robot)» myDynamics;
+
+            «Names$Namespaces$Qualifiers::iit_rbd»::ForceVector forceVec;
+            forceVec.setZero();
+            «robotNS»::«Names$Types::extForces» extForces(forceVec);
+
+            std::srand(std::time(NULL)); // initialize random number generator
+
+            double t = 0;
+            for(int i=0; i<last; i++) {
+                «FOR Joint j : robot.joints»
+                    q[i](«robotNS»::«Common::jointIdentifier(j)») = offs_«j.name» + ampl_«j.name» *
+                            std::sin(2 * M_PI * freq_«j.name» * t + phas_«j.name»);
+
+                    qd[i](«robotNS»::«Common::jointIdentifier(j)») = ampl_«j.name» * 2 * M_PI * freq_«j.name» *
+                            std::cos(2 * M_PI * freq_«j.name» * t + phas_«j.name»);
+
+                    qdd[i](«robotNS»::«Common::jointIdentifier(j)») = - ampl_«j.name» * (4 * M_PI * M_PI * freq_«j.name»* freq_«j.name») *
+                            std::sin(2 * M_PI * freq_«j.name» * t + phas_«j.name»);
+
+                    forceVec.setZero();
+                    forceVec(«j.subspaceIndex») = - vis_coef * qd[i](«robotNS»::«Common::jointIdentifier(j)»);
+                    extForces[«robotNS»::«Common::linkIdentifier(j.successorLink)»] = forceVec;
+                «ENDFOR»
+                myDynamics.id(q[i], qd[i], qdd[i], extForces, tau[i]);
+                t += deltaT;
+            }
+
+           matlabLog(q, qd, qdd, tau, last);
+
+            delete[] q;
+            delete[] qd;
+            delete[] qdd;
+            delete[] tau;
+            return 0;
+        }
+
+        static void matlabLog(«robotNS»::«Names$Types::jointState»* q,
+            «robotNS»::«Names$Types::jointState»* qd,
+            «robotNS»::«Names$Types::jointState»* qdd,
+            «robotNS»::«Names$Types::jointState»* tau,
+            int count)
+        {
+            «val prefix = robot.name.toLowerCase + "_test"»
+            std::string fileName = "«robot.name»_sine_task_ID.m";
+            ofstream out(fileName.c_str());
+            out << "«prefix».robot       = '«robot.name»';" << std::endl;
+            out << "«prefix».description = 'sine trajectory simulation with computation of Inverse Dynamics';" << std::endl;
+            out << "«prefix».software    = 'code generated from the Kinematic DSL & Co.';" << std::endl;
+
+            // Current date/time based on current system
+            time_t now = std::time(0);
+            tm* localtm = std::localtime(&now); // Convert now to tm struct for local timezone
+            char timeStr[64];
+            std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d  %X",localtm);
+            out << "«prefix».date = '" << timeStr << "';" << std::endl;
+
+            out << "«prefix».q = [";
+            for(int t=0; t<count; t++) {
+                out << "["
+                «FOR Joint j : robot.joints»
+                    << " " << q[t](«robotNS»::«Common::jointIdentifier(j)»)
+                «ENDFOR»
+                << "];" << endl;
+            }
+            out << "];";
+
+            out << "«prefix».qd = [";
+            for(int t=0; t<count; t++) {
+                out << "["
+                «FOR Joint j : robot.joints»
+                    << " " << qd[t](«robotNS»::«Common::jointIdentifier(j)»)
+                «ENDFOR»
+                << "];" << endl;
+            }
+            out << "];";
+
+            out << "«prefix».qdd = [";
+            for(int t=0; t<count; t++) {
+                out << "["
+                «FOR Joint j : robot.joints»
+                    << " " << qdd[t](«robotNS»::«Common::jointIdentifier(j)»)
+                «ENDFOR»
+                << "];" << endl;
+            }
+            out << "];";
+
+            out << "«prefix».tau = [";
+            for(int t=0; t<count; t++) {
+                out << "["
+                «FOR Joint j : robot.joints»
+                    << " " << tau[t](«robotNS»::«Common::jointIdentifier(j)»)
+                «ENDFOR»
+                << "];" << endl;
+            }
+            out << "];";
+
+            out.close();
+        }
+    '''
 }
