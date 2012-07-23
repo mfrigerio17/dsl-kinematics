@@ -41,7 +41,8 @@ class KinDslGenerator implements IGenerator {
             comFrame.transform.translation.z.asFloat,
             comFrame.transform.rotation.x.asFloat,  //(-Math::PI/5) as float,//
             comFrame.transform.rotation.y.asFloat,  //(-Math::PI/6) as float,//
-            comFrame.transform.rotation.z.asFloat); //(-Math::PI/3) as float)//
+            comFrame.transform.rotation.z.asFloat, //(-Math::PI/3) as float)//
+            false);
         System::out.println(transf.mass)
         System::out.println('''«transf.com.x.asFloat»  «transf.com.y.asFloat»  «transf.com.z.asFloat»''')
         System::out.println('''«transf.ix»  «transf.iy»  «transf.iz»  «transf.ixy»  «transf.ixz»  «transf.iyz»''')

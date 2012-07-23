@@ -12,9 +12,16 @@ public class Utilities {
 
 	/**
      * Computes the inertia parameters of a rigid body in a different frame.
-     * The last arguments of these function specify the rotation and the translation
-     * which encode the pose of the new frame, with respect to the frame
-     * in which the inertia-parameters are currently expressed.
+     * The frame in which the inertia-parameters (COM position and inertia tensor)
+     * are currently expressed is C; the new frame in which such parameters
+     * have to be expressed is N.
+     * The arguments of this function specify the transformation between C and N.
+     * If the last argument 'inverse' is false, then the rotation/translation
+     * parameters encode the pose of N with respect to C. Otherwise they represent
+     * the pose of C with respect to N.
+     * The translation is expressed in the current frame. Rotation values are basically
+     * euler angles, consecutive rotations about x, y, and z axis, in this order, of the
+     * current frame; each rotation is about the axis rotated by the previous one.
      * @param inertia the input inertia parameters to be expressed in the new frame
      * @param tx translation along the X axis
      * @param ty translation along the Y axis
@@ -22,14 +29,13 @@ public class Utilities {
      * @param rx rotation about the X axis
      * @param ry rotation about the Y axis
      * @param rz rotation about the Z axis
-     * The translation is expressed in the current frame. Rotation values are basically
-     * euler angles, consecutive rotations about x, y, and z axis, in this order, of the
-     * current frame; each rotation is about the axis rotated by the previous one.
+     * @param inverse if false, the previous arguments tell the pose of N wrt C; if
+     *        true they express the pose of C wrt N
      * @return a new instance of InertiaParams that specifies the same inertial
-     *         properties of the first parameter, but expressed in a different frame
+     *         properties of the first parameter, but expressed in the new frame N
      */
     public static InertiaParams rototranslate(InertiaParams inertia,
-            float tx, float ty, float tz, float rx, float ry, float rz)
+            float tx, float ty, float tz, float rx, float ry, float rz, boolean inverse)
     {
         float mass  = inertia.getMass();
         Vector3 com = inertia.getCom();
@@ -73,7 +79,24 @@ public class Utilities {
                 { cy*cz,   cx*sz + sx*sy*cz,     sx*sz - cx*sy*cz },
                 {-cy*sz,   cx*cz - sx*sy*sz,     cx*sy*sz + sx*cz },
                 {  sy  ,     - sx*cy       ,     cx*cy }
-        };
+                };
+
+        if(inverse) {
+            // The numbers encode the roto-translation to move from N to C, so I need
+            //  to invert them in order to have the transformation C --> N, to express
+            //  in N the inertia-parameters currently expressed in C
+            tx = -tx;
+            ty = -ty;
+            tz = -tz;
+            //transpose M
+            float[][] tmpM = M;
+            M[0][1] = tmpM[1][0];
+            M[0][2] = tmpM[2][0];
+            M[1][0] = tmpM[0][1];
+            M[1][2] = tmpM[2][1];
+            M[2][0] = tmpM[0][2];
+            M[2][1] = tmpM[1][2];
+        }
 
         float tmp = 0;
         // Compute the COM position in the new frame, applying the translation
