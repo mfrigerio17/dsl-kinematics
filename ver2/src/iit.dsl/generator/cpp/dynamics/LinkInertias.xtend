@@ -99,12 +99,12 @@ class LinkInertias {
                 , «memberName_mass(l)»(«l.inertiaParams.mass»)
             «ENDFOR»
         {
-            «FOR l : robot.links»
-                «memberName_com(l)» = «Names$Types::vector3d»(«l.inertiaParams.com.x.str»,«l.inertiaParams.com.y.str»,«l.inertiaParams.com.z.str»);
-            «ENDFOR»
             «FOR l : links»
+                «val params = getLinkFrameInertiaParams(l)»
+                «memberName_com(l)» = «Names$Types::vector3d»(«params.com.x.str»,«params.com.y.str»,«params.com.z.str»);
                 «memberName_tensor(l)».fill(«memberName_mass(l)», «memberName_com(l)»,
-                    Utils::buildInertiaTensor(«l.inertiaParams.ix»,«l.inertiaParams.iy»,«l.inertiaParams.iz»,«l.inertiaParams.ixy»,«l.inertiaParams.ixz»,«l.inertiaParams.iyz»));
+                    Utils::buildInertiaTensor(«params.ix»,«params.iy»,«params.iz»,«params.ixy»,«params.ixz»,«params.iyz»));
+
             «ENDFOR»
         }
     '''
