@@ -29,6 +29,7 @@ import iit.dsl.kinDsl.KinDslFactory
 import org.eclipse.emf.ecore.util.EcoreUtil
 import iit.dsl.kinDsl.PILiteral
 import iit.dsl.kinDsl.ConstantLiteral
+import iit.dsl.kinDsl.InertiaParams
 
 
 class Common {
@@ -458,6 +459,28 @@ def List<AbstractLink> chainEndLinks(Robot robot) {
         }
     }
     return ret;
+}
+
+/**
+ * Returns the inertia parameters of the link in the argument, expressed
+ * in the default frame of the link.
+ */
+def InertiaParams getLinkFrameInertiaParams(AbstractLink link) {
+    // If no frame is specified, then the parameters are already expressed in the link frame
+    if(link.inertiaParams.frame == null) return link.inertiaParams;
+
+    val Vector3 trasl = link.inertiaParams.frame.transform.translation;
+    val Vector3 rotat = link.inertiaParams.frame.transform.rotation;
+    val InertiaParams params =
+        Utilities::rototranslate(link.inertiaParams,
+            trasl.x.asFloat, trasl.y.asFloat, trasl.z.asFloat,
+            rotat.x.asFloat, rotat.y.asFloat, rotat.z.asFloat,
+            //these numbers specify the pose of the frame in which the inertia-params
+            // are currently expressed, with respect to the link frame. The link frame
+            // is the one we want inertia to be expressed. According to docs, the next
+            // argument must then be 'true'
+            true)
+    return params
 }
 
 }//end of class
