@@ -10,15 +10,45 @@ import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.InertiaParams
+import iit.dsl.TransSpecsAccessor
+import java.util.ArrayList
+import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
     extension Common common = new Common()
+
+    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
+    Jacobians jacGen = new Jacobians()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+
+        generateJacobiansFiles(robot, fsa)
     }
+
+    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
+                    desiredTrasformsAccessor.getDesiredTransforms(robot)
+        if(desiredJacs != null) {
+            jacobiansFiles(robot, fsa, desiredJacs)
+        }
+    }
+
+    def private jacobiansFiles(Robot robot, IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
+    {
+        val jacobians = new ArrayList<Jacobian>()
+        for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+            jacobians.add(new Jacobian(robot, jSpec))
+        }
+        fsa.generateFile(robot.name.toLowerCase() + "_init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
+        fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
+    }
+
+
+
 
     def inertiaParams(Robot robot) '''
          «val bp = robot.base.inertiaParams»
