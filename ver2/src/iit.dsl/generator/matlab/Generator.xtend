@@ -18,7 +18,8 @@ class Generator implements IGenerator {
     extension Common common = new Common()
 
     TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
-    Jacobians jacGen = new Jacobians()
+    Jacobians  jacGen   = new Jacobians()
+    Transforms transGen = null
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
@@ -26,6 +27,13 @@ class Generator implements IGenerator {
         fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         generateJacobiansFiles(robot, fsa)
+        generateTransformsFiles(robot, fsa);
+    }
+
+    def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
+        transGen = new Transforms(robot)
+        fsa.generateFile(robot.name.toLowerCase() + "_init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
@@ -46,8 +54,6 @@ class Generator implements IGenerator {
         fsa.generateFile(robot.name.toLowerCase() + "_init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
         fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
     }
-
-
 
 
     def inertiaParams(Robot robot) '''
