@@ -18,9 +18,6 @@ class KinDslGenerator implements IGenerator {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
-
-        val iit.dsl.generator.matlab.Generator matGen = new iit.dsl.generator.matlab.Generator();
-        matGen.doGenerate(resource, fsa);
     }
 
     /**
