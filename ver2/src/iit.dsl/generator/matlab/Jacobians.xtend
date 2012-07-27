@@ -7,14 +7,15 @@ import org.eclipse.xtend2.lib.StringConcatenation
 import java.util.Iterator
 
 class Jacobians {
-    iit.dsl.generator.maxima.Converter maximaConverter = new iit.dsl.generator.maxima.Converter()
-    iit.dsl.maxdsl.utils.DSLAccessor   maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
+    iit.dsl.generator.maxima.Converter  maximaConverter = new iit.dsl.generator.maxima.Converter()
+    iit.dsl.maxdsl.utils.DSLAccessor      maxdslAccess  = new iit.dsl.maxdsl.utils.DSLAccessor()
+    iit.dsl.maxdsl.generator.matlab.Utils maxdslUtils   = new iit.dsl.maxdsl.generator.matlab.Utils()
 
     def init_jacobians_file(Robot robot, List<Jacobian> jacs) '''
         «FOR Jacobian j : jacs»
             «val jText = maximaConverter.getJacobianText(j)»
             «j.name» = zeros(«j.rows»,«j.cols»);
-            «staticInitAssignements(jText, j.name)»
+            «maxdslUtils.staticInitAssignements(jText, j.name)»
 
         «ENDFOR»
     '''
@@ -22,7 +23,6 @@ class Jacobians {
     def update_jacobians_file(Robot robot, List<Jacobian> jacs) {
         val StringConcatenation strBuff = new StringConcatenation();
         val replaceSpecs = new MaximaReplSpecs(robot)
-        val exprGenerator = new iit.dsl.maxdsl.generator.matlab.Utils()
         val identifiers = iit::dsl::maxdsl::generator::Identifiers::getInstance()
         var r = 1 // row index
         var c = 1 // column index
@@ -36,7 +36,7 @@ class Jacobians {
             val Iterator<iit.dsl.maxdsl.maximaDsl.Expression> exprIter = expressionsModel.expressions.iterator
 
             // declarations of variables for trigonometric functions and assignements:
-            strBuff.append(exprGenerator.trigFunctionsCode(expressionsModel, replaceSpecs))
+            strBuff.append(maxdslUtils.trigFunctionsCode(expressionsModel, replaceSpecs))
             strBuff.append("\n");
             r = 1
             c = 1
@@ -56,27 +56,6 @@ class Jacobians {
                 c = 1   // back to first colulmn
             }
             strBuff.append("\n\n");
-        }
-        return strBuff
-    }
-
-
-    def staticInitAssignements(String[][] matrixAsText, String matrixVarName) {
-        val StringConcatenation strBuff = new StringConcatenation();
-        var r = 1 // row index
-        var c = 1 // column index
-        for(row : matrixAsText) {
-            for(el : row) {
-                if(iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el)) {
-                    if( ! ( el.equals("0") || el.equals("0.0") ) ) {
-                        strBuff.append('''«matrixVarName»(«r»,«c») = «el»;''')
-                    }
-                    strBuff.append("\n");
-                }
-                c = c+1
-            }
-            r = r+1 // next row
-            c = 1   // back to first colulmn
         }
         return strBuff
     }
