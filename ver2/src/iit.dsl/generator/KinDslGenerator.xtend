@@ -3,7 +3,6 @@
  */
 package iit.dsl.generator
 
-import com.google.inject.Inject
 import iit.dsl.kinDsl.Robot
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
@@ -11,8 +10,8 @@ import org.eclipse.xtext.generator.IGenerator
 
 
 class KinDslGenerator implements IGenerator {
-    @Inject extension Common common
-    @Inject FramesTransforms frTransforms
+    extension Common common = new Common()
+    FramesTransforms frTransforms = new FramesTransforms()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;

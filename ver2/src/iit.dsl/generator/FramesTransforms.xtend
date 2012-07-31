@@ -10,7 +10,6 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 
 import org.eclipse.xtend2.lib.StringConcatenation
-import com.google.inject.Inject
 import java.io.File
 
 
@@ -22,7 +21,7 @@ import java.io.File
  * transformations.
  */
 class FramesTransforms {
-    @Inject TransSpecsAccessor desiredTrasformsAccessor
+    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
     def public static fileName(Robot robot) {
         return robot.name+".ctdsl";
