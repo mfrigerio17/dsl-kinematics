@@ -25,10 +25,10 @@ class Generator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
-        generateJacobiansFiles(robot, fsa)
-        generateTransformsFiles(robot, fsa);
+        //generateJacobiansFiles(robot, fsa)
+        //generateTransformsFiles(robot, fsa);
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
@@ -58,14 +58,36 @@ class Generator implements IGenerator {
 
 
     def inertiaParams(Robot robot) '''
-         «val bp = robot.base.inertiaParams»
-        I_«robot.base.name» = [[ «bp.ix», -(«bp.ixy»), -(«bp.ixz»)];
-                               [-(«bp.ixy»), «bp.iy» , -(«bp.iyz»)];
-                               [-(«bp.ixz»),-(«bp.iyz»),  «bp.iz»]];
+        «val bp = robot.base.inertiaParams»
+        «val TAB = "\t"»
+        I_«robot.base.name» = ...
+            [[ «bp.ix»,«TAB»-(«bp.ixy»),«TAB» -(«bp.ixz»)];
+             [-(«bp.ixy»),«TAB»  «bp.iy»,«TAB» -(«bp.iyz»)];
+             [-(«bp.ixz»),«TAB»-(«bp.iyz»),«TAB»   «bp.iz»]];
+
         «FOR l : robot.links»
-            I_«l.name» = [[ «l.inertiaParams.ix», -(«l.inertiaParams.ixy»), -(«l.inertiaParams.ixz»)];
-                          [-(«l.inertiaParams.ixy»), «l.inertiaParams.iy» , -(«l.inertiaParams.iyz»)];
-                          [-(«l.inertiaParams.ixz»),-(«l.inertiaParams.iyz»),  («l.inertiaParams.iz»)]];
+            I_«l.name» = ...
+                [[ «l.inertiaParams.ix»,«TAB»-(«l.inertiaParams.ixy»),«TAB»-(«l.inertiaParams.ixz»)];
+                 [-(«l.inertiaParams.ixy»),«TAB»  «l.inertiaParams.iy»,«TAB»-(«l.inertiaParams.iyz»)];
+                 [-(«l.inertiaParams.ixz»),«TAB»-(«l.inertiaParams.iyz»),«TAB»  «l.inertiaParams.iz»]];
+
+        «ENDFOR»
+
+        % Now the same inertia parameters expressed in the link frame (may be equal or not to
+        %  the previous ones, depending on the robot model description)
+        «val bp_lf = common.getLinkFrameInertiaParams(robot.base)»
+        I_«robot.base.name»_lf = ...
+            [[  «bp_lf.ix»,«TAB»-(«bp_lf.ixy»),«TAB»-(«bp_lf.ixz»)];
+             [-(«bp_lf.ixy»),«TAB»  «bp_lf.iy» ,«TAB»-(«bp_lf.iyz»)];
+             [-(«bp_lf.ixz»),«TAB»-(«bp_lf.iyz»),«TAB»  «bp_lf.iz»]];
+
+        «FOR l : robot.links»
+            «val params = common.getLinkFrameInertiaParams(l)»
+            I_«l.name»_lf = ...
+                [[  «params.ix»,«TAB»-(«params.ixy»),«TAB»-(«params.ixz»)];
+                 [-(«params.ixy»),«TAB»  «params.iy» ,«TAB»-(«params.iyz»)];
+                 [-(«params.ixz»),«TAB»-(«params.iyz»),«TAB»  «params.iz»]];
+
         «ENDFOR»
     '''
 
