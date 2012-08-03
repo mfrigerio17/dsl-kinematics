@@ -46,17 +46,20 @@ class KinDslGenerator implements IGenerator {
 
     /**
      * Generates and xml URDF description of the robot, as specified in the ROS documentation.
-     * Leaves the inertia tensor as it is, according to the assumption that both the tensor
-     * in the model and the one required by the URDF file format are expressed in the reference
-     * frame with origin in the center of mass
+     * The URDF file format requires the inertia tensor to be expressed in a reference frame
+     * with origin in the center of mass. Therefore this generator takes the inertia tensor
+     * expressed in the link-default-frame and translates it to the COM before printing the values.
      */
     def generateURDFmodel(Robot robot) '''
     <robot name="«robot.name»">
     «FOR link : robot.abstractLinks»
-        «val inertia = link.inertiaParams»
+        «val inertia_lf = link.linkFrameInertiaParams /*inertia params expressed in the default link frame*/»
+        «val com = inertia_lf.com»
+        «val inertia = /*inertia params expressed in the frame centered in the COM*/
+             Utilities::rototranslate(inertia_lf, com.x.asFloat,com.y.asFloat,com.z.asFloat,0,0,0,false)»
         <link name="«link.name»">
             <inertial>
-                <origin xyz="«inertia.com.x.str» «inertia.com.y.str» «inertia.com.z.str»"/>
+                <origin xyz="«inertia_lf.com.x.str» «inertia_lf.com.y.str» «inertia_lf.com.z.str»"/>
                 <mass value="«inertia.mass»"/>
                 <inertia ixx="«inertia.ix»" iyy="«inertia.iy»" izz="«inertia.iz»" ixy="«inertia.ixy»" ixz="«inertia.ixz»" iyz="«inertia.iyz»"/>
             </inertial>
