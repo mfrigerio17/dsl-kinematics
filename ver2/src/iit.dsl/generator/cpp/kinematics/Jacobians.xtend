@@ -63,7 +63,9 @@ class Jacobians {
         var c = 0 // column index
 
         val iit.dsl.maxdsl.maximaDsl.Model expressionsModel =
-                maxdslAccess.getParsedTextModel( MaximaDSLDocumentText(J, JasText).toString() )
+                maxdslAccess.getParsedTextModel(
+                    iit::dsl::generator::maxima::MaximaDSLUtils::MaximaDSLDocumentText(J, JasText).toString()
+                )
         val Iterator<iit.dsl.maxdsl.maximaDsl.Expression> exprIter =
             expressionsModel.expressions.iterator
 
@@ -131,8 +133,6 @@ class Jacobians {
         «ENDFOR»
         '''
 
-
-
     def staticInitFunc_name(Jacobian J) '''init__«J.name»'''
     def runtimeAssignementsFunc_name(Jacobian J) '''jointStateSetter__«J.name»'''
 
@@ -151,29 +151,6 @@ class Jacobians {
         «definitions(robot, jacs)»
         '''
 
-     /**
-      * Creates a document compliant with the MaximaDSL, containing all the non
-      * constant elements of the given Jacobian, as a list of expressions.
-      *
-      */
-     def MaximaDSLDocumentText(Jacobian J, String[][] jText) {
-         val strBuff = new StringConcatenation();
-         strBuff.append('''
-            Variables {
-                «J.getArgsList()»
-            }
-            ''')
-
-         for(row : jText) {
-            for(el : row) {
-                if( !iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el)) {
-                    strBuff.append('''«el»;''')
-                    strBuff.append("\n");
-                }
-            }
-        }
-        return strBuff;
-     }
 
      def temp(Jacobian J) {
         val J_asText = maximaConverter.getJacobianText(J)

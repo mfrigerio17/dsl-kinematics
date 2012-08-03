@@ -10,7 +10,6 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 
 import org.eclipse.xtend2.lib.StringConcatenation
-import com.google.inject.Inject
 import java.io.File
 
 
@@ -22,7 +21,7 @@ import java.io.File
  * transformations.
  */
 class FramesTransforms {
-    @Inject TransSpecsAccessor desiredTrasformsAccessor
+    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
     def public static fileName(Robot robot) {
         return robot.name+".ctdsl";
@@ -122,7 +121,7 @@ class FramesTransforms {
         val rx = common.invert(frame.transform.rotation.x)
         val ry = common.invert(frame.transform.rotation.y)
         val rz = common.invert(frame.transform.rotation.z)
-        '''«TxString(tx)» «TyString(ty)» «TzString(tz)» «RxString(rx)» «RyString(ry)» «RzString(rz)» «dest_X_source(dest, link)»'''
+        '''«RzString(rz)» «RyString(ry)» «RxString(rx)» «TxString(tx)» «TyString(ty)» «TzString(tz)» «dest_X_source(dest, link)»'''
     }
 
     def static transformLiteral(AbstractLink dest, AbstractLink source)
