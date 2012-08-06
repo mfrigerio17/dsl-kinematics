@@ -104,37 +104,40 @@ public class Utilities {
         Vector3 new_com = factory.createVector3();
         translated.setCom(new_com);
         FloatLiteral tmpLiteral;
-        // translation:
-        comx -= tx;
-        comy -= ty;
-        comz -= tz;
+        // Translation:
+        //   Position vector of the COM, with respect to the frame with origin as in N
+        //   but same orientation as C:
+        final float comx_N = comx - tx;
+        final float comy_N = comy - ty;
+        final float comz_N = comz - tz;
         // rotation:
         // X ...
-        tmp = M[0][0]*comx + M[0][1]*comy + M[0][2]*comz;
+        tmp = M[0][0]*comx_N + M[0][1]*comy_N + M[0][2]*comz_N;
         tmpLiteral = factory.createFloatLiteral();
         tmpLiteral.setValue(tmp);
         new_com.setX(tmpLiteral);
         // Y ...
-        tmp = M[1][0]*comx + M[1][1]*comy + M[1][2]*comz;
+        tmp = M[1][0]*comx_N + M[1][1]*comy_N + M[1][2]*comz_N;
         tmpLiteral = factory.createFloatLiteral();
         tmpLiteral.setValue(tmp);
         new_com.setY(tmpLiteral);
         // Z ...
         tmpLiteral = factory.createFloatLiteral();
-        tmp = M[2][0]*comx + M[2][1]*comy + M[2][2]*comz;
+        tmp = M[2][0]*comx_N + M[2][1]*comy_N + M[2][2]*comz_N;
         tmpLiteral.setValue(tmp);
         new_com.setZ(tmpLiteral);
 
         // Now computes the inertia tensor in the new frame
-        // First use the parallel axis theorem for the translation ...
-        ixx += mass * (ty*ty + tz*tz);
-        iyy += mass * (tx*tx + tz*tz);
-        izz += mass * (tx*tx + ty*ty);
-        ixy += mass * (tx * ty);
-        ixz += mass * (tx * tz);
-        iyz += mass * (ty * tz);
 
-        //... then consider the rotation of the axes.
+        // Parallel axis theorem; go from C to COM, and from COM to N, with two subsequent translations
+        ixx += mass * (comy_N*comy_N + comz_N*comz_N - comy*comy - comz*comz);
+        iyy += mass * (comx_N*comx_N + comz_N*comz_N - comx*comx - comz*comz);
+        izz += mass * (comx_N*comx_N + comy_N*comy_N - comx*comx - comy*comy);
+        ixy += mass * (comx_N*comy_N - comx*comy);
+        ixz += mass * (comx_N*comz_N - comx*comz);
+        iyz += mass * (comy_N*comz_N - comy*comz);
+
+        // Now consider the rotation of the axes.
         // The equations to transform the inertia-moments are very similar to the
         // equation in matrix form for the inertia tensor
         //  I' =  M * I * M^T
