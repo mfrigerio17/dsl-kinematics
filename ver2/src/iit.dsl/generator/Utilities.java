@@ -81,6 +81,7 @@ public class Utilities {
                 {  sy  ,     - sx*cy       ,     cx*cy }
                 };
 
+        float tmp = 0;
         if(inverse) {
             // The numbers encode the roto-translation to move from N to C, so I need
             //  to invert them in order to have the transformation C --> N, to express
@@ -89,16 +90,19 @@ public class Utilities {
             ty = -ty;
             tz = -tz;
             //transpose M
-            float[][] tmpM = M;
-            M[0][1] = tmpM[1][0];
-            M[0][2] = tmpM[2][0];
-            M[1][0] = tmpM[0][1];
-            M[1][2] = tmpM[2][1];
-            M[2][0] = tmpM[0][2];
-            M[2][1] = tmpM[1][2];
+            tmp = M[0][1];
+            M[0][1] = M[1][0];
+            M[1][0] = tmp;
+
+            tmp = M[0][2];
+            M[0][2] = M[2][0];
+            M[2][0] = tmp;
+
+            tmp = M[1][2];
+            M[1][2] = M[2][1];
+            M[2][1] = tmp;
         }
 
-        float tmp = 0;
         // Compute the COM position in the new frame, applying the translation
         //  and the rotation matrix defined by rx,ry,rz ...
         Vector3 new_com = factory.createVector3();
