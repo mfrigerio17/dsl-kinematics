@@ -14,6 +14,7 @@ import iit.dsl.kinDsl.InertiaParams
 import iit.dsl.TransSpecsAccessor
 import java.util.ArrayList
 import iit.dsl.generator.Jacobian
+import iit.dsl.generator.Utilities
 
 class Generator implements IGenerator {
     extension Common common = new Common()
@@ -24,8 +25,8 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-        //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
         //generateTransformsFiles(robot, fsa);
@@ -132,9 +133,16 @@ class Generator implements IGenerator {
         Xtrans([«j.refFrame.translation.listCoordinates()»]);
     '''
 
+    /* Get the parameters in a frame centered in the COM, since Featherstone's model
+       wants the inertia tensor expressed in such a frame
+    */
     def private inertiaParams(AbstractLink l) '''
-        I{«l.ID»} = mcI(«l.inertiaParams.mass», [«l.inertiaParams.com.listCoordinates»], ...
-        «inertiaTensor(l.inertiaParams)» );
+        «val inertia_lf = l.linkFrameInertiaParams»
+        «val com_lf = l.inertiaParams.com»
+        «val inertia_com = Utilities::rototranslate(inertia_lf,
+            com_lf.x.asFloat, com_lf.y.asFloat, com_lf.z.asFloat, 0,0,0, false)»
+        I{«l.ID»} = mcI(«inertia_lf.mass», [«inertia_lf.com.listCoordinates»], ...
+        «inertiaTensor(inertia_com)» );
     '''
     def private inertiaTensor(InertiaParams ip)  '''
         [ [ «ip.ix»    -(«ip.ixy») -(«ip.ixz»)]; ...
