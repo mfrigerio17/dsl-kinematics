@@ -23,9 +23,11 @@ class Generator implements IGenerator {
     Jacobians  jacGen   = new Jacobians()
     Transforms transGen = null
 
+    private String TAB = "\t"
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
@@ -60,37 +62,59 @@ class Generator implements IGenerator {
 
     def inertiaParams(Robot robot) '''
         «val bp = robot.base.inertiaParams»
-        «val TAB = "\t"»
-        I_«robot.base.name» = ...
-            [[ «bp.ix»,«TAB»-(«bp.ixy»),«TAB» -(«bp.ixz»)];
-             [-(«bp.ixy»),«TAB»  «bp.iy»,«TAB» -(«bp.iyz»)];
-             [-(«bp.ixz»),«TAB»-(«bp.iyz»),«TAB»   «bp.iz»]];
+
+        % Inertia parameters as written in the .kindsl model file
+        inertia_«robot.base.name».tensor = ...
+            «tensor(bp)»;
+        inertia_«robot.base.name».com = «com(bp)»;
 
         «FOR l : robot.links»
-            I_«l.name» = ...
-                [[ «l.inertiaParams.ix»,«TAB»-(«l.inertiaParams.ixy»),«TAB»-(«l.inertiaParams.ixz»)];
-                 [-(«l.inertiaParams.ixy»),«TAB»  «l.inertiaParams.iy»,«TAB»-(«l.inertiaParams.iyz»)];
-                 [-(«l.inertiaParams.ixz»),«TAB»-(«l.inertiaParams.iyz»),«TAB»  «l.inertiaParams.iz»]];
+            inertia_«l.name».tensor = ...
+                «tensor(l.inertiaParams)»;
+            inertia_«l.name».com = «com(l.inertiaParams)»;
 
         «ENDFOR»
 
         % Now the same inertia parameters expressed in the link frame (may be equal or not to
-        %  the previous ones, depending on the robot model description)
+        %  the previous ones, depending on the model file)
         «val bp_lf = common.getLinkFrameInertiaParams(robot.base)»
-        I_«robot.base.name»_lf = ...
-            [[  «bp_lf.ix»,«TAB»-(«bp_lf.ixy»),«TAB»-(«bp_lf.ixz»)];
-             [-(«bp_lf.ixy»),«TAB»  «bp_lf.iy» ,«TAB»-(«bp_lf.iyz»)];
-             [-(«bp_lf.ixz»),«TAB»-(«bp_lf.iyz»),«TAB»  «bp_lf.iz»]];
+        inertia_lf_«robot.base.name».tensor = ...
+             «tensor(bp_lf)»;
+        inertia_lf_«robot.base.name».com = «com(bp_lf)»;
 
         «FOR l : robot.links»
             «val params = common.getLinkFrameInertiaParams(l)»
-            I_«l.name»_lf = ...
-                [[  «params.ix»,«TAB»-(«params.ixy»),«TAB»-(«params.ixz»)];
-                 [-(«params.ixy»),«TAB»  «params.iy» ,«TAB»-(«params.iyz»)];
-                 [-(«params.ixz»),«TAB»-(«params.iyz»),«TAB»  «params.iz»]];
+            inertia_lf_«l.name».tensor = ...
+                «tensor(params)»;
+            inertia_lf_«l.name».com = «com(params)»;
+
+        «ENDFOR»
+
+        % Same inertial properties expressed in a frame with origin in the COM of the link
+        %  oriented as the default link-frame (the COM coordinates in such a frame should
+        %  always be [0,0,0] ).
+        «val bp_com = Utilities::rototranslate(bp,
+                       bp.com.x.asFloat, bp.com.y.asFloat, bp.com.z.asFloat, 0,0,0, false)»
+        inertia_com_«robot.base.name».tensor = ...
+             «tensor(bp_com)»;
+        inertia_com_«robot.base.name».com = «com(bp_com)»;
+
+        «FOR l : robot.links»
+            «val params = l.inertiaParams»
+            «val params_com = Utilities::rototranslate(params, params.com.x.asFloat,
+                params.com.y.asFloat, params.com.z.asFloat, 0,0,0, false)»
+            inertia_com_«l.name».tensor = ...
+                «tensor(params_com)»;
+            inertia_com_«l.name».com = «com(params_com)»;
 
         «ENDFOR»
     '''
+    def private tensor(InertiaParams params) '''
+         [[  «params.ix»,«TAB»-(«params.ixy»),«TAB»-(«params.ixz»)];
+          [-(«params.ixy»),«TAB»  «params.iy» ,«TAB»-(«params.iyz»)];
+          [-(«params.ixz»),«TAB»-(«params.iyz»),«TAB»  «params.iz»]]'''
+    def private com(InertiaParams params) '''
+         [«params.com.x.str»; «params.com.y.str»; «params.com.z.str»]'''
 
     /**
      * This template generates a matlab file with the initialization of
