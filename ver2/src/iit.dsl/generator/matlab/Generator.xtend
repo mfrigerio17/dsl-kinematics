@@ -23,11 +23,11 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
-        generateJacobiansFiles(robot, fsa)
-        generateTransformsFiles(robot, fsa);
+        //generateJacobiansFiles(robot, fsa)
+        //generateTransformsFiles(robot, fsa);
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
@@ -87,11 +87,11 @@ class Generator implements IGenerator {
         «ENDFOR»
 
         «FOR j : robot.joints»
-            «structName».pitch(«j.num») = «jointPitch(j)»;
+            «structName».pitch(«j.ID») = «jointPitch(j)»;
         «ENDFOR»
 
         «FOR j : robot.joints»
-            «structName».Xtree{«j.num»} = «jointTransform(j)»;
+            «structName».Xtree{«j.ID»} = «jointTransform(j)»;
         «ENDFOR»
 
         «FOR l : robot.links»

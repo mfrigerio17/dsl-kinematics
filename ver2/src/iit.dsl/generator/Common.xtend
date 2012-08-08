@@ -117,10 +117,12 @@ def dispatch int getID(FloatingRobotBase base) {
     return 1;
 }
 def int getID(Joint j) {
-    j.num;
+    //According to the convention, the integer identifier of a joint is the same
+    // as the identifier of the link which is supported by that joint
+    j.successorLink.ID;
 }
 def int getArrayIdx(Joint j) {
-    j.num - 1
+    j.ID - 1
 }
 
 /**
