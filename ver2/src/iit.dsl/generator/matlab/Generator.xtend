@@ -24,16 +24,18 @@ class Generator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
-        //generateTransformsFiles(robot, fsa);
+        generateTransformsFiles(robot, fsa);
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
         transGen = new Transforms(robot)
         fsa.generateFile(robot.name.toLowerCase() + "_init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {

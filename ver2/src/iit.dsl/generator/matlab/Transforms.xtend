@@ -23,4 +23,12 @@ class Transforms {
 	def public homogeneous_update_fileContent(Robot robot) {
         matlabGen.homogeneous_update_fileContent(transModel)
     }
+
+    def public motion6D_init_fileContent(Robot robot) {
+        matlabGen.motion6D_init_fileContent(transModel)
+    }
+
+    def public motion6D_update_fileContent(Robot robot) {
+        matlabGen.motion6D_update_fileContent(transModel)
+    }
 }
