@@ -62,31 +62,34 @@ class Jacobians {
         var r = 0 // row index
         var c = 0 // column index
 
-        val iit.dsl.maxdsl.maximaDsl.Model expressionsModel =
-                maxdslAccess.getParsedTextModel(
-                    iit::dsl::generator::maxima::MaximaDSLUtils::MaximaDSLDocumentText(J, JasText).toString()
-                )
-        val Iterator<iit.dsl.maxdsl.maximaDsl.Expression> exprIter =
-            expressionsModel.expressions.iterator
+        val maxdslDoc = iit::dsl::generator::maxima::MaximaDSLUtils::MaximaDSLDocumentText(J, JasText)
+        //Check if the current Jacobian is actually a function of something. If not, it is a constant,
+        // and no code generation is required here
+        if(maxdslDoc.length > 0) {
+            val iit.dsl.maxdsl.maximaDsl.Model expressionsModel =
+                    maxdslAccess.getParsedTextModel(maxdslDoc.toString())
+            val Iterator<iit.dsl.maxdsl.maximaDsl.Expression> exprIter =
+                expressionsModel.expressions.iterator
 
-        val replaceSpecs = new MaximaReplacementSpec(J.robot)
-        // declarations of variables for trigonometric functions and assignements:
-        strBuff.append(exprGenerator.trigFunctionsCode(expressionsModel, replaceSpecs))
-        strBuff.append("\n");
-        for(row : JasText) {
-            for(el : row) {
-                if( !iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el)) {
-                    // we assume we as many parsed expressions as the number of non constant elements of the Jacobian
-                    if( ! exprIter.hasNext()) {
-                        throw new RuntimeException("The number of expressions does not match the Jacobian")
+            val replaceSpecs = new MaximaReplacementSpec(J.robot)
+            // declarations of variables for trigonometric functions and assignements:
+            strBuff.append(exprGenerator.trigFunctionsCode(expressionsModel, replaceSpecs))
+            strBuff.append("\n");
+            for(row : JasText) {
+                for(el : row) {
+                    if( !iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el)) {
+                        // we assume we as many parsed expressions as the number of non constant elements of the Jacobian
+                        if( ! exprIter.hasNext()) {
+                            throw new RuntimeException("The number of expressions does not match the Jacobian")
+                        }
+                        strBuff.append('''«varName»(«r»,«c») = «exprGenerator.toCode(exprIter.next(), replaceSpecs)»;
+                        ''')
                     }
-                    strBuff.append('''«varName»(«r»,«c») = «exprGenerator.toCode(exprIter.next(), replaceSpecs)»;
-                    ''')
+                    c = c+1
                 }
-                c = c+1
+                r = r+1 // next row
+                c = 0   // back to first colulmn
             }
-            r = r+1 // next row
-            c = 0   // back to first colulmn
         }
         return strBuff
     }
