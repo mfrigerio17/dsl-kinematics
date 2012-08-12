@@ -21,13 +21,20 @@ class Generator implements IGenerator {
     Jacobians  jacGen   = new Jacobians()
     Transforms transGen = null
 
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
         //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
-        generateTransformsFiles(robot, fsa);
+        //generateTransformsFiles(robot, fsa);
+        generatePlotFramesFile(robot, fsa)
+    }
+
+    def generatePlotFramesFile(Robot robot, IFileSystemAccess fsa) {
+        val PlotFrames gen = new PlotFrames(robot)
+        fsa.generateFile(robot.name.toLowerCase() + "_plot_frames.m"  , gen.plotFramesCode())
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
