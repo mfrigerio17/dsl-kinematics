@@ -40,12 +40,16 @@ class PlotFrames {
         «val count = robot.links.size + 1»
         «FOR l : robot.links»
             «val T    = coordTransCommon.getTransform(transforms, robot.base.frameName.toString(), l.frameName.toString())»
-            «val name = coordTransCommon.name(T)»
-            x = scaling * «name»(1:3,1);
-            y = scaling * «name»(1:3,2);
-            pos = «name»(1:3,4);  % no scaling
+            «IF T == null»
+                % I could not find the transform from base to link «l.name»; are you generating it?
+            «ELSE»
+                «val name = coordTransCommon.name(T)»
+                x = scaling * «name»(1:3,1);
+                y = scaling * «name»(1:3,2);
+                pos = «name»(1:3,4);  % no scaling
 
-            plotRefFrame(x, y, pos, baseColor * («count»-«l.ID»)/«count»);
+                plotRefFrame(x, y, pos, baseColor * («count»-«l.ID»)/«count»);
+            «ENDIF»
         «ENDFOR»
 
         axis equal;
