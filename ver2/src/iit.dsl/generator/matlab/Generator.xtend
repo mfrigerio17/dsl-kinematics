@@ -27,17 +27,26 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
+        //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
         //generateTransformsFiles(robot, fsa);
+        generatePlotFramesFile(robot, fsa)
+    }
+
+
+    def generatePlotFramesFile(Robot robot, IFileSystemAccess fsa) {
+        val PlotFrames gen = new PlotFrames(robot)
+        fsa.generateFile(robot.name.toLowerCase() + "_plot_frames.m"  , gen.plotFramesCode())
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
         transGen = new Transforms(robot)
         fsa.generateFile(robot.name.toLowerCase() + "_init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
@@ -135,11 +144,11 @@ class Generator implements IGenerator {
         «ENDFOR»
 
         «FOR j : robot.joints»
-            «structName».pitch(«j.num») = «jointPitch(j)»;
+            «structName».pitch(«j.ID») = «jointPitch(j)»;
         «ENDFOR»
 
         «FOR j : robot.joints»
-            «structName».Xtree{«j.num»} = «jointTransform(j)»;
+            «structName».Xtree{«j.ID»} = «jointTransform(j)»;
         «ENDFOR»
 
         «FOR l : robot.links»

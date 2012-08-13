@@ -1,0 +1,77 @@
+package iit.dsl.generator.matlab
+
+import iit.dsl.kinDsl.Robot
+import iit.dsl.generator.Common
+import iit.dsl.TransformsAccessor
+import java.io.File
+import iit.dsl.generator.FramesTransforms
+import iit.dsl.kinDsl.Link
+import iit.dsl.generator.Utilities
+
+
+class PlotFrames {
+    private static String transformsModelPath = "generated_code/misc" // default value
+    private static TransformsAccessor transformsAccessor = new TransformsAccessor()
+
+    def static setTransformsModelPath(String path) {
+        transformsModelPath = path;
+    }
+
+
+
+    extension Common common = new Common()
+    private Robot robot
+    private iit.dsl.coord.coordTransDsl.Model transforms
+    private iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
+
+    new(Robot rob) {
+        robot = rob
+        val transformsModelFile = new File(
+            transformsModelPath + "/" + FramesTransforms::fileName(robot))
+        transforms = transformsAccessor.getTransformsModel(robot, transformsModelFile)
+    }
+
+	def plotFramesCode() '''
+        baseColor = [0,0,1];
+
+        % Plot the reference frame of the base.
+        % Use arbitrary scaling.
+        scaling = 0.1;
+        x = scaling * [1;0;0];
+        y = scaling * [0;1;0];
+
+        plotRefFrame(x, y, [0;0;0], baseColor);
+
+        % Now plot the reference frames of the other links
+        % Scaling factor of 33% of the estimate of the link length
+        «val count = robot.links.size + 1»
+        «FOR l : robot.links»
+            «val T    = coordTransCommon.getTransform(transforms, robot.base.frameName.toString(), l.frameName.toString())»
+            «IF T == null»
+                % I could not find the transform from base to link «l.name»; are you generating it?
+            «ELSE»
+                «val name = coordTransCommon.name(T)»
+                «IF l.childrenList.children.size > 0»
+                    scaling = 0.33 * «jointDistance(l)»;
+                «ENDIF»
+                x = scaling * «name»(1:3,1);
+                y = scaling * «name»(1:3,2);
+                pos = «name»(1:3,4);  % no scaling
+
+                plotRefFrame(x, y, pos, baseColor * («count»-«l.ID»)/«count»);
+            «ENDIF»
+        «ENDFOR»
+
+        axis equal;
+        '''
+
+     def private double jointDistance(Link link) {
+         if(link.childrenList.children.size() == 0) {
+             return 1 // default??
+         } else {
+             val j = link.childrenList.children.get(0).joint
+             return Utilities::length(j.refFrame.translation)
+         }
+     }
+
+}

@@ -1,6 +1,6 @@
 Robot Planar {
 
-RobotBase MyBeatifulBase {
+RobotBase Base {
 	inertia_params {
 		mass = 1.0
 		CoM = (0.0, 0.0, 0.0)
@@ -48,11 +48,29 @@ link link3 {
 		Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
 	}
 
-	children {}
+	children {
+	   link4 via joint4
+	}
+}
+
+link link4 {
+    id = 4
+    inertia_params {
+        mass = 1.0
+        CoM = (0.5, .0, .0)
+        Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
+    }
+
+    children {}
+    frames {
+       fr_ee {
+           translation = (1.0, 0.0, 0.0)
+           rotation = (0.0, 0.0, 0.0)
+       }
+    }
 }
 
 r_joint joint1 {
-	id = 1
 	ref_frame {
 		translation = (0.0, 0.0, 0.0)
 		rotation = (0.0, 0.0, 0.0)
@@ -60,7 +78,6 @@ r_joint joint1 {
 }
 
 r_joint joint2 {
-	id = 2
 	ref_frame {
 		translation = (1.0, 0.0, 0.0)
 		rotation = (0.0, 0.0, 0.0)
@@ -68,11 +85,17 @@ r_joint joint2 {
 }
 
 r_joint joint3 {
-	id = 3
 	ref_frame {
 		translation = (1.0, 0.0, 0.0)
 		rotation = (0.0, 0.0, 0.0)
 	}
+}
+
+r_joint joint4 {
+    ref_frame {
+        translation = (1.0, 0.0, 0.0)
+        rotation = (0.0, 0.0, 0.0)
+    }
 }
 
 

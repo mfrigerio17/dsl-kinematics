@@ -1,5 +1,11 @@
 package iit.dsl.generator
 
+import java.util.ArrayList
+import java.util.List
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.emf.ecore.util.EcoreUtil
+import java.util.Locale
+
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.ChildrenList
@@ -18,17 +24,11 @@ import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.RobotBase
 import iit.dsl.kinDsl.Vector3
-import java.util.ArrayList
-import java.util.List
-import org.eclipse.xtext.EcoreUtil2
-import java.util.Locale
 import iit.dsl.kinDsl.RefFrame
 import iit.dsl.kinDsl.impl.KinDslFactoryImpl
 import iit.dsl.kinDsl.RotoTrasl
 import iit.dsl.kinDsl.KinDslFactory
-import org.eclipse.emf.ecore.util.EcoreUtil
 import iit.dsl.kinDsl.PILiteral
-import iit.dsl.kinDsl.ConstantLiteral
 import iit.dsl.kinDsl.InertiaParams
 
 
@@ -118,10 +118,12 @@ def dispatch int getID(FloatingRobotBase base) {
     return 1;
 }
 def int getID(Joint j) {
-    j.num;
+    //According to the convention, the integer identifier of a joint is the same
+    // as the identifier of the link which is supported by that joint
+    j.successorLink.ID;
 }
 def int getArrayIdx(Joint j) {
-    j.num - 1
+    j.ID - 1
 }
 
 /**
@@ -340,6 +342,14 @@ def RefFrame getFrameByName(Robot robot, String frameName) {
             return frame
         }
     }
+    //Search among the joint-frames. Same comment as above
+    for(Joint j : robot.joints) {
+        if(frameName.equals(j.frameName.toString())) {
+            return j.defaultFrame
+        }
+    }
+
+    // The reference frame was not found on the given robot
     return null
 }
 
@@ -400,6 +410,18 @@ def RefFrame getDefaultFrame(AbstractLink link) {
 
     return ret
 }
+/**
+ * Creates a RefFrame instance that represents the default reference frame of
+ * the given joint. This method is required since in the model, joints do not
+ * have an explicit property of type RefFrame (they only have rototranslation
+ * parameters).
+ */
+def RefFrame getDefaultFrame(Joint j) {
+    val RefFrame ret = kinDSLFactory.createRefFrame()
+    ret.setTransform(EcoreUtil::copy(j.refFrame))
+    ret.setName(j.frameName.toString())
+    return ret
+}
 
 def createDefaultFrame() {
     val RefFrame ret = kinDSLFactory.createRefFrame()
@@ -420,10 +442,20 @@ def Vector3 zeroVector() {
     return ret
 }
 
+/**
+ * Returns the link of the given robot which supports the given frame.
+ * A frame is supported by a link if its origin belongs to the link; this also
+ * includes the frame of the joint which is supported by the link.
+ */
 def AbstractLink getContainingLink(Robot robot, RefFrame frame) {
     for(l : robot.abstractLinks) {
         if(l.frames.contains(frame)) return l
         if(frame.name.equals(l.frameName.toString())) return l
+        for(ChildSpec child : l.childrenList.children) {
+            if(frame.name.equals(child.joint.frameName.toString())) {
+                return l
+            }
+        }
     }
     return null
 }

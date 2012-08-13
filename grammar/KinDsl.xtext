@@ -61,13 +61,13 @@ Joint:
 
 RevoluteJoint:
     'r_joint' name=ID '{'
-    'id' '=' num = MY_ID
+    ('id' '=' num = MY_ID)?
     'ref_frame' '{'refFrame = RotoTrasl'}'
     '}';
 
 PrismaticJoint:
     'p_joint' name=ID '{'
-    'id' '=' num = MY_ID
+    ('id' '=' num = MY_ID)?
     'ref_frame' '{'refFrame = RotoTrasl'}'
     '}';
 
