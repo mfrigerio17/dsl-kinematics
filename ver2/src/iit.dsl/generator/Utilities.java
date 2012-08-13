@@ -72,4 +72,17 @@ public class Utilities {
 	public static float div(float a, float b) {
 	    return a/b;
 	}
+
+	public static double length(Vector3 vec) {
+	    if( ! (vec.getX() instanceof FloatLiteral) ||
+            ! (vec.getY() instanceof FloatLiteral) ||
+            ! (vec.getZ() instanceof FloatLiteral))
+        {
+            throw new RuntimeException("Cannot compute the length of a vector defined with some variables");
+        }
+        float x = ((FloatLiteral)vec.getX()).getValue();
+        float y = ((FloatLiteral)vec.getY()).getValue();
+        float z = ((FloatLiteral)vec.getZ()).getValue();
+        return Math.sqrt(x*x + y*y + z*z);
+    }
 }
