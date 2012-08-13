@@ -15,15 +15,10 @@ class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
     FramesTransforms frTransforms = new FramesTransforms()
 
-    iit.dsl.generator.matlab.Generator matlab = new iit.dsl.generator.matlab.Generator()
-
-
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name.toLowerCase() + "inertia.m", matlab.inertiaParams(robot))
-//        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
-//        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
-//        fsa.generateFile(robot.name + ".m", featherstoneMatlabModel(robot))
+        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
     }
 
     def testITensorRotation(Robot hyl) {
