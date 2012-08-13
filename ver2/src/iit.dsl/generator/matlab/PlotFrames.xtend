@@ -5,6 +5,8 @@ import iit.dsl.generator.Common
 import iit.dsl.TransformsAccessor
 import java.io.File
 import iit.dsl.generator.FramesTransforms
+import iit.dsl.kinDsl.Link
+import iit.dsl.generator.Utilities
 
 
 class PlotFrames {
@@ -30,13 +32,18 @@ class PlotFrames {
     }
 
 	def plotFramesCode() '''
-        scaling = 0.1;
         baseColor = [0,0,1];
 
+        % Plot the reference frame of the base.
+        % Use arbitrary scaling.
+        scaling = 0.1;
         x = scaling * [1;0;0];
         y = scaling * [0;1;0];
 
         plotRefFrame(x, y, [0;0;0], baseColor);
+
+        % Now plot the reference frames of the other links
+        % Scaling factor of 33% of the estimate of the link length
         «val count = robot.links.size + 1»
         «FOR l : robot.links»
             «val T    = coordTransCommon.getTransform(transforms, robot.base.frameName.toString(), l.frameName.toString())»
@@ -44,6 +51,9 @@ class PlotFrames {
                 % I could not find the transform from base to link «l.name»; are you generating it?
             «ELSE»
                 «val name = coordTransCommon.name(T)»
+                «IF l.childrenList.children.size > 0»
+                    scaling = 0.33 * «jointDistance(l)»;
+                «ENDIF»
                 x = scaling * «name»(1:3,1);
                 y = scaling * «name»(1:3,2);
                 pos = «name»(1:3,4);  % no scaling
@@ -54,4 +64,14 @@ class PlotFrames {
 
         axis equal;
         '''
+
+     def private double jointDistance(Link link) {
+         if(link.childrenList.children.size() == 0) {
+             return 1 // default??
+         } else {
+             val j = link.childrenList.children.get(0).joint
+             return Utilities::length(j.refFrame.translation)
+         }
+     }
+
 }
