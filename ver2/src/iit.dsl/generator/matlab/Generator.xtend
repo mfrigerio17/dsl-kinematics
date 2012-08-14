@@ -15,6 +15,7 @@ import iit.dsl.TransSpecsAccessor
 import java.util.ArrayList
 import iit.dsl.generator.Jacobian
 import iit.dsl.generator.Utilities
+import java.util.List
 
 class Generator implements IGenerator {
     extension Common common = new Common()
@@ -27,7 +28,7 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
         //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
 
         //generateJacobiansFiles(robot, fsa)
@@ -68,62 +69,92 @@ class Generator implements IGenerator {
         fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
     }
 
+    /**
+     * Matlab code that creates several structs with the inertia parameters of the links
+     * of the given robot.
+     * Each struct has two members, the inertia tensor and the COM location (3d vector).
+     * This code contains the values corresponding to the inertia parameters as contained
+     * in the robot model, as well as parameters expressed in the default frame of each link
+     * and in a frame centered in the COM, aligned with the link-frame. Therefore, three
+     * structures are created for each rigid body of the given robot.
+     */
+    def inertiaParams(Robot robot) {
+        val List<InertiaParams> userFrame = new ArrayList<InertiaParams>()
+        val List<InertiaParams> linkFrame = new ArrayList<InertiaParams>()
+        val List<InertiaParams> comFrame  = new ArrayList<InertiaParams>()
+        allInertiaParams(robot, userFrame, linkFrame, comFrame)
+        val userFrameIt = userFrame.iterator()
+        val linkFrameIt = linkFrame.iterator()
+        val comFrameIt  = comFrame.iterator()
+        val allLinks = robot.abstractLinks
 
-    def inertiaParams(Robot robot) '''
-        «val bp = robot.base.inertiaParams»
+        return'''
 
         % Inertia parameters as written in the .kindsl model file
-        inertia_«robot.base.name».tensor = ...
-            «tensor(bp)»;
-        inertia_«robot.base.name».com = «com(bp)»;
-
-        «FOR l : robot.links»
+        «FOR l : allLinks»
+            «val tmp = userFrameIt.next»
             inertia_«l.name».tensor = ...
-                «tensor(l.inertiaParams)»;
-            inertia_«l.name».com = «com(l.inertiaParams)»;
+                «tensor(tmp)»;
+            inertia_«l.name».com = «com(tmp)»;
 
         «ENDFOR»
 
         % Now the same inertia parameters expressed in the link frame (may be equal or not to
         %  the previous ones, depending on the model file)
-        «val bp_lf = common.getLinkFrameInertiaParams(robot.base)»
-        inertia_lf_«robot.base.name».tensor = ...
-             «tensor(bp_lf)»;
-        inertia_lf_«robot.base.name».com = «com(bp_lf)»;
-
-        «FOR l : robot.links»
-            «val params = common.getLinkFrameInertiaParams(l)»
+        «FOR l : allLinks»
+            «val tmp = linkFrameIt.next»
             inertia_lf_«l.name».tensor = ...
-                «tensor(params)»;
-            inertia_lf_«l.name».com = «com(params)»;
+                «tensor(tmp)»;
+            inertia_lf_«l.name».com = «com(tmp)»;
 
         «ENDFOR»
 
         % Same inertial properties expressed in a frame with origin in the COM of the link
         %  oriented as the default link-frame (the COM coordinates in such a frame should
         %  always be [0,0,0] ).
-        «val bp_com = Utilities::rototranslate(bp,
-                       bp.com.x.asFloat, bp.com.y.asFloat, bp.com.z.asFloat, 0,0,0, false)»
-        inertia_com_«robot.base.name».tensor = ...
-             «tensor(bp_com)»;
-        inertia_com_«robot.base.name».com = «com(bp_com)»;
-
-        «FOR l : robot.links»
-            «val params = l.inertiaParams»
-            «val params_com = Utilities::rototranslate(params, params.com.x.asFloat,
-                params.com.y.asFloat, params.com.z.asFloat, 0,0,0, false)»
+        «FOR l : allLinks»
+            «val tmp = comFrameIt.next»
             inertia_com_«l.name».tensor = ...
-                «tensor(params_com)»;
-            inertia_com_«l.name».com = «com(params_com)»;
+                «tensor(tmp)»;
+            inertia_com_«l.name».com = «com(tmp)»;
 
         «ENDFOR»
-    '''
+    '''}
+
+
     def private tensor(InertiaParams params) '''
          [[  «params.ix»,«TAB»-(«params.ixy»),«TAB»-(«params.ixz»)];
           [-(«params.ixy»),«TAB»  «params.iy» ,«TAB»-(«params.iyz»)];
           [-(«params.ixz»),«TAB»-(«params.iyz»),«TAB»  «params.iz»]]'''
     def private com(InertiaParams params) '''
          [«params.com.x.str»; «params.com.y.str»; «params.com.z.str»]'''
+    /*
+     * Fills three lists with the inertia parameters of all the links, expressed in
+     * different frames.
+     * First list: parameters as written in the robot model
+     * Second list: parameters expressed in the default link-frame
+     * Third list: parameters expressed in a frame with origin in the COM, aligned
+     *             as the default link-frame
+     * All the lists are ordered as robot.abstractLinks
+     */
+    def private allInertiaParams(Robot rob,
+        List<InertiaParams> userFrame,
+        List<InertiaParams> linkFrame,
+        List<InertiaParams> comFrame)
+    {
+        // Start with the robot base
+        var InertiaParams inLinkFrame = null
+        var InertiaParams inComFrame  = null
+        for(l : rob.abstractLinks) {
+            inLinkFrame = l.linkFrameInertiaParams
+            inComFrame  = Utilities::rototranslate(inLinkFrame, inLinkFrame.com.x.asFloat,
+                inLinkFrame.com.y.asFloat, inLinkFrame.com.z.asFloat, 0,0,0, false)
+
+            userFrame.add(l.inertiaParams)
+            linkFrame.add(inLinkFrame)
+            comFrame.add(inComFrame)
+        }
+    }
 
     /**
      * This template generates a matlab file with the initialization of
