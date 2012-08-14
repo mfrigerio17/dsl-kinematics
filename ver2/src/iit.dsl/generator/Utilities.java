@@ -69,7 +69,7 @@ public class Utilities {
         float cz = (float)Math.cos(rz);
 
         // The following is the matrix M that transform coordinates in the original frame
-        //  into coordinates of the new frame:
+        //  into coordinates of the new frame:  new_X_current
         // [  cos(ry)*cos(rz)    cos(rx)*sin(rz) + sin(rx)*sin(ry)*cos(rz)     sin(rx)*sin(rz) - cos(rx)*sin(ry)*cos(rz) ]
         // [                                                                                                             ]
         // [ - cos(ry)*sin(rz)   cos(rx)*cos(rz) - sin(rx)*sin(ry)*sin(rz)     cos(rx)*sin(ry)*sin(rz) + sin(rx)*cos(rz) ]
@@ -86,9 +86,14 @@ public class Utilities {
             // The numbers encode the roto-translation to move from N to C, so I need
             //  to invert them in order to have the transformation C --> N, to express
             //  in N the inertia-parameters currently expressed in C
-            tx = -tx;
-            ty = -ty;
-            tz = -tz;
+            // Rotate and invert the translation vector
+            float tmpx, tmpy, tmpz;
+            tmpx = M[0][0] * tx + M[0][1] * ty + M[0][2] * tz;
+            tmpy = M[1][0] * tx + M[1][1] * ty + M[1][2] * tz;
+            tmpz = M[2][0] * tx + M[2][1] * ty + M[2][2] * tz;
+            tx = -tmpx;
+            ty = -tmpy;
+            tz = -tmpz;
             //transpose M
             tmp = M[0][1];
             M[0][1] = M[1][0];
