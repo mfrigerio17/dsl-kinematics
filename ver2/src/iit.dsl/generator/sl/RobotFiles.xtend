@@ -524,13 +524,13 @@ class RobotFiles {
         char joint_names[][20]= {
             {"BASE"}
             «FOR Joint joint : robot.joints»
-            , «joint.name»
+            ,{"«joint.name»"}
             «ENDFOR»
         };
 
         char cart_names[][20]= {
             {"dummy"},
-            {"ENDEFF"},
+            {"ENDEFF"}
         };'''
 
     def Makefile(Robot robot) '''
