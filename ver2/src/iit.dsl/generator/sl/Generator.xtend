@@ -13,7 +13,7 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateRobotFiles(robot, fsa);
+        //generateRobotFiles(robot, fsa);
         generateRobotUserFiles(robot, fsa);
     }
 
@@ -33,14 +33,21 @@ class Generator implements IGenerator {
             roboFiles.SL_user_dot_h(robot))
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/src/SL_user_common.c",
-            roboFiles.SL_user_dot_h(robot))
+            roboFiles.SL_user_common_dot_c(robot))
 
         fsa.generateFile(slCommon.robotFolderName(robot) + "/Makefile", roboFiles.Makefile(robot))
     }
 
     def generateRobotUserFiles(Robot robot, IFileSystemAccess fsa) {
-///*
-        // ROBOT USER FILES
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/Gains.cf", roboUserFiles.confFile_gains(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/SensorCalibration.cf", roboUserFiles.confFile_sensorCalibration(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/WhichDOFs.cf", roboUserFiles.confFile_whichDOFs(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/SensorOffset.cf", roboUserFiles.confFile_sensorOffset(robot))    
+/*
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/LinkParameters.cf",
             roboUserFiles.linkParameters(robot))

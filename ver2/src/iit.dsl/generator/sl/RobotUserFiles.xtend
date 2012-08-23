@@ -25,6 +25,72 @@ class RobotUserFiles {
         «ENDFOR»
         '''
 
+    def confFile_gains(Robot robot) '''
+        «FOR Joint joint : robot.joints»
+            «joint.name»   100.0    1.0    0.0   1000
+        «ENDFOR»
+    '''
+
+    def confFile_sensorCalibration(Robot robot) '''
+        «FOR Joint joint : robot.joints»
+            «joint.name»   0 0 0 0 0 1 1
+        «ENDFOR»
+    '''
+
+    def confFile_whichDOFs(Robot robot) '''
+        /* this file contains a list of DOFs that are computed by each processor
+           Note: the file is parsed according to keywords, after the keyword,
+           the values need to come in the correct sequence */
+
+           /* format: keyword, <list of joint names for a processor> */
+
+        task_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+
+        task_sim_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+
+        motor_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+
+        motor_sim_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+
+        vision_servo
+        vision_sim_servo
+        invdyn_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+
+        invdyn_sim_servo
+            «FOR Joint joint : robot.joints»
+                «joint.name»
+            «ENDFOR»
+    '''
+
+    def confFile_sensorOffset(Robot robot) '''
+        /* this file contains the specification for position offsets and min/max
+           position values (min and max AFTER offset was subtracted. Additionally,
+           the file allows to set a default posture for the robot.
+           Note: the file is parsed according to keywords, after the keyword,
+                 the values need to come in the correct sequence */
+        /* format: keyword, min , max, default, rest, weight, offset  */
+        /* Please edit this file according to your needs */
+
+       «FOR Joint joint : robot.joints»
+            «joint.name» 0.0  0.0  0.0  0.0  0.1  0.0
+       «ENDFOR»
+    '''
+
     def imakefileUnix(Robot robot) '''
         «val nameUpperCase = robot.name.toUpperCase»
         «val nameLowerCase = robot.name.toLowerCase»
