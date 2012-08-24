@@ -142,6 +142,8 @@ class RobotUserFiles {
         SOURCES = $(SRCS_X«nameUpperCase») $(SRCS_XOPENGL) $(SRCS_XSIM)
         OBJECTS = $(OBJS_X«nameUpperCase») $(OBJS_XOPENGL) $(OBJS_XSIM) $(MYOBJS)
 
+        CPP_OBJECTS=«robot.benchmarkIDFileName».o «robot.main_inertiaM_filename».o
+
         InstallProgram($(LAB_ROOT)/«nameLowerCase»/$(MACHTYPE)/x«nameLowerCase»,$(BINDIR))
         InstallProgram($(LAB_ROOT)/«nameLowerCase»/$(MACHTYPE)/xmotor,$(BINDIR))
         InstallProgram($(LAB_ROOT)/«nameLowerCase»/$(MACHTYPE)/xvision,$(BINDIR))
@@ -150,10 +152,11 @@ class RobotUserFiles {
         CPPProgramListTarget( xopengl, $(OBJS_XOPENGL), $(LIB_OPENGL) )
         CPPProgramListTarget( xsimulation, $(OBJS_XSIM), $(LIB_SIM) )
 
-        NormalObjRule( $(OBJECTS) )
-
         CPPProgramListTarget(benchID, «robot.benchmarkIDFileName».o $(OBJS_XSIM), $(LIB_SIM))
-        NormalCPPObjRule(«robot.benchmarkIDFileName».o)'''
+        CPPProgramListTarget(jsim, «robot.main_inertiaM_filename».o $(OBJS_XSIM), $(LIB_SIM))
+
+        NormalObjRule( $(OBJECTS) )
+        NormalCPPObjRule( $(CPP_OBJECTS) )'''
 
 
     def main_benchmarkID(Robot robot) '''
@@ -439,7 +442,7 @@ class RobotUserFiles {
         CXXFLAGS += -g -Wall -O3 -march=native -mtune=native -D $(MACHTYPE) -D UNIX -D EIGEN_NO_DEBUG
         LDFLAGS  += -L$(SL_ROOT)/lib/$(MACHTYPE) -L/opt/local/lib -L/sw/lib -L/usr/X11/lib
 
-        BINARIES = xtask xopengl xsimulation dyntest
+        BINARIES = xtask xopengl xsimulation benchID jsimTest
 
         # ------- #
         # SOURCES #
@@ -450,8 +453,8 @@ class RobotUserFiles {
         SRCS_xopengl = initUserGraphics.c
         SRCS_xsimulation = initUserSimulation.c
 
-        SRCS_dyntest = dynTest_main.cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::source(robot)».cpp initUserSimulation.c
-        SRCS_jsMtest = main_inertiaM.cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::inertiaMatrixHeader(robot)».cpp
+        SRCS_benchID  = «robot.benchmarkIDFileName».cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::source(robot)».cpp initUserSimulation.c
+        SRCS_jsimTest = «robot.main_inertiaM_filename».cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::inertiaMatrixHeader(robot)».cpp
 
         #
         # Architecture dependent source files:
@@ -477,8 +480,8 @@ class RobotUserFiles {
         LIBS_xopengl_SL = SLopenGL SLcommon «nameLower»_openGL «nameLower» utility
         LIBS_xsimulation_SL = SLsimulation SLcommon lwpr «nameLower»_simulation «nameLower» utility
 
-        LIBS_dyntest = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
-        LIBS_jsMtest = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
+        LIBS_benchID  = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
+        LIBS_jsimTest = $(LIBS_xtask_SL) $(LIBS_xsimulation_SL) rbd
 
         LIBS_xtask   = $(LIBS_xtask_SL)
         LIBS_xopengl = $(LIBS_xopengl_SL) $(LIBS_OPENGL) Xinerama X11
