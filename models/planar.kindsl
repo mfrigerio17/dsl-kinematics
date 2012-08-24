@@ -16,7 +16,7 @@ link link1 {
 	inertia_params {
 		mass = 1.0
 		CoM = (0.5, .0, .0)
-		Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
+		Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
 	}
 
 	children {
@@ -30,7 +30,7 @@ link link2 {
 	inertia_params {
 		mass = 1.0
 		CoM = (0.5, .0, .0)
-		Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
+		Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
 	}
 
 	children {
@@ -45,7 +45,7 @@ link link3 {
 	inertia_params {
 		mass = 1.0
 		CoM = (0.5, .0, .0)
-		Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
+		Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
 	}
 
 	children {
@@ -58,7 +58,7 @@ link link4 {
     inertia_params {
         mass = 1.0
         CoM = (0.5, .0, .0)
-        Ix= 0.0025   Iy= 0.08458  Iz= 0.08458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
+        Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
     }
 
     children {}
