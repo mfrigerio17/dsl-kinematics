@@ -323,11 +323,12 @@ class RobotUserFiles {
 
         def main_inertiaM(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»
+        «val robotdynNS = robotNS + "::" + Names$Namespaces::dynamics»
         #include <iostream>
         #include <fstream>
         #include <ctime>
 
-        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+        #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::inertiaMatrixHeader(robot)».h>
 
         #include "SL.h"
         #include "SL_user.h"
@@ -357,9 +358,9 @@ class RobotUserFiles {
             std::srand(std::time(NULL)); // initialize random number generator
             fillState(q, currentState);
             SL_ForDynComp(currentState, &basePosition, &baseOrient, ux, endeff, rbdM, rbdCG);
-            «robotNS»::«Names$GlobalVars::jsInertia»(q);
+            «robotdynNS»::«Names$GlobalVars::jsInertia»(q);
 
-            «robotNS»::«Names$Types::jspaceMLocal» SLM;
+            «robotdynNS»::«Names$Types::jspaceMLocal» SLM;
 
             // Copies the matrix of SL into an Eigen matrix
             «FOR Joint jo : robot.joints»
@@ -370,9 +371,9 @@ class RobotUserFiles {
 
             //cout << "SL:" << endl << (SLM.array().abs() < 1E-4).select(0, SLM) << endl;
             //cout << "Me:" << endl <<
-              //      («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotNS»::«Names$GlobalVars::jsInertia»)  << endl;
+              //      («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotdynNS»::«Names$GlobalVars::jsInertia»)  << endl;
 
-            «robotNS»::«Names$Types::jspaceMLocal»::MatrixType diff = SLM - «robotNS»::«Names$GlobalVars::jsInertia»;
+            «robotdynNS»::«Names$Types::jspaceMLocal»::MatrixType diff = SLM - «robotdynNS»::«Names$GlobalVars::jsInertia»;
             cout << "difference:" << endl << (diff.array().abs() < 1E-5).select(0, diff) << endl;
 
             //cout << SLM.block<6,6>(0,0) << endl;
