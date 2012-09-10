@@ -22,6 +22,7 @@ class Generator implements IGenerator {
 
     TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
     Jacobians  jacGen   = new Jacobians()
+    Jsim       jsimGen  = new Jsim()
     Transforms transGen = null
 
     private String TAB = "\t"
@@ -29,11 +30,12 @@ class Generator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-        //fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
-
-        //generateJacobiansFiles(robot, fsa)
-        //generateTransformsFiles(robot, fsa);
-        generatePlotFramesFile(robot, fsa)
+//        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
+//
+//        generateJacobiansFiles(robot, fsa)
+//        generateTransformsFiles(robot, fsa);
+//        generatePlotFramesFile(robot, fsa)
+//        generateJSIMFiles(robot, fsa);
     }
 
 
@@ -69,6 +71,11 @@ class Generator implements IGenerator {
         fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
     }
 
+//    def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
+//        fsa.generateFile(robot.name.toLowerCase() + "_init_jsim.m"  , jsimGen.jsim_init_code(robot))
+//        fsa.generateFile(robot.name.toLowerCase() + "_update_jsim.m", jsimGen.jsim_update_code(robot))
+//    }
+
     /**
      * Matlab code that creates several structs with the inertia parameters of the links
      * of the given robot.
@@ -93,9 +100,11 @@ class Generator implements IGenerator {
         % Inertia parameters as written in the .kindsl model file
         «FOR l : allLinks»
             «val tmp = userFrameIt.next»
-            inertia_«l.name».tensor = ...
+            «val struct = "inertia_" + l.name»
+            «struct».mass = «tmp.mass»;
+            «struct».tensor = ...
                 «tensor(tmp)»;
-            inertia_«l.name».com = «com(tmp)»;
+            «struct».com = «com(tmp)»;
 
         «ENDFOR»
 
@@ -103,9 +112,11 @@ class Generator implements IGenerator {
         %  the previous ones, depending on the model file)
         «FOR l : allLinks»
             «val tmp = linkFrameIt.next»
-            inertia_lf_«l.name».tensor = ...
+            «val struct = "inertia_lf_" + l.name»
+            «struct».mass = «tmp.mass»;
+            «struct».tensor = ...
                 «tensor(tmp)»;
-            inertia_lf_«l.name».com = «com(tmp)»;
+            «struct».com = «com(tmp)»;
 
         «ENDFOR»
 
@@ -114,9 +125,11 @@ class Generator implements IGenerator {
         %  always be [0,0,0] ).
         «FOR l : allLinks»
             «val tmp = comFrameIt.next»
-            inertia_com_«l.name».tensor = ...
+            «val struct = "inertia_com_" + l.name»
+            «struct».mass = «tmp.mass»;
+            «struct».tensor = ...
                 «tensor(tmp)»;
-            inertia_com_«l.name».com = «com(tmp)»;
+            «struct».com = «com(tmp)»;
 
         «ENDFOR»
     '''}
