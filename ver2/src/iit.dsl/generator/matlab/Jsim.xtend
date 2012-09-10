@@ -13,9 +13,14 @@ class Jsim {
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
     def private inertiaName(AbstractLink l) '''inertia_lf_«l.name».tensor6D'''
 
+    private static String jsim_varName = "H"
+    private static String jsim_inv_varName = "Hinv"
+
     def jsim_init_code(Robot robot) '''
-        H = zeros(«robot.joints.size»,«robot.joints.size»);
-        Hinv = H;
+        «jsim_varName» = zeros(«robot.joints.size»,«robot.joints.size»);
+        «jsim_inv_varName» = «jsim_varName»;
+        L = «jsim_varName»;
+        Linv = «jsim_varName»;
         «val endLinks = chainEndLinks(robot)»
         «FOR l : endLinks»
             «inertiaCompositeName(l)» = «inertiaName(l)»;
@@ -40,10 +45,10 @@ class Jsim {
             «val linkJoint = getJoint(parent, l)»
             «IF linkJoint instanceof PrismaticJoint»
                 F = «inertiaCompositeName(l)»(:,6);
-                H(«linkJoint.ID», «linkJoint.ID») = F(6);
+                «jsim_varName»(«linkJoint.ID», «linkJoint.ID») = F(6);
             «ELSE»
                 F = «inertiaCompositeName(l)»(:,3);
-                H(«linkJoint.ID», «linkJoint.ID») = F(3);
+                «jsim_varName»(«linkJoint.ID», «linkJoint.ID») = F(3);
             «ENDIF»
 
             «val chain = iit::dsl::generator::common::TreeUtils::chainToBase(l)»
@@ -65,11 +70,12 @@ class Jsim {
                 strBuff.append('''
                 F = asForceTransform(«iit::dsl::generator::common::Transforms::l1_X_l2__defaultName(transModel, parent, link)») * F;
                 tmp = F';
-                H(«rowIndex», «parentJ.ID») = tmp«IF parentJ instanceof PrismaticJoint»(:,6)«ELSE»(:,3)«ENDIF»;
-                H(«parentJ.ID», «rowIndex») = H(«rowIndex», «parentJ.ID»); % the matrix is symmetric
+                «jsim_varName»(«rowIndex», «parentJ.ID») = tmp«IF parentJ instanceof PrismaticJoint»(:,6)«ELSE»(:,3)«ENDIF»;
+                «jsim_varName»(«parentJ.ID», «rowIndex») = «jsim_varName»(«rowIndex», «parentJ.ID»); % the matrix is symmetric
                 ''');
             }
         }
         return strBuff;
     }
+
 }
