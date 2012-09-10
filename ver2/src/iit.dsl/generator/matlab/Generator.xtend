@@ -35,7 +35,7 @@ class Generator implements IGenerator {
 //        generateJacobiansFiles(robot, fsa)
 //        generateTransformsFiles(robot, fsa);
 //        generatePlotFramesFile(robot, fsa)
-//        generateJSIMFiles(robot, fsa);
+        generateJSIMFiles(robot, fsa);
     }
 
 
@@ -71,10 +71,10 @@ class Generator implements IGenerator {
         fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
     }
 
-//    def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
-//        fsa.generateFile(robot.name.toLowerCase() + "_init_jsim.m"  , jsimGen.jsim_init_code(robot))
-//        fsa.generateFile(robot.name.toLowerCase() + "_update_jsim.m", jsimGen.jsim_update_code(robot))
-//    }
+    def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(robot.name.toLowerCase() + "_init_jsim.m"  , jsimGen.jsim_init_code(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_update_jsim.m", jsimGen.jsim_update_code(robot))
+    }
 
     /**
      * Matlab code that creates several structs with the inertia parameters of the links
