@@ -117,6 +117,8 @@ class Generator implements IGenerator {
             «struct».tensor = ...
                 «tensor(tmp)»;
             «struct».com = «com(tmp)»;
+            block = «struct».mass*crossProductMatrix(«struct».com);
+            «struct».tensor6D = [«struct».tensor, block; block', «struct».mass*eye(3)];
 
         «ENDFOR»
 
