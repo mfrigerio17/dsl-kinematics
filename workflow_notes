@@ -20,16 +20,16 @@ kindsl
     * environment variables
         - MAXIMA_LIBS_PATHS: where to find maxima code for transforms etc.
         - EIGEN_ROOT: path to the Eigen library root folder (required to generate Makefile)
-        - IITRBD_ROOT: path to the root folder of the IIT-RBD library (required to generate Makefile)
+        - IIT_RBD_ROOT: path to the root folder of the IIT-RBD library (required to generate Makefile)
 
 
 === Dependencies of DSLs === (to properly configure Eclipse projects)
 
-kindsl depends on
+The kinematics DSL depends on
     - the CoordinateTransforms DSL
     - the TransformSpec DSL
     - the Maxima DSL
-coord_trans depens on
+the CoordinateTransforms DSL depens on
     - the Maxima DSL
 
 === External libraries dependencies ===
@@ -37,7 +37,16 @@ coord_trans depens on
 maxima DSL:
     - jacomax libraries
 
+==========================================
+=== Dependencies of the generated code ===
+==========================================
 
+## Matlab ##
+- function crossProductMatrix
+- function asForceTransform
+
+- function plotRefFrame
+- function inertia_ellipsoid
 
 In the robotUser folder in SL, add symbolic links to headers and sources
 related to coordinates transformations and matrices
