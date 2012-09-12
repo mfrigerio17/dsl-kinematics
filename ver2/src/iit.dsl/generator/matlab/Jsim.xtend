@@ -78,4 +78,86 @@ class Jsim {
         return strBuff;
     }
 
+    def jsim_inverse_code(Robot robot) '''
+        % The following code computes the lower triangular matrix L such that
+        %  «jsim_varName» = L' L  (LTL factorization)
+        % Then it computes the inverse of L and the inverse of «jsim_varName»
+
+        % LTL factorization
+        «LTLfactorization(robot)»
+
+        % Inverse of L
+        «Linverse(robot)»
+
+        % Inverse of «jsim_varName»
+        «JSIMinverse(robot)»
+    '''
+
+    def LTLfactorization(Robot robot) '''
+        L = tril(«jsim_varName»); % lower triangular
+        «FOR Joint joint : robot.joints.reverseView»
+            «val row = joint.getID()»
+            % Joint «joint.name», index «row» :
+            L(«row», «row») = sqrt(L(«row», «row»));
+            «val chainToBase = iit::dsl::generator::common::TreeUtils::chainToBase(joint.predecessorLink)»
+            «FOR ancestor : chainToBase»
+                «val col = ancestor.connectingJoint.getID»
+                L(«row», «col») = L(«row», «col») / L(«row», «row»);
+            «ENDFOR»
+            «FOR ancestor : chainToBase»
+                «val i = ancestor.connectingJoint.getID»
+                «val secondChain = iit::dsl::generator::common::TreeUtils::chainToBase(ancestor)»
+                «FOR ancestor2 : secondChain»
+                    «val j = ancestor2.connectingJoint.getID»
+                    L(«i», «j») = L(«i», «j») - L(«row», «i») * L(«row», «j»);
+                «ENDFOR»
+            «ENDFOR»
+
+        «ENDFOR»
+    '''
+    def Linverse(Robot robot) '''
+        «FOR jo : robot.joints»
+            «val i = jo.ID»
+            Linv(«i», «i») = 1 / L(«i», «i»);
+        «ENDFOR»
+        «FOR jo : robot.joints.drop(1)»
+            «val link = jo.successorLink»
+            «val chain = getChainJoints(buildChain(jo.predecessorLink, robot.base))»
+            «val i = jo.ID»
+            «FOR jo2 : chain»
+                «val j = jo2.ID»
+                «val subChain = getChainJoints(buildChain(jo2.successorLink, link))»
+                Linv(«i», «j») = - Linv(«j», «j») * («FOR jo3 : subChain»«val k = jo3.ID»(Linv(«i», «k») * L(«k», «j»)) + «ENDFOR»0);
+            «ENDFOR»
+        «ENDFOR»
+    '''
+
+    def JSIMinverse(Robot robot) {
+        val strBuff = new StringConcatenation()
+
+        for(jo_i : robot.joints) {
+            val i = jo_i.ID
+            // For all the joints in the chain up to the base, including 'jo_i' itself ...
+            val chain = getChainJoints(buildChain(jo_i.successorLink, robot.base))
+            for(jo_j : chain) {
+                val j = jo_j.ID
+                strBuff.append('''«jsim_inv_varName»(«i», «j») = ''')
+
+                // For all the joints from the base to joint 'jo_j' itself ...
+                val chain2 = getChainJoints(buildChain(robot.base, jo_j.successorLink))
+                for(jo_k : chain2) {
+                    val k = jo_k.ID
+                    strBuff.append(''' + (Linv(«i», «k») * Linv(«j», «k»))''')
+                }
+                strBuff.append(";\n")
+                // Exploits the symmetry to fill the other elements of the matrix
+                if(i != j) {
+                    strBuff.append('''«jsim_inv_varName»(«j», «i») = «jsim_inv_varName»(«i», «j»);''')
+                    strBuff.append("\n")
+                }
+            }
+        }
+        return strBuff
+    }
+
 }

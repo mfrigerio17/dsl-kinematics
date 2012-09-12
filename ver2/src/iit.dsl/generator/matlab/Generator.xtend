@@ -74,6 +74,7 @@ class Generator implements IGenerator {
     def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(robot.name.toLowerCase() + "_init_jsim.m"  , jsimGen.jsim_init_code(robot))
         fsa.generateFile(robot.name.toLowerCase() + "_update_jsim.m", jsimGen.jsim_update_code(robot))
+        fsa.generateFile(robot.name.toLowerCase() + "_jsim_inverse.m", jsimGen.jsim_inverse_code(robot))
     }
 
     /**
