@@ -18,6 +18,10 @@ import iit.dsl.generator.Utilities
 import java.util.List
 
 class Generator implements IGenerator {
+    def static String robotFolderName(Robot robot) {
+        return robot.name.toLowerCase()
+    }
+
     extension Common common = new Common()
 
     TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
@@ -29,27 +33,27 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name.toLowerCase() + "_inertia.m", inertiaParams(robot))
-//        fsa.generateFile(robot.name.toLowerCase() + "_feath_model.m", featherstoneMatlabModel(robot))
-//
-//        generateJacobiansFiles(robot, fsa)
-//        generateTransformsFiles(robot, fsa);
-//        generatePlotFramesFile(robot, fsa)
+        fsa.generateFile(robotFolderName(robot) + "/inertia.m", inertiaParams(robot))
+        fsa.generateFile(robotFolderName(robot) + "/feath_model.m", featherstoneMatlabModel(robot))
+
+        generateJacobiansFiles(robot, fsa)
+        generateTransformsFiles(robot, fsa);
+        generatePlotFramesFile(robot, fsa)
         generateJSIMFiles(robot, fsa);
     }
 
 
     def generatePlotFramesFile(Robot robot, IFileSystemAccess fsa) {
         val PlotFrames gen = new PlotFrames(robot)
-        fsa.generateFile(robot.name.toLowerCase() + "_plot_frames.m"  , gen.plotFramesCode())
+        fsa.generateFile(robotFolderName(robot) + "/plot_frames.m"  , gen.plotFramesCode())
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
         transGen = new Transforms(robot)
-        fsa.generateFile(robot.name.toLowerCase() + "_init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
@@ -67,14 +71,14 @@ class Generator implements IGenerator {
         for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
             jacobians.add(new Jacobian(robot, jSpec))
         }
-        fsa.generateFile(robot.name.toLowerCase() + "_init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
-        fsa.generateFile(robot.name.toLowerCase() + "_update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
+        fsa.generateFile(robotFolderName(robot) + "/init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
+        fsa.generateFile(robotFolderName(robot) + "/update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
     }
 
     def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(robot.name.toLowerCase() + "_init_jsim.m"  , jsimGen.jsim_init_code(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_update_jsim.m", jsimGen.jsim_update_code(robot))
-        fsa.generateFile(robot.name.toLowerCase() + "_jsim_inverse.m", jsimGen.jsim_inverse_code(robot))
+        fsa.generateFile(robotFolderName(robot) + "/init_jsim.m"  , jsimGen.jsim_init_code(robot))
+        fsa.generateFile(robotFolderName(robot) + "/update_jsim.m", jsimGen.jsim_update_code(robot))
+        fsa.generateFile(robotFolderName(robot) + "/jsim_inverse.m", jsimGen.jsim_inverse_code(robot))
     }
 
     /**
