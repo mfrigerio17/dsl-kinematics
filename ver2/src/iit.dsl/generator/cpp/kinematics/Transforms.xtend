@@ -1,55 +1,32 @@
 package iit.dsl.generator.cpp.kinematics
 
 import org.eclipse.xtext.generator.IFileSystemAccess
-import java.io.File
 
-import iit.dsl.TransformsAccessor
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.generator.FramesTransforms
 import iit.dsl.generator.cpp.Names
 
 
 class Transforms {
-    private static String path_transformsModel  = "generated_code/misc" // default value
-    private static String path_transformsMaxima = "generated_code/maxima"
-    /**
-     * Sets the filesystem path of the .ctdsl file.
-     * This is the path that will be used to look for the DSL document
-     * with the abstrac description of the coordinate transformation matrices.
-     */
-    def static setPath_transformsModel(String path) {
-        path_transformsModel = path;
-    }
-    /**
-     * Sets the filesystem path of the Maxima source files.
-     * This is the path that will be used to look for generated files with
-     * the Maxima implementation of the transformation matrices, which are
-     * required to generate the C++ implementation.
-     */
-    def static setPath_transformsMaxima(String path) {
-        path_transformsMaxima = path;
-    }
 
     def public static child_X_parent__mxName(AbstractLink parent, AbstractLink child) '''
         fr_«child.name»_X_fr_«parent.name»'''
     def public static parent_X_child__mxName(AbstractLink parent, AbstractLink child) '''
         fr_«parent.name»_X_fr_«child.name»'''
 
-    private TransformsAccessor transformsAccessor = new TransformsAccessor()
     private iit.dsl.coord.generator.cpp.EigenFiles eigenCppTransformsGenerator =
        new iit.dsl.coord.generator.cpp.EigenFiles()
 
+    new() {
+         // Configure the Maxima converter that will be used by this generator
+        iit::dsl::coord::generator::MaximaConverter::setGenMaximaCodeFolder(
+            iit::dsl::generator::common::Transforms::getPath_transformsMaxima()
+        );
+    }
 
 
     def public generate(Robot robot, IFileSystemAccess fsa) {
-        // Configure the Maxima converter that will be used by the generator
-        iit::dsl::coord::generator::MaximaConverter::setGenMaximaCodeFolder(path_transformsMaxima);
-
-        val File ctdslFile = new File(path_transformsModel + "/" + FramesTransforms::fileName(robot));
-        val iit.dsl.coord.coordTransDsl.Model transformsModel =
-           transformsAccessor.getTransformsModel(robot, ctdslFile);
-
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot);
         val folder = Names$Files::folder(robot);
         fsa.generateFile(
             folder + "/" + Names$Files::transformsHeader(robot) + ".h",
