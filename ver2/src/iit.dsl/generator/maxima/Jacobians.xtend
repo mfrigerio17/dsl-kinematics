@@ -1,6 +1,5 @@
 package iit.dsl.generator.maxima
 
-import com.google.inject.Inject
 import org.eclipse.xtend2.lib.StringConcatenation
 
 
@@ -15,7 +14,7 @@ import iit.dsl.generator.Jacobian
 class Jacobians {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
-    @Inject iit.dsl.coord.generator.Maxima coordsMaxima //use injection otherwise you have to manually initialize its sub-members
+    iit.dsl.coord.generator.Maxima coordsMaxima = new iit.dsl.coord.generator.Maxima()
 
     def static fileName(Robot robot) '''«robot.name»_jacobians'''
 
