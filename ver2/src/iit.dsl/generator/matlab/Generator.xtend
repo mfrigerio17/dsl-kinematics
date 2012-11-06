@@ -86,9 +86,9 @@ class Generator implements IGenerator {
     }
 
     /**
-     * Matlab code that creates several structs with the inertia parameters of the links
-     * of the given robot.
-     * Each struct has two members, the inertia tensor and the COM location (3d vector).
+     * Generates Matlab code that creates several structs with the inertia parameters
+     * of the links of the given robot.
+     * Each struct has three members, the inertia tensor, the COM location (3d vector) and the mass.
      * This code contains the values corresponding to the inertia parameters as contained
      * in the robot model, as well as parameters expressed in the default frame of each link
      * and in a frame centered in the COM, aligned with the link-frame. Therefore, three
