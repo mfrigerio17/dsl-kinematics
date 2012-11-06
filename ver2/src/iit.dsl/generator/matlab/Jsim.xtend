@@ -36,8 +36,12 @@ class Jsim {
             % Link «l.name»
             «val parent = l.parent»
             «IF !(parent.equals(robot.base))»
-                «val parent_X_child = iit::dsl::generator::common::Transforms::l1_X_l2__defaultName(transformsModel, parent, l)»
-                «val child_X_parent = iit::dsl::generator::common::Transforms::l2_X_l1__defaultName(transformsModel, parent, l)»
+                «val parent_X_child = iit::dsl::coord::generator::matlab::Generator::identifier(
+                    iit::dsl::generator::common::Transforms::getTransform(transformsModel, parent, l),
+                    iit::dsl::coord::generator::Utilities$MatrixType::_6D)»
+                «val child_X_parent = iit::dsl::coord::generator::matlab::Generator::identifier(
+                    iit::dsl::generator::common::Transforms::getTransform(transformsModel, l, parent),
+                    iit::dsl::coord::generator::Utilities$MatrixType::_6D)»
                 «inertiaCompositeName(parent)» = «inertiaName(parent)» + asForceTransform(«parent_X_child») * «inertiaCompositeName(l)» * «child_X_parent»;
             «ENDIF»
 
@@ -68,7 +72,9 @@ class Jsim {
             if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
                 parentJ = getConnectingJoint(parent);
                 strBuff.append('''
-                F = asForceTransform(«iit::dsl::generator::common::Transforms::l1_X_l2__defaultName(transModel, parent, link)») * F;
+                F = asForceTransform(«iit::dsl::coord::generator::matlab::Generator::identifier(
+                    iit::dsl::generator::common::Transforms::getTransform(transModel, parent, link),
+                    iit::dsl::coord::generator::Utilities$MatrixType::_6D)») * F;
                 tmp = F';
                 «jsim_varName»(«rowIndex», «parentJ.ID») = tmp«IF parentJ instanceof PrismaticJoint»(:,6)«ELSE»(:,3)«ENDIF»;
                 «jsim_varName»(«parentJ.ID», «rowIndex») = «jsim_varName»(«rowIndex», «parentJ.ID»); % the matrix is symmetric

@@ -16,7 +16,7 @@ class Transforms {
     /**
      * Sets the filesystem path of the .ctdsl file.
      * This is the path that will be used to look for the DSL document
-     * with the abstrac description of the coordinate transformation matrices.
+     * with the abstract description of the coordinate transformation matrices.
      */
     def static setPath_transformsModel(String path) {
         path_transformsModel = path;
@@ -38,6 +38,14 @@ class Transforms {
     def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot) {
         val File ctdslFile = new File(path_transformsModel + "/" + FramesTransforms::fileName(robot));
         return  transformsAccessor.getTransformsModel(robot, ctdslFile);
+    }
+
+    def static iit.dsl.coord.coordTransDsl.Transform getTransform(
+        iit.dsl.coord.coordTransDsl.Model model, AbstractLink left, AbstractLink right)
+    {
+        return coordTransCommon.getTransform(model,
+                common.getFrameName(left).toString(),
+                common.getFrameName(right).toString())
     }
 
     def static l1_X_l2__defaultName(iit.dsl.coord.coordTransDsl.Model model,

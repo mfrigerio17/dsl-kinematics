@@ -3,11 +3,11 @@ package iit.dsl.generator.matlab
 import iit.dsl.kinDsl.Robot
 import iit.dsl.generator.Common
 import iit.dsl.TransformsAccessor
-import java.io.File
 import iit.dsl.generator.FramesTransforms
 import iit.dsl.kinDsl.Link
 import iit.dsl.generator.Utilities
 
+import java.io.File
 
 class PlotFrames {
     private static String transformsModelPath = "generated_code/misc" // default value
@@ -55,7 +55,8 @@ class PlotFrames {
             «IF T == null»
                 % I could not find the transform from base to link «l.name»; are you generating it?
             «ELSE»
-                «val tname = coordTransCommon.name(T)»
+                «val tname = iit::dsl::coord::generator::matlab::Generator::identifier(T,
+                    iit::dsl::coord::generator::Utilities$MatrixType::HOMOGENEOUS)»
                 «val jointDist = jointDistance(l)»
                 «IF l.childrenList.children.size > 0»
                     scaling = 0.33 * «jointDist»;
