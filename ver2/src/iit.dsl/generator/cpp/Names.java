@@ -36,10 +36,10 @@ public class Names {
                 return "test";
             }
             static public String inertiaMatrixHeader(Robot r) {
-                return "jspaceM";
+                return "jsim";
             }
             static public String inertiaMatrixTestMain(Robot r) {
-                return "jspaceM_test";
+                return "jsim_test";
             }
             static public String main_benchmarkID(Robot r) {
                 return "benchmarkID";
@@ -48,7 +48,7 @@ public class Names {
                 return "main_sine_task_ID";
             }
             static public String main_JSIM_test(Robot r) {
-                return "test_JSIM";
+                return "test_jsim";
             }
         }
 
@@ -101,6 +101,6 @@ public class Names {
     }
 
     static public class GlobalVars {
-        static final public String jsInertia = "jspaceM";
+        static final public String jsInertia = "jsim";
     }
 }
