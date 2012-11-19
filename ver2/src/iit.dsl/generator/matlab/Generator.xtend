@@ -12,10 +12,12 @@ import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.InertiaParams
 import iit.dsl.TransSpecsAccessor
-import java.util.ArrayList
 import iit.dsl.generator.Jacobian
 import iit.dsl.generator.Utilities
+
 import java.util.List
+import java.io.File
+import java.util.ArrayList
 
 class Generator implements IGenerator {
     def static String robotFolderName(Robot robot) {
@@ -59,6 +61,14 @@ class Generator implements IGenerator {
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
                     desiredTrasformsAccessor.getDesiredTransforms(robot)
+        if(desiredJacs != null) {
+            jacobiansFiles(robot, fsa, desiredJacs)
+        }
+    }
+
+    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa, File desired) {
+        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
+                    desiredTrasformsAccessor.getDesiredTransforms(desired)
         if(desiredJacs != null) {
             jacobiansFiles(robot, fsa, desiredJacs)
         }
