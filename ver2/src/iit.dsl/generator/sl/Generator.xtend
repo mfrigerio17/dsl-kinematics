@@ -47,7 +47,6 @@ class Generator implements IGenerator {
             "/config/WhichDOFs.cf", roboUserFiles.confFile_whichDOFs(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/SensorOffset.cf", roboUserFiles.confFile_sensorOffset(robot))    
-/*
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/LinkParameters.cf",
             roboUserFiles.linkParameters(robot))
@@ -61,7 +60,6 @@ class Generator implements IGenerator {
             "/src/" + main_inertiaM_filename(robot) + ".cpp",
             roboUserFiles.main_inertiaM(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
-//*/
     }
 
 }
