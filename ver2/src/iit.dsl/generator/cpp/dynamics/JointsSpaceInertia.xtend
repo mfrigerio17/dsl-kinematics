@@ -27,10 +27,11 @@ class JointsSpaceInertia {
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
         namespace «Names$Namespaces::dynamics» {
-
-        //typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> «Names$Types::jspaceMLocal»;
-
-        class «Names$Types::jspaceMLocal» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>
+        «val className = Names$Types::jspaceMLocal»
+        /**
+         * The type of the Joint Space Inertia Matrix (JSIM) of the robot «robot.name».
+         */
+        class «className» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>
         {
             private:
                 typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> Base;
@@ -39,8 +40,8 @@ class JointsSpaceInertia {
                 typedef Base::Index Index;
                 typedef Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> MatrixType;
             public:
-                «Names$Types::jspaceMLocal»();
-                ~«Names$Types::jspaceMLocal»() {}
+                «className»();
+                ~«className»() {}
 
                 const «Names$Types::jspaceMLocal»& operator()(const «Names$Types::jointState»&);
 
@@ -48,9 +49,30 @@ class JointsSpaceInertia {
                 const Scalar& operator()(Index row, Index col) const;
                 Scalar& operator()(Index row, Index col);
 
-                const MatrixType& getL();
-                const MatrixType& getLinv();
-                const MatrixType& getInv();
+                /**
+                 * Computes and saves the matrix L of the L^T L factorization of this JSIM.
+                 */
+                void computeL();
+                /**
+                 * Computes and saves the inverse of this JSIM.
+                 * This function assumes that computeL() has been called already, since it
+                 * uses L to compute the inverse. The algorithm takes advantage of the branch
+                 * induces sparsity of the robot, if any.
+                 */
+                void computeInverse();
+                /**
+                 * Returns an unmodifiable reference to the matrix L. See also computeL()
+                 */
+                const MatrixType& getL() const;
+                /**
+                 * Returns an unmodifiable reference to the inverse of this JSIM
+                 */
+                const MatrixType& getInverse() const;
+            protected:
+                /**
+                 * Computes and saves the inverse of the matrix L. See also computeL()
+                 */
+                void computeLInverse();
             private:
                 // The inertia tensor of each link
                 «FOR l : robot.links»
@@ -71,14 +93,22 @@ class JointsSpaceInertia {
         };
 
 
-        inline const «Names$Types::jspaceMLocal»::Scalar&
-        «Names$Types::jspaceMLocal»::operator()(Index row, Index col) const {
+        inline const «className»::Scalar&
+        «className»::operator()(Index row, Index col) const {
             return this->Base::operator() (row,col);
         }
 
-        inline «Names$Types::jspaceMLocal»::Scalar&
-        «Names$Types::jspaceMLocal»::operator()(Index row, Index col) {
+        inline «className»::Scalar&
+        «className»::operator()(Index row, Index col) {
             return this->Base::operator() (row,col);
+        }
+
+        inline const «className»::MatrixType& «className»::getL() const {
+            return L;
+        }
+
+        inline const «className»::MatrixType& «className»::getInverse() const {
+            return inverse;
         }
 
         // The joint space inertia matrix of this robot
@@ -168,21 +198,19 @@ class JointsSpaceInertia {
 
         #undef DATA
 
-        const «class_qualifier»::MatrixType& «class_qualifier»::getL() {
+        void «class_qualifier»::computeL() {
             «LTLfactorization(robot)»
-            return L;
         }
 
-        const «class_qualifier»::MatrixType& «class_qualifier»::getLinv() {
-            //assumes L has been compute already
-            «Linverse(robot)»
-            return Linv;
-        }
+        void «class_qualifier»::computeInverse() {
+            computeLInverse();
 
-        const «class_qualifier»::MatrixType& «class_qualifier»::getInv() {
-            //assumes Linv has been compute already
             «Minverse(robot)»
-            return inverse;
+        }
+
+        void «class_qualifier»::computeLInverse() {
+            //assumes L has been computed already
+            «Linverse(robot)»
         }
     '''
 
@@ -219,6 +247,7 @@ class JointsSpaceInertia {
     }
 
     def main_test(Robot robot) '''
+        «val jsim = Names$GlobalVars::jsInertia»
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
 
@@ -237,11 +266,12 @@ class JointsSpaceInertia {
                 q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
             «ENDFOR»
 
-            «Names$GlobalVars::jsInertia»(q);
-            cout << "Joint Space Inertia Matrix M" << endl << «Names$GlobalVars::jsInertia» << endl << endl;
-            cout << "L and L inverse" << endl << «Names$GlobalVars::jsInertia».getL() << endl;
-            cout << endl << «Names$GlobalVars::jsInertia».getLinv() << endl << endl;
-            cout << "Inverse of M" << endl << «Names$GlobalVars::jsInertia».getInv() << endl << endl;
+            «jsim»(q);
+            «jsim».computeL();
+            «jsim».computeInverse();
+            cout << "Joint Space Inertia Matrix M" << endl << «jsim» << endl << endl;
+            cout << "L" << endl << «jsim».getL() << endl;
+            cout << "Inverse of M" << endl << «jsim».getInverse() << endl << endl;
             return 0;
         }'''
 
@@ -346,9 +376,8 @@ class JointsSpaceInertia {
 
                     t0 = std::clock();
                     «robotNS»::«Names$GlobalVars::jsInertia»(q);// this is actually performing computations
-                    «robotNS»::«Names$GlobalVars::jsInertia».getL();
-                    «robotNS»::«Names$GlobalVars::jsInertia».getLinv();
-                    «robotNS»::«Names$GlobalVars::jsInertia».getInv();
+                    «robotNS»::«Names$GlobalVars::jsInertia».computeL();
+                    «robotNS»::«Names$GlobalVars::jsInertia».computeInverse();
                     duration = std::clock() - t0;
                     total += duration;
 
