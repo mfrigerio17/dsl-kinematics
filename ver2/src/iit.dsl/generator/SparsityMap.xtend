@@ -5,6 +5,7 @@ import java.util.ArrayList
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
+import iit.dsl.generator.common.TreeUtils
 
 /**
  * Simple class to model the sparsity of the joint-space inertia matrix.
@@ -20,7 +21,7 @@ class SparsityMap {
      * robot base, except the base itself
      */
     def private List<AbstractLink> chainToBase(AbstractLink l) {
-        val chain = common.buildChain(l, (l.eContainer() as Robot).base)
+        val chain = TreeUtils::buildChain(l, (l.eContainer() as Robot).base)
         chain.remove(chain.size() - 1) // removes the last element, which is the base
         return chain
     }

@@ -1,15 +1,17 @@
 package iit.dsl.generator.cpp.dynamics
 
+import java.util.List
+import org.eclipse.xtend2.lib.StringConcatenation
+
 import iit.dsl.generator.cpp.Names
+import iit.dsl.generator.cpp.kinematics.Transforms
+import iit.dsl.generator.common.TreeUtils
 
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.Robot
 
-import java.util.List
-import org.eclipse.xtend2.lib.StringConcatenation
-import iit.dsl.generator.cpp.kinematics.Transforms
 
 class JointsSpaceInertia {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -194,7 +196,7 @@ class JointsSpaceInertia {
      * robot base, except the base itself
      */
     def private List<AbstractLink> chainToBase(AbstractLink l) {
-        val chain = buildChain(l, (l.eContainer() as Robot).base)
+        val chain = TreeUtils::buildChain(l, (l.eContainer() as Robot).base)
         chain.remove(chain.size() - 1) // removes the last element, which is the base
         return chain
     }
@@ -499,11 +501,11 @@ class JointsSpaceInertia {
         «ENDFOR»
         «FOR jo : robot.joints.drop(1)»
             «val link = jo.successorLink»
-            «val chain = getChainJoints(buildChain(jo.predecessorLink, robot.base))»
+            «val chain = getChainJoints(TreeUtils::buildChain(jo.predecessorLink, robot.base))»
             «val i = jo.ID-1»
             «FOR jo2 : chain»
                 «val j = jo2.ID-1»
-                «val subChain = getChainJoints(buildChain(jo2.successorLink, link))»
+                «val subChain = getChainJoints(TreeUtils::buildChain(jo2.successorLink, link))»
                 Linv(«i», «j») = - Linv(«j», «j») * («FOR jo3 : subChain»«val k = jo3.ID-1»(Linv(«i», «k») * L(«k», «j»)) + «ENDFOR»0);
             «ENDFOR»
         «ENDFOR»
@@ -514,13 +516,13 @@ class JointsSpaceInertia {
         for(jo_i : robot.joints) {
             val i = jo_i.arrayIdx
             // Get the chain containing all the joints in the chain up to the base, including 'jo_i' itself
-            val chain = getChainJoints(buildChain(jo_i.successorLink, robot.base))
+            val chain = getChainJoints(TreeUtils::buildChain(jo_i.successorLink, robot.base))
             for(jo_j : chain) {
                 val j = jo_j.arrayIdx
                 strBuff.append('''inverse(«i», «j») = ''')
 
                 // Get the chain containing all the joints from the base to joint 'jo_j' itself
-                val chain2 = getChainJoints(buildChain(robot.base, jo_j.successorLink))
+                val chain2 = getChainJoints(TreeUtils::buildChain(robot.base, jo_j.successorLink))
                 for(jo_k : chain2) {
                     val k = jo_k.arrayIdx
                     strBuff.append(''' + (Linv(«i», «k») * Linv(«j», «k»))''')

@@ -4,6 +4,7 @@ import iit.dsl.kinDsl.AbstractLink;
 import iit.dsl.kinDsl.Joint;
 import iit.dsl.kinDsl.RefFrame;
 import iit.dsl.kinDsl.Robot;
+import iit.dsl.generator.common.TreeUtils;
 
 import java.util.Iterator;
 import java.util.List;
@@ -27,7 +28,7 @@ public class Jacobian {
         this.movingFrame = common.getFrameByName(robot, jspec.getTarget().getName());
         this.baseLink = common.getContainingLink(robot, baseFrame);
         this.movingLink = common.getContainingLink(robot, movingFrame);
-        this.linksChain = common.buildChain(baseLink, movingLink);
+        this.linksChain = TreeUtils.buildChain(baseLink, movingLink);
         this.jointsChain = common.getChainJoints(linksChain);
         this.cols = jointsChain.size();
     }

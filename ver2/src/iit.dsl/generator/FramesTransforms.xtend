@@ -8,11 +8,10 @@ import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.RefFrame
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
+import iit.dsl.generator.common.TreeUtils
 
 import org.eclipse.xtend2.lib.StringConcatenation
 import java.io.File
-
-
 
 /**
  * Static utilities for the generation of an instance document of the
@@ -78,7 +77,7 @@ class FramesTransforms {
      * Returns the transformation 'dest_X_source' for two arbitrary links
      */
     def static dest_X_source(AbstractLink dest, AbstractLink source) '''
-        «val AbstractLink ancestor = common.commonAncestor(source,dest)»
+        «val AbstractLink ancestor = TreeUtils::commonAncestor(source,dest)»
         «descendant_X_ancestor(ancestor, dest)» «ancestor_X_descendant(ancestor, source)»'''
 
     def private static ancestor_X_descendant(AbstractLink ancestor, AbstractLink descendant) {
@@ -207,7 +206,7 @@ class FramesTransforms {
         '''«transformLiteral(baseFr, targetFr)» = «frame_X_link(baseFr, base)» «dest_X_source(base, targetLink)» «link_X_frame(targetLink, targetFr)»
         ''')
 
-        val chain  = common.buildChain(base, targetLink)
+        val chain  = TreeUtils::buildChain(base, targetLink)
         val joints = common.getChainJoints(chain)
         val chainIter = chain.iterator()
         var AbstractLink currentLink
