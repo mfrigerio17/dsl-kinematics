@@ -20,9 +20,10 @@ class KinDslGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+//        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
         fsa.generateFile(robot.name+".sd", generateSDFASTmodel(robot))
-        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
+//        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
+          //testUtilities()
     }
 
     def testITensorRotation(Robot hyl) {
@@ -113,7 +114,8 @@ class KinDslGenerator implements IGenerator {
                 «iparams.ix» «iparams.ixy» «iparams.ixz»
                 «iparams.ixy» «iparams.iy» «iparams.iyz»
                 «iparams.ixz» «iparams.iyz» «iparams.iz»
-              bodytojoint = «sdfast_bodyToJointVector(iparams)»
+              bodytojoint = «sdfast_bodyCOMToJointVector(link)»
+              inbtojoint = «sdfast_parentBodyToJointVector(link)»
 
         «ENDFOR»
     '''
@@ -133,16 +135,15 @@ class KinDslGenerator implements IGenerator {
 
         return iparams_new
     }
-    def private sdfast_bodyToJointVector(InertiaParams ip) {
-        val x = Utilities::invert(ip.com.x.asFloat)
-        val y = Utilities::invert(ip.com.y.asFloat)
-        val z = Utilities::invert(ip.com.z.asFloat)
+    def private sdfast_bodyCOMToJointVector(AbstractLink link) {
+        val x = Utilities::invert(link.inertiaParams.com.x.asFloat)
+        val y = Utilities::invert(link.inertiaParams.com.y.asFloat)
+        val z = Utilities::invert(link.inertiaParams.com.z.asFloat)
         return '''«x» «y» «z»'''
     }
-//    def private sdfast_inbToJointVector(AbstractLink body) {
-//        val joint = body.connectingJoint
-//        joint.refFrame
-//    }
+    def private sdfast_parentBodyToJointVector(AbstractLink body) {
+        return body.connectingJoint.refFrame.translation.listCoordinates
+    }
 
 
     def test_getJoint(Robot robot) {
@@ -209,5 +210,14 @@ class KinDslGenerator implements IGenerator {
         «r.eClass.name»
         «ENDFOR»'''
 
+    def testUtilities() {
+        val rx = Math::random() + Math::random() + Math::random()
+        val ry = -Math::random()
+        val rz = -Math::random()
+        System::out.println('''«rx»  «ry»  «rz»''')
+        val mx = Utilities::rotated_X_original(rx, ry, rz)
+        val double[] foo = Utilities::get_rxryrz(mx)
+        System::out.println('''«foo.get(0)»  «foo.get(1)»  «foo.get(2)»''')
+    }
 
 }
