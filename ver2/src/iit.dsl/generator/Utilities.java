@@ -61,25 +61,13 @@ public class Utilities {
         // The mass obviously does not change with a change in the reference frame:
         translated.setMass(mass);
 
-        float sx = (float)Math.sin(rx);
-        float sy = (float)Math.sin(ry);
-        float sz = (float)Math.sin(rz);
-        float cx = (float)Math.cos(rx);
-        float cy = (float)Math.cos(ry);
-        float cz = (float)Math.cos(rz);
-
-        // The following is the matrix M that transform coordinates in the original frame
-        //  into coordinates of the new frame:  new_X_current
-        // [  cos(ry)*cos(rz)    cos(rx)*sin(rz) + sin(rx)*sin(ry)*cos(rz)     sin(rx)*sin(rz) - cos(rx)*sin(ry)*cos(rz) ]
-        // [                                                                                                             ]
-        // [ - cos(ry)*sin(rz)   cos(rx)*cos(rz) - sin(rx)*sin(ry)*sin(rz)     cos(rx)*sin(ry)*sin(rz) + sin(rx)*cos(rz) ]
-        // [                                                                                                             ]
-        // [      sin(ry)                    - sin(rx)*cos(ry)                              cos(rx)*cos(ry)              ]
-        float[][] M = {
-                { cy*cz,   cx*sz + sx*sy*cz,     sx*sz - cx*sy*cz },
-                {-cy*sz,   cx*cz - sx*sy*sz,     cx*sy*sz + sx*cz },
-                {  sy  ,     - sx*cy       ,     cx*cy }
-                };
+        double[][] tmpM = rotated_X_original(rx, ry, rz);
+        float[][] M = new float[3][3];
+        for(int r=0; r<tmpM.length; r++) {
+            for(int c=0; c<tmpM[0].length; c++) {
+                M[r][c] = (float)tmpM[r][c];
+            }
+        }
 
         float tmp = 0;
         if(inverse) {
@@ -231,4 +219,57 @@ public class Utilities {
         float z = ((FloatLiteral)vec.getZ()).getValue();
         return Math.sqrt(x*x + y*y + z*z);
     }
+
+    /**
+     * Creates and returns a 3x3 rotation matrix corresponding to the rotation angles
+     * in the arguments. The rotation matrix is in the form rotated_X_original, that
+     * is, it multiplies coordinate vectors expressed in a reference frame and gives
+     * back the coordinates in the frame which is rotated with respect to the first one.
+     * The arguments are interpreted as consecutive rotations about the x, y and z
+     * axis, all expressed in radians.
+     * @param rx the rotation amount about the x axis
+     * @param ry the rotation amount about the y axis as it results after the first rotation
+     * @param rz the rotation amount about the z axis, after the two previous rotations
+     * @return a 3x3 rotation matrix that transforms coordinate vectors according to
+     *          the rotation specified in the arguments
+     */
+    public static double[][] rotated_X_original(double rx, double ry, double rz) {
+        double sx = Math.sin(rx);
+        double sy = Math.sin(ry);
+        double sz = Math.sin(rz);
+        double cx = Math.cos(rx);
+        double cy = Math.cos(ry);
+        double cz = Math.cos(rz);
+
+        // The following is the matrix M that transform coordinates in the original frame
+        //  into coordinates of the new frame:  new_X_current
+        // [  cos(ry)*cos(rz)    cos(rx)*sin(rz) + sin(rx)*sin(ry)*cos(rz)     sin(rx)*sin(rz) - cos(rx)*sin(ry)*cos(rz) ]
+        // [                                                                                                             ]
+        // [ - cos(ry)*sin(rz)   cos(rx)*cos(rz) - sin(rx)*sin(ry)*sin(rz)     cos(rx)*sin(ry)*sin(rz) + sin(rx)*cos(rz) ]
+        // [                                                                                                             ]
+        // [      sin(ry)                    - sin(rx)*cos(ry)                              cos(rx)*cos(ry)              ]
+        double[][] M = {
+                { cy*cz,   cx*sz + sx*sy*cz,     sx*sz - cx*sy*cz },
+                {-cy*sz,   cx*cz - sx*sy*sz,     cx*sy*sz + sx*cz },
+                {  sy  ,     - sx*cy       ,     cx*cy }
+                };
+        return M;
+	}
+	/**
+	 * Computes the 3 rotation parameters (ie Euler angles) given a 3x3 rotation matrix.
+	 * This is basically the inverse operation of rotated_X_original(double, double, double)
+	 * See the documentation of such function for the semantics of the angles and the matrix.
+	 * @param mx a 3x3 rotation matrix
+	 * @return a vector of three elements, representing the consecutive rotations about the
+	 *          x, y, and z axis the correspond to the given matrix
+	 */
+	public static double[] get_rxryrz(double mx[][]) {
+	    double rotx = Math.atan2(-mx[2][1], mx[2][2]); // atan( sx cy , cx cy ) = atan( sx,cx )
+	    double sx = Math.sin(rotx);
+	    double roty = Math.atan2(mx[2][0], mx[2][1]/(-sx)); // atan( sy / (sx cy / sx) ) = atan( sy/cy )
+	    double rotz = Math.atan2(-mx[1][0], mx[0][0]);
+
+	    double[] ret = {rotx, roty, rotz};
+	    return ret;
+	}
 }
