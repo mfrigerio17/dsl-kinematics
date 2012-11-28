@@ -115,10 +115,17 @@ def int movingBodiesCount(Robot robot) {
  */
 def int getDOFs(Robot robot) {
     if(robot.base.floating) {
-        return robot.joints.size + 6
+        return getJointDOFs(robot) + 6
     } else {
-        return robot.joints.size
+        return getJointDOFs(robot)
     }
+}
+
+/**
+ * The number of degrees of freedom of this robot due to its joints
+ */
+def int getJointDOFs(Robot robot) {
+    return robot.joints.size
 }
 
 def dispatch int getID(Link l) {
