@@ -30,13 +30,13 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-//        generateCommons(robot, fsa);
-//        generateTransforms(robot, fsa);
+        generateCommons(robot, fsa);
+        generateTransforms(robot, fsa);
         generateInverseDynamicsStuff(robot, fsa);
         generateInertiaMatrixStuff(robot, fsa);
         generateDynamicsTests(robot, fsa);
-//        generateJacobiansFiles(robot, fsa)
-//        generateLinkInertias(robot, fsa);
+        generateJacobiansFiles(robot, fsa)
+        generateLinkInertias(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))

@@ -20,8 +20,8 @@ class Generator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name + "_inertia", inertiaTensorSource(robot))
-        //generateTransformsSources(robot, fsa);
-        //generateJacobiansSources(robot, fsa);
+        generateTransformsSources(robot, fsa);
+        generateJacobiansSources(robot, fsa);
     }
 
     def generateTransformsSources(Robot robot, IFileSystemAccess fsa) {
