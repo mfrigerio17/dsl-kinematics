@@ -108,6 +108,19 @@ def int movingBodiesCount(Robot robot) {
     }
 }
 
+/**
+ * The total number of degrees of freedom of this robot.
+ * This functions considers the degrees of freedom due to the joints of the robot,
+ * plus 6 additional dofs if the robot is a floating-base one.
+ */
+def int getDOFs(Robot robot) {
+    if(robot.base.floating) {
+        return robot.joints.size + 6
+    } else {
+        return robot.joints.size
+    }
+}
+
 def dispatch int getID(Link l) {
     return l.num;
 }
