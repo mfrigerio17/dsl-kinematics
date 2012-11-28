@@ -280,50 +280,6 @@ def dispatch boolean isZero(Expr expr) {
     return false
 }
 
-def boolean isDescendant(AbstractLink candidate, AbstractLink start) {
-    if(start.childrenList.contains(candidate)) {
-        return true
-    }
-    for(ChildSpec child : start.childrenList.children) {
-        if(candidate.isDescendant(child.link)) {
-            return true
-        }
-    }
-    return false
-}
-
-def AbstractLink commonAncestor(AbstractLink l1, AbstractLink l2) {
-    if(l1.equals(l2)) return l1;
-    if(l1.isDescendant(l2)) return l2;
-    if(l2.isDescendant(l1)) return l1;
-    var AbstractLink child1  = l1
-    var AbstractLink child2  = l2
-    var AbstractLink parent1 = l1.parent
-    var AbstractLink parent2 = l2.parent
-    while(parent1 != null && parent2 != null) {
-        if(parent1.equals(parent2)) return parent1;
-        // follow the branches up in the hierarchy
-        child1  = parent1
-        child2  = parent2
-        parent1 = parent1.parent
-        parent2 = parent2.parent
-    }
-    while(parent1 != null) {
-        if(parent1.equals(child2)) return parent1;
-        // follow the branch 1 up in the hierarchy
-        child1  = parent1
-        parent1 = parent1.parent
-    }
-    while(parent2 != null) {
-        if(parent2.equals(child1)) return parent2;
-        // follow the branch 2 up in the hierarchy
-        child2  = parent2
-        parent2 = parent2.parent
-    }
-    //should never get here
-    throw(new RuntimeException("looks like these two links do not have a common ancestor!!"))
-}
-
 
 def AbstractLink getLinkByName(Robot robot, String linkName) {
     for(AbstractLink l : robot.abstractLinks) {
@@ -373,44 +329,6 @@ def Joint getJointByName(Robot robot, String jointName) {
         }
     }
     return null
-}
-
-def List<AbstractLink> buildChain(AbstractLink first, AbstractLink last) {
-    val List<AbstractLink> chain = new ArrayList<AbstractLink>()
-    if(first.equals(last)) {
-        chain.add(first)
-        return chain
-    }
-    val AbstractLink ancestor = commonAncestor(first, last);
-    var AbstractLink parent
-
-    if(last.equals(ancestor)) {
-        chain.add(first)
-        parent = first.parent
-        while(! parent.equals(last)){
-            chain.add(parent)
-            parent = parent.parent
-        }
-        chain.add(last)
-        return chain
-    }
-    if(first.equals(ancestor)) {
-        chain.add(last)
-        parent = last.parent
-        while(! parent.equals(first)) {
-            chain.add(parent)
-            parent = parent.parent
-        }
-        chain.add(first)
-        return chain.reverse
-    }
-
-    // The two links belong to different branches starting from the common ancestor
-    val List<AbstractLink> head = buildChain(first, ancestor);
-    val List<AbstractLink> tail = buildChain(ancestor, last);
-
-    head.addAll( tail.drop(1) ) //drop the first because it is the second copy of the ancestor
-    return head
 }
 
 /**

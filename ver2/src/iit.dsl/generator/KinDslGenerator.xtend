@@ -3,22 +3,25 @@
  */
 package iit.dsl.generator
 
-import iit.dsl.kinDsl.Robot
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
-
 import org.eclipse.xtext.generator.IGenerator
 
+import iit.dsl.generator.misc.Misc
+import iit.dsl.kinDsl.Robot
 
 
 class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
     FramesTransforms frTransforms = new FramesTransforms()
+    Misc miscGen = Misc::getInstance()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+".urdf", generateURDFmodel(robot))
+        fsa.generateFile(robot.name+".urdf", miscGen.URDF_ROS_model(robot))
+        fsa.generateFile(robot.name+".sd", miscGen.SDFAST_model(robot))
         fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
+          //testUtilities()
     }
 
     def testITensorRotation(Robot hyl) {
@@ -39,39 +42,6 @@ class KinDslGenerator implements IGenerator {
         //System::out.println(transf.mass)
     }
 
-    /**
-     * Generates and xml URDF description of the robot, as specified in the ROS documentation.
-     * The URDF file format requires the inertia tensor to be expressed in a reference frame
-     * with origin in the center of mass. Therefore this generator takes the inertia tensor
-     * expressed in the link-default-frame and translates it to the COM before printing the values.
-     */
-    def generateURDFmodel(Robot robot) '''
-    <robot name="«robot.name»">
-    «FOR link : robot.abstractLinks»
-        «val inertia_lf = link.linkFrameInertiaParams /*inertia params expressed in the default link frame*/»
-        «val com = inertia_lf.com»
-        «val inertia = /*inertia params expressed in the frame centered in the COM*/
-             Utilities::rototranslate(inertia_lf, com.x.asFloat,com.y.asFloat,com.z.asFloat,0,0,0,false)»
-        <link name="«link.name»">
-            <inertial>
-                <origin xyz="«inertia_lf.com.x.str» «inertia_lf.com.y.str» «inertia_lf.com.z.str»"/>
-                <mass value="«inertia.mass»"/>
-                <inertia ixx="«inertia.ix»" iyy="«inertia.iy»" izz="«inertia.iz»" ixy="«inertia.ixy»" ixz="«inertia.ixz»" iyz="«inertia.iyz»"/>
-            </inertial>
-        </link>
-    «ENDFOR»
-    «FOR joint : robot.joints»
-        «val frame = joint.refFrame»
-        <joint name="«joint.name»" type="«joint.typeString»">
-            <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.x.asFloat» «frame.rotation.y.asFloat» «frame.rotation.z.asFloat»"/>
-            <parent link="«joint.predecessorLink.name»"/>
-            <child  link="«joint.successorLink.name»"/>
-            <limit effort="30" velocity="1.0"/>
-            <axis xyz="0 0 1"/>
-        </joint>
-    «ENDFOR»
-    </robot>
-    '''
 
     def test_getJoint(Robot robot) {
         System::out.println('''
@@ -137,5 +107,14 @@ class KinDslGenerator implements IGenerator {
         «r.eClass.name»
         «ENDFOR»'''
 
+    def testUtilities() {
+        val rx = Math::random() + Math::random() + Math::random()
+        val ry = -Math::random()
+        val rz = -Math::random()
+        System::out.println('''«rx»  «ry»  «rz»''')
+        val mx = Utilities::rotated_X_original(rx, ry, rz)
+        val double[] foo = Utilities::get_rxryrz(mx)
+        System::out.println('''«foo.get(0)»  «foo.get(1)»  «foo.get(2)»''')
+    }
 
 }

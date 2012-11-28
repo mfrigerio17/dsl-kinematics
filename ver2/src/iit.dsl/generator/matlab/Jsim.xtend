@@ -6,6 +6,7 @@ import iit.dsl.kinDsl.PrismaticJoint
 import java.util.List
 import iit.dsl.kinDsl.Joint
 import org.eclipse.xtend2.lib.StringConcatenation
+import iit.dsl.generator.common.TreeUtils
 
 class Jsim {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -128,11 +129,11 @@ class Jsim {
         «ENDFOR»
         «FOR jo : robot.joints.drop(1)»
             «val link = jo.successorLink»
-            «val chain = getChainJoints(buildChain(jo.predecessorLink, robot.base))»
+            «val chain = getChainJoints(TreeUtils::buildChain(jo.predecessorLink, robot.base))»
             «val i = jo.ID»
             «FOR jo2 : chain»
                 «val j = jo2.ID»
-                «val subChain = getChainJoints(buildChain(jo2.successorLink, link))»
+                «val subChain = getChainJoints(TreeUtils::buildChain(jo2.successorLink, link))»
                 Linv(«i», «j») = - Linv(«j», «j») * («FOR jo3 : subChain»«val k = jo3.ID»(Linv(«i», «k») * L(«k», «j»)) + «ENDFOR»0);
             «ENDFOR»
         «ENDFOR»
@@ -144,13 +145,13 @@ class Jsim {
         for(jo_i : robot.joints) {
             val i = jo_i.ID
             // For all the joints in the chain up to the base, including 'jo_i' itself ...
-            val chain = getChainJoints(buildChain(jo_i.successorLink, robot.base))
+            val chain = getChainJoints(TreeUtils::buildChain(jo_i.successorLink, robot.base))
             for(jo_j : chain) {
                 val j = jo_j.ID
                 strBuff.append('''«jsim_inv_varName»(«i», «j») = ''')
 
                 // For all the joints from the base to joint 'jo_j' itself ...
-                val chain2 = getChainJoints(buildChain(robot.base, jo_j.successorLink))
+                val chain2 = getChainJoints(TreeUtils::buildChain(robot.base, jo_j.successorLink))
                 for(jo_k : chain2) {
                     val k = jo_k.ID
                     strBuff.append(''' + (Linv(«i», «k») * Linv(«j», «k»))''')
