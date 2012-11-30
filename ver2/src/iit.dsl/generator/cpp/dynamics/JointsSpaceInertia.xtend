@@ -30,17 +30,18 @@ class JointsSpaceInertia {
         namespace «Names$Namespaces::rob(robot)» {
         namespace «Names$Namespaces::dynamics» {
         «val className = Names$Types::jspaceMLocal»
+        «val dofs = robot.DOFs»
         /**
          * The type of the Joint Space Inertia Matrix (JSIM) of the robot «robot.name».
          */
-        class «className» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»>
+        class «className» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «dofs», «dofs»>
         {
             private:
-                typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «robot.joints.size», «robot.joints.size»> Base;
+                typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «dofs», «dofs»> Base;
             public:
                 typedef Base::Scalar Scalar;
                 typedef Base::Index Index;
-                typedef Eigen::Matrix<double, «robot.joints.size», «robot.joints.size»> MatrixType;
+                typedef Eigen::Matrix<double,«dofs»,«dofs»> MatrixType;
             public:
                 «className»();
                 ~«className»() {}
@@ -77,11 +78,12 @@ class JointsSpaceInertia {
                 void computeLInverse();
             private:
                 // The inertia tensor of each link
-                «FOR l : robot.links»
+                «val links = allRelevantLinks(robot)»
+                «FOR l : links»
                     InertiaMatrix «inertiaName(l)»;
                 «ENDFOR»
                 // The composite-inertia tensor for each link
-                «FOR l : robot.links»
+                «FOR l : links»
                     «IF l.childrenList.children.empty»
                         const InertiaMatrix& «inertiaCompositeName(l)»;
                     «ELSE»
@@ -92,6 +94,10 @@ class JointsSpaceInertia {
                 MatrixType L;
                 MatrixType Linv;
                 MatrixType inverse;
+
+                «IF robot.base.floating»
+                    Eigen::Matrix<double,«robot.jointDOFs»,«robot.jointDOFs»>
+                «ENDIF»
         };
 
 
@@ -134,16 +140,18 @@ class JointsSpaceInertia {
         «val robodyn_ns_qualifier = robo_ns_qualifier + "::" + Names$Namespaces::dynamics»
         «val classname = Names$Types::jspaceMLocal»
         «val class_qualifier = robodyn_ns_qualifier + "::" + classname»
+        «val links = allRelevantLinks(robot)»
+        «val floatingBase = robot.base.floating»
 
         // The joint space inertia matrix of this robot
         «robodyn_ns_qualifier»::«Names$Types::jspaceMLocal» «robodyn_ns_qualifier»::«Names$GlobalVars::jsInertia»;
 
-        «val endLinks = chainEndLinks(robot)»
         //Implementation of default constructor
+        «val endLinks = chainEndLinks(robot)»
         «class_qualifier»::«classname»()
-        «IF endLinks.size() > 0»: «inertiaCompositeName(endLinks.get(0))»(«inertiaName(endLinks.get(0))»)
-        «FOR l : endLinks.drop(1)», «inertiaCompositeName(l)»(«inertiaName(l)»)«ENDFOR»
-        «ENDIF»
+        «FOR l : endLinks SEPARATOR ','»
+            «inertiaCompositeName(l)»(«inertiaName(l)»)
+        «ENDFOR»
         {
             //Make sure all the transforms for this robot are initialized
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
@@ -152,7 +160,7 @@ class JointsSpaceInertia {
             this->setZero();
             // Initialize the 6D inertia tensor of each body of the robot
             «LinkInertias::className(robot)» linkInertias;
-            «FOR l : robot.links»
+            «FOR l : links»
                 «inertiaName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
             «ENDFOR»
         }
@@ -160,25 +168,26 @@ class JointsSpaceInertia {
         #define DATA operator()
 
         const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
-            «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
-            static «Names$Namespaces::rbd»::ForceVector F;
+            «val sortedLinks = links.sortBy(link | link.ID).reverse»
+            «IF !floatingBase»
+                static «Names$Namespaces::rbd»::ForceVector F;
+            «ENDIF»
 
             // Precomputes only once the coordinate transforms:
             «FOR l : sortedLinks»
                 «val parent = l.parent»
-                «IF !(parent.equals(robot.base))»
-                    «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
-                    «Transforms::child_X_parent__mxName(parent, l)»(state);
-                «ENDIF»
+                «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
+                «Transforms::child_X_parent__mxName(parent, l)»(state);
             «ENDFOR»
 
             // "Bottom-up" loop to update the inertia-composite property of each link, for the current configuration
+            «sortedLinks.remove(robot.base)»
             «FOR l : sortedLinks»
 
                 // Link «l.name» //
 
                 «val parent = l.parent»
-                «IF !(parent.equals(robot.base))»
+                «IF floatingBase || !(parent.equals(robot.base))»
                     «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
@@ -215,6 +224,23 @@ class JointsSpaceInertia {
             «Linverse(robot)»
         }
     '''
+
+
+    def private parentChildTransform(AbstractLink p, AbstractLink c) '''
+        «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(p, c)»(state);
+        «Transforms::child_X_parent__mxName(p, c)»(state);
+        «FOR child : c.childrenList.children»
+            «parentChildTransform(c, child.link)»
+        «ENDFOR»
+    '''
+
+    def private allRelevantLinks(Robot robot) {
+        if(robot.base.floating) {
+            return robot.abstractLinks
+        } else {
+            return robot.links
+        }
+    }
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
     def private inertiaName(AbstractLink l) '''I_«l.name»'''
