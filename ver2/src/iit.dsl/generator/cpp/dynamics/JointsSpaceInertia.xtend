@@ -1,22 +1,23 @@
 package iit.dsl.generator.cpp.dynamics
 
 import java.util.List
+import java.util.ArrayList
+
 import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.generator.cpp.Names
+import iit.dsl.generator.cpp.Common
 import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.generator.common.TreeUtils
 
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Joint
-import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.Robot
 
 
 class JointsSpaceInertia {
-    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
-
     def inertiaMatrixHeader(Robot robot)'''
+        «loadInfo(robot)»
         #ifndef IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
         #define IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
 
@@ -29,8 +30,6 @@ class JointsSpaceInertia {
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
         namespace «Names$Namespaces::dynamics» {
-        «val className = Names$Types::jspaceMLocal»
-        «val dofs = robot.DOFs»
         /**
          * The type of the Joint Space Inertia Matrix (JSIM) of the robot «robot.name».
          */
@@ -78,7 +77,6 @@ class JointsSpaceInertia {
                 void computeLInverse();
             private:
                 // The inertia tensor of each link
-                «val links = allRelevantLinks(robot)»
                 «FOR l : links»
                     InertiaMatrix «inertiaName(l)»;
                 «ENDFOR»
@@ -96,7 +94,7 @@ class JointsSpaceInertia {
                 MatrixType inverse;
 
                 «IF robot.base.floating»
-                    Eigen::Matrix<double,«robot.jointDOFs»,«robot.jointDOFs»>
+                    Eigen::Matrix<double,6,«robot.jointDOFs»> F;
                 «ENDIF»
         };
 
@@ -130,6 +128,7 @@ class JointsSpaceInertia {
         '''
 
     def inertiaMatrixSource(Robot robot) '''
+        «loadInfo(robot)»
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
 
@@ -138,25 +137,22 @@ class JointsSpaceInertia {
 
         «val robo_ns_qualifier = Names$Namespaces$Qualifiers::robot(robot)»
         «val robodyn_ns_qualifier = robo_ns_qualifier + "::" + Names$Namespaces::dynamics»
-        «val classname = Names$Types::jspaceMLocal»
-        «val class_qualifier = robodyn_ns_qualifier + "::" + classname»
-        «val links = allRelevantLinks(robot)»
-        «val floatingBase = robot.base.floating»
+        «val class_qualifier = robodyn_ns_qualifier + "::" + className»
 
         // The joint space inertia matrix of this robot
         «robodyn_ns_qualifier»::«Names$Types::jspaceMLocal» «robodyn_ns_qualifier»::«Names$GlobalVars::jsInertia»;
 
         //Implementation of default constructor
         «val endLinks = chainEndLinks(robot)»
-        «class_qualifier»::«classname»()
+        «class_qualifier»::«className»() :
         «FOR l : endLinks SEPARATOR ','»
             «inertiaCompositeName(l)»(«inertiaName(l)»)
         «ENDFOR»
         {
-            //Make sure all the transforms for this robot are initialized
+            //Make sure all the transforms of the robot are initialized
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
-
+            //Initialize the matrix itself
             this->setZero();
             // Initialize the 6D inertia tensor of each body of the robot
             «LinkInertias::className(robot)» linkInertias;
@@ -168,7 +164,7 @@ class JointsSpaceInertia {
         #define DATA operator()
 
         const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
-            «val sortedLinks = links.sortBy(link | link.ID).reverse»
+            «val sortedLinks = robot.links.sortBy(link | link.ID).reverse /* do not consider the robot base */»
             «IF !floatingBase»
                 static «Names$Namespaces::rbd»::ForceVector F;
             «ENDIF»
@@ -176,32 +172,31 @@ class JointsSpaceInertia {
             // Precomputes only once the coordinate transforms:
             «FOR l : sortedLinks»
                 «val parent = l.parent»
-                «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
-                «Transforms::child_X_parent__mxName(parent, l)»(state);
+                «IF floatingBase || !(parent.equals(robot.base))»
+                    «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
+                    «Transforms::child_X_parent__mxName(parent, l)»(state);
+                «ENDIF»
             «ENDFOR»
 
             // "Bottom-up" loop to update the inertia-composite property of each link, for the current configuration
-            «sortedLinks.remove(robot.base)»
             «FOR l : sortedLinks»
 
-                // Link «l.name» //
-
+                // Link «l.name»:
                 «val parent = l.parent»
                 «IF floatingBase || !(parent.equals(robot.base))»
                     «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
-                «val linkJoint = getJoint(parent, l)»
-                «IF linkJoint instanceof PrismaticJoint»
-                    F = «inertiaCompositeName(l)».col(5); // multiplication by the joint subspace matrix, assuming 1 DoF joint
-                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(5)(0,0);
-                «ELSE»
-                    F = «inertiaCompositeName(l)».col(2); // multiplication by the joint subspace matrix, assuming 1 DoF joint
-                    DATA(«linkJoint.ID-1», «linkJoint.ID-1») = F.row(2)(0,0);
-                «ENDIF»
+                «val jt = getJoint(parent, l)»
+                «val F = getF(jt)»
+                «F» = «inertiaCompositeName(l)».col(«Common::spatialVectIndex(jt)»);
+                DATA(«jt.arrayIdx», «jt.arrayIdx») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
 
-                «val chain = chainToBase(l)»
-                «inertiaMatrix_lastStep(chain, linkJoint.ID-1)»
+                «val chain = TreeUtils::chainToBase(l)»
+                «inertiaMatrix_lastStep(chain, jt.arrayIdx)»
+                «IF floatingBase»
+                    «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(robot.base, chain.last)» * «F»;
+                «ENDIF»
             «ENDFOR»
 
             return *this;
@@ -225,7 +220,27 @@ class JointsSpaceInertia {
         }
     '''
 
+    /*
+     * Saves in the members of this instance the relevant information about
+     * the given robot
+     */
+    def private void loadInfo(Robot robot) {
+        currRobot = robot
+        dofs = robot.DOFs
+        floatingBase = robot.base.floating
+        if(floatingBase) {
+            links = robot.abstractLinks
+        } else {
+            links = new ArrayList<AbstractLink>()
+            links.addAll(robot.links)
+        }
 
+        className = Names$Types::jspaceMLocal
+    }
+    /*
+     * Code to update all and only the required spatial vectors transforms
+     * required by the composite-rigid-body algorithm for the JSIM
+     */
     def private parentChildTransform(AbstractLink p, AbstractLink c) '''
         «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(p, c)»(state);
         «Transforms::child_X_parent__mxName(p, c)»(state);
@@ -234,40 +249,34 @@ class JointsSpaceInertia {
         «ENDFOR»
     '''
 
-    def private allRelevantLinks(Robot robot) {
-        if(robot.base.floating) {
-            return robot.abstractLinks
+    def private getF(Joint j) {
+        if( !floatingBase) {
+            return '''F'''
         } else {
-            return robot.links
+            return '''F.col(«j.arrayIdx»)'''
         }
     }
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
     def private inertiaName(AbstractLink l) '''I_«l.name»'''
 
-    /**
-     * Constructs the chain (list) of links connecting the argument to the
-     * robot base, except the base itself
-     */
-    def private List<AbstractLink> chainToBase(AbstractLink l) {
-        val chain = TreeUtils::buildChain(l, (l.eContainer() as Robot).base)
-        chain.remove(chain.size() - 1) // removes the last element, which is the base
-        return chain
-    }
-
-    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, int rowIndex) {
+    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, int row) {
         val strBuff = new StringConcatenation()
 
         var AbstractLink parent
         var Joint parentJ
+        var CharSequence F
+        var int col
         for( link : chainToBase ) {
             parent = link.parent
-            if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
-                parentJ = getConnectingJoint(parent);
+            F      = getF(link.connectingJoint)
+            if( ! parent.equals( currRobot.base ) ) {
+                parentJ = parent.connectingJoint;
+                col     = parentJ.arrayIdx
                 strBuff.append('''
-                F = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, link)» * F;
-                DATA(«rowIndex», «parentJ.ID-1») = F.transpose().«IF parentJ instanceof PrismaticJoint»col(5)«ELSE»col(2)«ENDIF»(0,0);
-                DATA(«parentJ.ID-1», «rowIndex») = DATA(«rowIndex», «parentJ.ID-1»); //the matrix is symmetric
+                «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, link)» * «F»;
+                DATA(«row», «col») = «F».transpose().col(«Common::spatialVectIndex(parentJ)»)(0,0);
+                DATA(«col», «row») = DATA(«row», «col»);
                 ''');
             }
         }
@@ -526,22 +535,22 @@ class JointsSpaceInertia {
         }
         '''
 
-    def LTLfactorization(Robot robot) '''
+    def private LTLfactorization(Robot robot) '''
         L = «Names$GlobalVars::jsInertia».triangularView<Eigen::Lower>();
         «FOR Joint joint : robot.joints.reverseView»
             «val row = joint.getID()-1»
             // Joint «joint.name», index «row» :
             L(«row», «row») = std::sqrt(L(«row», «row»));
-            «val chainToBase = joint.predecessorLink.chainToBase»
+            «val chainToBase = TreeUtils::chainToBase(joint.predecessorLink)»
             «FOR ancestor : chainToBase»
-                «val col = ancestor.connectingJoint.getID - 1»
+                «val col = ancestor.connectingJoint.arrayIdx»
                 L(«row», «col») = L(«row», «col») / L(«row», «row»);
             «ENDFOR»
             «FOR ancestor : chainToBase»
-                «val i = ancestor.connectingJoint.getID-1»
-                «val secondChain = ancestor.chainToBase»
+                «val i = ancestor.connectingJoint.arrayIdx»
+                «val secondChain = TreeUtils::chainToBase(ancestor)»
                 «FOR ancestor2 : secondChain»
-                    «val j = ancestor2.connectingJoint.getID-1»
+                    «val j = ancestor2.connectingJoint.arrayIdx»
                     L(«i», «j») = L(«i», «j») - L(«row», «i») * L(«row», «j»);
                 «ENDFOR»
             «ENDFOR»
@@ -549,7 +558,7 @@ class JointsSpaceInertia {
         «ENDFOR»
     '''
 
-    def Linverse(Robot robot) '''
+    def private Linverse(Robot robot) '''
         «FOR jo : robot.joints»
             «val i = jo.ID-1»
             Linv(«i», «i») = 1 / L(«i», «i»);
@@ -566,7 +575,7 @@ class JointsSpaceInertia {
         «ENDFOR»
     '''
 
-    def Minverse(Robot robot) {
+    def private Minverse(Robot robot) {
         val strBuff = new StringConcatenation()
         for(jo_i : robot.joints) {
             val i = jo_i.arrayIdx
@@ -591,4 +600,17 @@ class JointsSpaceInertia {
         }
         return strBuff
     }
+
+
+
+
+    private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+
+    private Robot currRobot
+    private int dofs
+    private List<AbstractLink> links
+    private boolean floatingBase
+    private String className
+
+
 }
