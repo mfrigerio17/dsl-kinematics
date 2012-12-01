@@ -92,10 +92,6 @@ class JointsSpaceInertia {
                 MatrixType L;
                 MatrixType Linv;
                 MatrixType inverse;
-
-                «IF robot.base.floating»
-                    Eigen::Matrix<double,6,«robot.jointDOFs»> F;
-                «ENDIF»
         };
 
 
@@ -200,6 +196,10 @@ class JointsSpaceInertia {
                 «ENDIF»
             «ENDFOR»
 
+            «IF floatingBase»
+                // Copies the upper-right block into the lower-left block, after transposing
+                block<«currRobot.jointDOFs», 6>(6,0) = (block<6, «currRobot.jointDOFs»>(0,6)).transpose();
+            «ENDIF»
             return *this;
         }
 
@@ -254,7 +254,7 @@ class JointsSpaceInertia {
         if( !floatingBase) {
             return '''F'''
         } else {
-            return '''F.col(«j.arrayIdx»)'''
+            return '''block<6,1>(0, «jsimIndex(j)»)'''
         }
     }
 
