@@ -63,10 +63,10 @@ def forceName(AbstractLink par) {
     par.name + "_f"
 }
 
-def Boolean isFloating(RobotBase par) {
+def dispatch boolean isFloating(RobotBase par) {
     false
 }
-def Boolean isFloating(FloatingRobotBase par) {
+def dispatch boolean isFloating(FloatingRobotBase par) {
     true
 }
 
