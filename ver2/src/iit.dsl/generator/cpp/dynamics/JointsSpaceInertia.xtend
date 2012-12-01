@@ -132,7 +132,7 @@ class JointsSpaceInertia {
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
 
-        //using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
+        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
 
         «val robo_ns_qualifier = Names$Namespaces$Qualifiers::robot(robot)»
@@ -189,11 +189,12 @@ class JointsSpaceInertia {
 
                 «val jt = getJoint(parent, l)»
                 «val F = getF(jt)»
+                «val jointIndex = jsimIndex(jt)»
                 «F» = «inertiaCompositeName(l)».col(«Common::spatialVectIndex(jt)»);
-                DATA(«jt.arrayIdx», «jt.arrayIdx») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
+                DATA(«jointIndex», «jointIndex») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
 
                 «val chain = TreeUtils::chainToBase(l)»
-                «inertiaMatrix_lastStep(chain, jt.arrayIdx)»
+                «inertiaMatrix_lastStep(chain, jt)»
                 «IF floatingBase»
                     «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(robot.base, chain.last)» * «F»;
                 «ENDIF»
@@ -257,22 +258,31 @@ class JointsSpaceInertia {
         }
     }
 
+    def private jsimIndex(Joint j) {
+        if(floatingBase) {
+            return '''«Common::jointIdentifier(j)»+6'''
+        } else {
+            return Common::jointIdentifier(j)
+        }
+    }
+
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
     def private inertiaName(AbstractLink l) '''I_«l.name»'''
 
-    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, int row) {
+    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, Joint rowJoint) {
         val strBuff = new StringConcatenation()
 
         var AbstractLink parent
         var Joint parentJ
         var CharSequence F
-        var int col
+        var CharSequence col
+        val row = jsimIndex(rowJoint)
         for( link : chainToBase ) {
             parent = link.parent
             F      = getF(link.connectingJoint)
             if( ! parent.equals( currRobot.base ) ) {
                 parentJ = parent.connectingJoint;
-                col     = parentJ.arrayIdx
+                col     = jsimIndex(parentJ)
                 strBuff.append('''
                 «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, link)» * «F»;
                 DATA(«row», «col») = «F».transpose().col(«Common::spatialVectIndex(parentJ)»)(0,0);
