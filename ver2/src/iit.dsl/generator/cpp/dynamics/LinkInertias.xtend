@@ -7,10 +7,10 @@ import iit.dsl.kinDsl.AbstractLink
 
 class LinkInertias {
 
-    def static className(Robot r) '''LinkInertias'''
-    def static tensorGetterName(AbstractLink l) '''getTensor_«l.name»'''
-    def static massGetterName(AbstractLink l)   '''getMass_«l.name»'''
-    def static comGetterName(AbstractLink l)   '''getCOM_«l.name»'''
+    def public static className(Robot r) '''LinkInertias'''
+    def public static tensorGetterName(AbstractLink l) '''getTensor_«l.name»'''
+    def public static massGetterName(AbstractLink l)   '''getMass_«l.name»'''
+    def public static comGetterName(AbstractLink l)   '''getCOM_«l.name»'''
 
     extension Common common = new Common()
 
@@ -32,28 +32,28 @@ class LinkInertias {
 
         typedef «Names$Namespaces$Qualifiers::iit_rbd»::InertiaMatrixDense InertiaMatrix;
 
-
+        «val links = getRelevantLinks(robot)»
         class «className(robot)» {
             public:
                 «className(robot)»();
                 ~«className(robot)»();
-                «FOR l : robot.links»
+                «FOR l : links»
                     const InertiaMatrix& «tensorGetterName(l)»() const;
                 «ENDFOR»
-                «FOR l : robot.links»
+                «FOR l : links»
                     const double& «massGetterName(l)»() const;
                 «ENDFOR»
-                «FOR l : robot.links»
+                «FOR l : links»
                     const «Names$Types::vector3d»& «comGetterName(l)»() const;
                 «ENDFOR»
             private:
-                «FOR l : robot.links»
+                «FOR l : links»
                     InertiaMatrix «memberName_tensor(l)»;
                 «ENDFOR»
-                «FOR l : robot.links»
+                «FOR l : links»
                     double «memberName_mass(l)»;
                 «ENDFOR»
-                «FOR l : robot.links»
+                «FOR l : links»
                     «Names$Types::vector3d» «memberName_com(l)»;
                 «ENDFOR»
         };
@@ -61,17 +61,17 @@ class LinkInertias {
 
         inline «className(robot)»::~«className(robot)»() {}
 
-        «FOR l : robot.links»
+        «FOR l : links»
             inline const InertiaMatrix& «className(robot)»::«tensorGetterName(l)»() const {
                 return this->«memberName_tensor(l)»;
             }
         «ENDFOR»
-        «FOR l : robot.links»
+        «FOR l : links»
             inline const double& «className(robot)»::«massGetterName(l)»() const {
                 return this->«memberName_mass(l)»;
             }
         «ENDFOR»
-        «FOR l : robot.links»
+        «FOR l : links»
             inline const «Names$Types::vector3d»& «className(robot)»::«comGetterName(l)»() const {
                 return this->«memberName_com(l)»;
             }
@@ -87,7 +87,7 @@ class LinkInertias {
     def source(Robot robot) '''
         «val nsqualifier    = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
         «val classqualifier = nsqualifier + "::" + className(robot)»
-        «val links = robot.links»
+        «val links = getRelevantLinks(robot)»
         #include "«Names$Files$LinkInertias::header(robot)».h"
 
         using namespace std;
@@ -112,4 +112,12 @@ class LinkInertias {
     def private memberName_mass(AbstractLink l) '''mass_«l.name»'''
     def private memberName_tensor(AbstractLink l) '''tensor_«l.name»'''
     def private memberName_com(AbstractLink l) '''com_«l.name»'''
+
+    def private getRelevantLinks(Robot robot) {
+        if(robot.base.floating) {
+            return robot.abstractLinks //include the base body
+        } else {
+            return robot.links
+        }
+    }
 }
