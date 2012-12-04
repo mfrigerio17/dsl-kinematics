@@ -324,10 +324,14 @@ class RobotUserFiles {
         def main_inertiaM(Robot robot) '''
         «val robotNS = Names$Namespaces::rob(robot)»
         «val robotdynNS = robotNS + "::" + Names$Namespaces::dynamics»
+        «val jsimT_qualified = robotdynNS + "::" + Names$Types::jspaceMLocal»
+        «val jsim = robotdynNS + "::" + Names$GlobalVars::jsInertia»
+        «val jointDOFs = robot.jointDOFs»
         #include <iostream>
         #include <fstream>
         #include <ctime>
 
+        #include <iit/rbd/utils.h>
         #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::inertiaMatrixHeader(robot)».h>
 
         #include "SL.h"
@@ -358,27 +362,52 @@ class RobotUserFiles {
             std::srand(std::time(NULL)); // initialize random number generator
             fillState(q, currentState);
             SL_ForDynComp(currentState, &basePosition, &baseOrient, ux, endeff, rbdM, rbdCG);
-            «robotdynNS»::«Names$GlobalVars::jsInertia»(q);
+            «jsim»(q);
 
-            «robotdynNS»::«Names$Types::jspaceMLocal» SLM;
+            «jsimT_qualified» SLM;
 
             // Copies the matrix of SL into an Eigen matrix
-            «FOR Joint jo : robot.joints»
-                «FOR Joint ji : robot.joints»
-                SLM(«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(jo)»,«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(ji)») = rbdM[«jo.name»][«ji.name»];
+            «IF robot.base.floating»
+                // Copy the joint-space part of the matrix:
+                int r,c;
+                for(r=6; r<6+«jointDOFs»; r++) {
+                    for(c=6; c<6+«jointDOFs»; c++) {
+                        SLM(r,c) = rbdM[r+1-6][c+1-6];
+                    }
+                }
+                // Copy the 6x6 block with the composite inertia of the whole robot:
+                for(r=0; r<6; r++) {
+                    for(c=0; c<6; c++) {
+                        SLM(r,c) = rbdM[r+1+6][c+1+6];
+                    }
+                }
+                // Copy the remaining blocks:
+                for(r=0; r<6; r++) {
+                    for(c=6; c<«robot.DOFs»; c++) {
+                        SLM(r,c) = rbdM[r+1+«robot.jointDOFs»][c+1-6];
+                        SLM(c,r) = SLM(r,c); // the matrix is symmetric
+                    }
+                }
+            «ELSE»
+                «FOR Joint jo : robot.joints»
+                    «FOR Joint ji : robot.joints»
+                        SLM(«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(jo)»,«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(ji)») = rbdM[«jo.name»][«ji.name»];
+                    «ENDFOR»
                 «ENDFOR»
-            «ENDFOR»
+            «ENDIF»
 
-            //cout << "SL:" << endl << (SLM.array().abs() < 1E-4).select(0, SLM) << endl;
-            //cout << "Me:" << endl <<
-              //      («robotNS»::«Names$GlobalVars::jsInertia».array().abs() < 1E-4).select(0,«robotdynNS»::«Names$GlobalVars::jsInertia»)  << endl;
+            rbd::Utils::CwiseAlmostZeroOp<«jsimT_qualified»::Scalar> almostZero(1E-4);
 
-            «robotdynNS»::«Names$Types::jspaceMLocal»::MatrixType diff = SLM - «robotdynNS»::«Names$GlobalVars::jsInertia»;
-            cout << "difference:" << endl << (diff.array().abs() < 1E-5).select(0, diff) << endl;
+            cout << "SL:" << endl << SLM.unaryExpr(almostZero) << endl;
+            //cout << "Me:" << endl << «jsim».unaryExpr(almostZero)  << endl;
 
-            //cout << SLM.block<6,6>(0,0) << endl;
-            //cout << «robotNS»::«Names$GlobalVars::jsInertia».block<6,6>(0,0) << endl;
+            //«jsimT_qualified»::MatrixType diff = SLM - «robotdynNS»::«Names$GlobalVars::jsInertia»;
+            //cout << "difference:" << endl << diff.unaryExpr(almostZero) << endl;
 
+            «IF robot.base.floating»
+                //cout << SLM.block<6,6>(«jointDOFs»,«jointDOFs») << endl;
+                //cout << «jsim».block<6,6>(0,0) << endl;
+            «ENDIF»
             return TRUE;
         }
 
