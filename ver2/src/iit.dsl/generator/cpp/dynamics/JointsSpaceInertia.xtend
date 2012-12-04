@@ -141,9 +141,11 @@ class JointsSpaceInertia {
         //Implementation of default constructor
         «val endLinks = chainEndLinks(robot)»
         «class_qualifier»::«className»() :
-        «FOR l : endLinks SEPARATOR ','»
-            «inertiaCompositeName(l)»(«inertiaName(l)»)
-        «ENDFOR»
+        // The composite-inertia of the body at the end of a kinematic chain
+        //  is constant, and equal to the regular inertia of the body itself
+          «FOR l : endLinks SEPARATOR ','»
+              «inertiaCompositeName(l)»(«inertiaName(l)»)
+          «ENDFOR»
         {
             //Make sure all the transforms of the robot are initialized
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
@@ -199,6 +201,8 @@ class JointsSpaceInertia {
             «IF floatingBase»
                 // Copies the upper-right block into the lower-left block, after transposing
                 block<«currRobot.jointDOFs», 6>(6,0) = (block<6, «currRobot.jointDOFs»>(0,6)).transpose();
+                // The composite-inertia of the whole robot is the upper-left quadrant of the JSIM
+                block<6,6>(0,0) = «inertiaCompositeName(currRobot.base)»;
             «ENDIF»
             return *this;
         }
