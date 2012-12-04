@@ -369,13 +369,13 @@ class RobotUserFiles {
             // Copies the matrix of SL into an Eigen matrix
             «IF robot.base.floating»
                 // Copy the joint-space part of the matrix:
-                int r,c;
-                for(r=6; r<6+«jointDOFs»; r++) {
-                    for(c=6; c<6+«jointDOFs»; c++) {
-                        SLM(r,c) = rbdM[r+1-6][c+1-6];
-                    }
-                }
+                «FOR Joint jo : robot.joints»
+                    «FOR Joint ji : robot.joints»
+                        SLM(«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(jo)»+6,«robotNS»::«iit::dsl::generator::cpp::Common::jointIdentifier(ji)»+6) = rbdM[«jo.name»][«ji.name»];
+                    «ENDFOR»
+                «ENDFOR»
                 // Copy the 6x6 block with the composite inertia of the whole robot:
+                int r,c;
                 for(r=0; r<6; r++) {
                     for(c=0; c<6; c++) {
                         SLM(r,c) = rbdM[r+1+6][c+1+6];
