@@ -270,7 +270,7 @@ class JointsSpaceInertia {
         val row = jsimIndex(rowJoint)
         for( link : chainToBase ) {
             parent = link.parent
-            F      = getF(link.connectingJoint)
+            F      = getF(rowJoint)
             if( ! parent.equals( currRobot.base ) ) {
                 parentJ = parent.connectingJoint;
                 col     = jsimIndex(parentJ)
