@@ -146,6 +146,7 @@ class JointsSpaceInertia {
         }
 
         #define DATA operator()
+        #define F(j) (block<6,1>(0,(j)+6))
 
         const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
             «val sortedLinks = robot.links.sortBy(link | link.ID).reverse /* do not consider the robot base */»
@@ -194,6 +195,7 @@ class JointsSpaceInertia {
         }
 
         #undef DATA
+        #undef F
 
         void «class_qualifier»::computeL() {
             «LTLfactorization(robot)»
@@ -244,7 +246,7 @@ class JointsSpaceInertia {
         if( !floatingBase) {
             return '''F'''
         } else {
-            return '''block<6,1>(0, «jsimIndex(j)»)'''
+            return '''F(«Common::jointIdentifier(j)»)'''
         }
     }
 
@@ -257,7 +259,6 @@ class JointsSpaceInertia {
     }
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
-    def private inertiaName(AbstractLink l) '''I_«l.name»'''
 
     def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, Joint rowJoint) {
         val strBuff = new StringConcatenation()
