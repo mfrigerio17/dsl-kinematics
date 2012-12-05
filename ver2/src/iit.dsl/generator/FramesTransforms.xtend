@@ -245,9 +245,8 @@ class FramesTransforms {
         iit.dsl.transspecs.transSpecs.DesiredTransforms desiredTransforms) '''
         Model «robot.name»
         Frames {
-            «common.getFrameName(robot.base)»
-            «FOR link : robot.links»
-                , «common.getFrameName(link)»
+            «FOR link : common.abstractLinks(robot) SEPARATOR ", "»
+                «common.getFrameName(link)»
                 «FOR RefFrame frame : link.frames»
                     , «frame.name»
                 «ENDFOR»
