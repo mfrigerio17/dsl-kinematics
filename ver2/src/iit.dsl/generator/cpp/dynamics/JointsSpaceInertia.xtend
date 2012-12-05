@@ -59,7 +59,7 @@ class JointsSpaceInertia {
                  * Computes and saves the inverse of this JSIM.
                  * This function assumes that computeL() has been called already, since it
                  * uses L to compute the inverse. The algorithm takes advantage of the branch
-                 * induces sparsity of the robot, if any.
+                 * induced sparsity of the robot, if any.
                  */
                 void computeInverse();
                 /**
@@ -76,17 +76,9 @@ class JointsSpaceInertia {
                  */
                 void computeLInverse();
             private:
-                // The inertia tensor of each link
-                «FOR l : links»
-                    InertiaMatrix «inertiaName(l)»;
-                «ENDFOR»
                 // The composite-inertia tensor for each link
                 «FOR l : links»
-                    «IF l.childrenList.children.empty»
-                        const InertiaMatrix& «inertiaCompositeName(l)»;
-                    «ELSE»
-                        InertiaMatrix «inertiaCompositeName(l)»;
-                    «ENDIF»
+                    InertiaMatrix «inertiaCompositeName(l)»;
                 «ENDFOR»
 
                 MatrixType L;
@@ -139,23 +131,17 @@ class JointsSpaceInertia {
         «robodyn_ns_qualifier»::«Names$Types::jspaceMLocal» «robodyn_ns_qualifier»::«Names$GlobalVars::jsInertia»;
 
         //Implementation of default constructor
-        «val endLinks = chainEndLinks(robot)»
-        «class_qualifier»::«className»() :
-        // The composite-inertia of the body at the end of a kinematic chain
-        //  is constant, and equal to the regular inertia of the body itself
-          «FOR l : endLinks SEPARATOR ','»
-              «inertiaCompositeName(l)»(«inertiaName(l)»)
-          «ENDFOR»
+        «class_qualifier»::«className»()
         {
             //Make sure all the transforms of the robot are initialized
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
             //Initialize the matrix itself
             this->setZero();
-            // Initialize the 6D inertia tensor of each body of the robot
+            // Initialize the 6D composite-inertia tensor of each body of the robot
             «LinkInertias::className(robot)» linkInertias;
             «FOR l : links»
-                «inertiaName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
+                «inertiaCompositeName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
             «ENDFOR»
         }
 
@@ -182,7 +168,7 @@ class JointsSpaceInertia {
                 // Link «l.name»:
                 «val parent = l.parent»
                 «IF floatingBase || !(parent.equals(robot.base))»
-                    «inertiaCompositeName(parent)» = «inertiaName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
+                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
                 «ENDIF»
 
                 «val jt = getJoint(parent, l)»
