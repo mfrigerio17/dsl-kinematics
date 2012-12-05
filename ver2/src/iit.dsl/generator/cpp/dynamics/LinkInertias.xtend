@@ -46,6 +46,7 @@ class LinkInertias {
                 «FOR l : links»
                     const «Names$Types::vector3d»& «comGetterName(l)»() const;
                 «ENDFOR»
+                double getTotalMass() const;
             private:
                 «FOR l : links»
                     InertiaMatrix «memberName_tensor(l)»;
@@ -76,6 +77,10 @@ class LinkInertias {
                 return this->«memberName_com(l)»;
             }
         «ENDFOR»
+
+        inline double «className(robot)»::getTotalMass() const {
+            return «FOR l : links SEPARATOR " + "»«l.inertiaParams.mass»«ENDFOR»;
+        }
 
         }
         }
@@ -120,4 +125,6 @@ class LinkInertias {
             return robot.links
         }
     }
+
+
 }
