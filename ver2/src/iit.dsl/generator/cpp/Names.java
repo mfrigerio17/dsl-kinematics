@@ -54,7 +54,7 @@ public class Names {
 
         static public class LinkInertias {
             static public String header(Robot r) {
-                return "LinkInertias";
+                return "inertia_params";
             }
             static public String source(Robot r) {
                 return header(r);

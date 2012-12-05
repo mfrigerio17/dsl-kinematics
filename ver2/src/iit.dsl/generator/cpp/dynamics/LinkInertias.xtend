@@ -7,7 +7,7 @@ import iit.dsl.kinDsl.AbstractLink
 
 class LinkInertias {
 
-    def public static className(Robot r) '''LinkInertias'''
+    def public static className(Robot r) '''InertiaParameters'''
     def public static tensorGetterName(AbstractLink l) '''getTensor_«l.name»'''
     def public static massGetterName(AbstractLink l)   '''getMass_«l.name»'''
     def public static comGetterName(AbstractLink l)   '''getCOM_«l.name»'''
