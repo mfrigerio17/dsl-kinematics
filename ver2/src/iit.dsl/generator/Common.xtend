@@ -37,7 +37,7 @@ class Common {
     static KinDslFactory kinDSLFactory = KinDslFactoryImpl::init()
     static FloatLiteral zeroFloat = kinDSLFactory.createFloatLiteral()//relies on default constructor setting it to zero
 
-def inertiaMxName(Link link) {
+def inertiaMxName(AbstractLink link) {
     link.name + "_Imx"
 }
 
