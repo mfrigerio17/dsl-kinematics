@@ -41,6 +41,14 @@ class JointsSpaceInertia {
                 typedef Base::Scalar Scalar;
                 typedef Base::Index Index;
                 typedef Eigen::Matrix<double,«dofs»,«dofs»> MatrixType;
+                «val typename_blockF = "BlockF_t"»
+                «val typename_blockFixedBase = "BlockFixedBase_t"»
+                «IF floatingBase»
+                    /** The type of the F sub-block of the floating-base JSIM */
+                    typedef const Eigen::Block<const MatrixType,6,«jointDOFs»> «typename_blockF»;
+                    /** The type of the fixed-base sub-block of the JSIM */
+                    typedef const Eigen::Block<const MatrixType,«jointDOFs»,«jointDOFs»> «typename_blockFixedBase»;
+                «ENDIF»
             public:
                 «className»();
                 ~«className»() {}
@@ -70,6 +78,35 @@ class JointsSpaceInertia {
                  * Returns an unmodifiable reference to the inverse of this JSIM
                  */
                 const MatrixType& getInverse() const;
+
+                «IF floatingBase»
+                    /**
+                     * The spatial composite-inertia tensor of the robot base,
+                     * ie the inertia of the whole robot for the current configuration.
+                     * According to the convention of this class about the layout of the
+                     * floating-base JSIM, this tensor is the 6x6 upper left corner of
+                     * the JSIM itself.
+                     * \return the 6x6 InertiaMatrix that correspond to the spatial inertia
+                     *   tensor of the whole robot, according to the last joints configuration
+                     *   used to update this JSIM
+                     */
+                    const InertiaMatrix& getWholeBodyInertia() const;
+                    /**
+                     * The matrix that maps accelerations in the actual joints of the robot
+                     * to the spatial force acting on the floating-base of the robot.
+                     * This matrix is the F sub-block of the JSIM in Featherstone's notation.
+                     * \return the 6x«jointDOFs» upper right block of this JSIM
+                     */
+                    const «typename_blockF» getF() const;
+                    /**
+                     * The submatrix of this JSIM related only to the actual joints of the
+                     * robot (as for a fixed-base robot).
+                     * This matrix is the H sub-block of the JSIM in Featherstone's notation.
+                     * \return the «jointDOFs»x«jointDOFs» lower right block of this JSIM,
+                     *   which correspond to the fixed-base JSIM
+                     */
+                    const «typename_blockFixedBase» getFixedBaseBlock() const;
+                «ENDIF»
             protected:
                 /**
                  * Computes and saves the inverse of the matrix L. See also computeL()
@@ -104,6 +141,20 @@ class JointsSpaceInertia {
         inline const «className»::MatrixType& «className»::getInverse() const {
             return inverse;
         }
+
+        «IF floatingBase»
+            inline const InertiaMatrix& «className»::getWholeBodyInertia() const {
+                return «inertiaCompositeName(robot.base)»;
+            }
+
+            inline const «className»::«typename_blockF» «className»::getF() const {
+                return block<6,«jointDOFs»>(0,6);
+            }
+
+            inline const «className»::«typename_blockFixedBase» «className»::getFixedBaseBlock() const{
+                return block<«jointDOFs»,«jointDOFs»>(6,6);
+            }
+        «ENDIF»
 
         // The joint space inertia matrix of this robot
         extern «Names$Types::jspaceMLocal» «Names$GlobalVars::jsInertia»;
@@ -187,7 +238,7 @@ class JointsSpaceInertia {
 
             «IF floatingBase»
                 // Copies the upper-right block into the lower-left block, after transposing
-                block<«currRobot.jointDOFs», 6>(6,0) = (block<6, «currRobot.jointDOFs»>(0,6)).transpose();
+                block<«jointDOFs», 6>(6,0) = (block<6, «jointDOFs»>(0,6)).transpose();
                 // The composite-inertia of the whole robot is the upper-left quadrant of the JSIM
                 block<6,6>(0,0) = «inertiaCompositeName(currRobot.base)»;
             «ENDIF»
@@ -220,6 +271,7 @@ class JointsSpaceInertia {
     def private void loadInfo(Robot robot) {
         currRobot = robot
         dofs = robot.DOFs
+        jointDOFs = robot.jointDOFs
         floatingBase = robot.base.floating
         if(floatingBase) {
             links = robot.abstractLinks
@@ -609,6 +661,7 @@ class JointsSpaceInertia {
 
     private Robot currRobot
     private int dofs
+    private int jointDOFs
     private List<AbstractLink> links
     private boolean floatingBase
     private String className
