@@ -56,6 +56,8 @@ class Generator implements IGenerator {
         fsa.generateFile(robotFolderName(robot) + "/update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/init_6Dforce.m"  , transGen.force6D_init_fileContent(robot))
+        fsa.generateFile(robotFolderName(robot) + "/update_6Dforce.m", transGen.force6D_update_fileContent(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
