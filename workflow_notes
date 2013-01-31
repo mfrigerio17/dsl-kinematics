@@ -42,11 +42,6 @@ maxima DSL:
 ==========================================
 
 ## Matlab ##
-- function crossProductMatrix
-- function asForceTransform
-
 - function plotRefFrame
 - function inertia_ellipsoid
 
-In the robotUser folder in SL, add symbolic links to headers and sources
-related to coordinates transformations and matrices
