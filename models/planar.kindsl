@@ -33,42 +33,18 @@ link link2 {
 		Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
 	}
 
-	children {
-		link3 via joint3
-	}
-
-}
-
-
-link link3 {
-	id = 3
-	inertia_params {
-		mass = 1.0
-		CoM = (0.5, .0, .0)
-		Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
-	}
-
-	children {
-	   link4 via joint4
-	}
-}
-
-link link4 {
-    id = 4
-    inertia_params {
-        mass = 1.0
-        CoM = (0.5, .0, .0)
-        Ix= 0.0025   Iy= 0.33458  Iz= 0.33458  Ixy= 0.0  Ixz= 0.0  Iyz= 0.0
-    }
-
-    children {}
-    frames {
+	children {	}
+	frames {
        fr_ee {
            translation = (1.0, 0.0, 0.0)
            rotation = (0.0, 0.0, 0.0)
        }
     }
+
 }
+
+
+
 
 r_joint joint1 {
 	ref_frame {
@@ -84,19 +60,6 @@ r_joint joint2 {
 	}
 }
 
-r_joint joint3 {
-	ref_frame {
-		translation = (1.0, 0.0, 0.0)
-		rotation = (0.0, 0.0, 0.0)
-	}
-}
-
-r_joint joint4 {
-    ref_frame {
-        translation = (1.0, 0.0, 0.0)
-        rotation = (0.0, 0.0, 0.0)
-    }
-}
 
 
 }
