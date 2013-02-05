@@ -265,10 +265,18 @@ class FramesTransforms {
         // Additional transforms required by the user
         «IF(desiredTransforms != null)»
             «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.transforms.getSpecs()»
-                «val dest   = common.getFrameByName(robot, jSpec.base.name)»
-                «val source = common.getFrameByName(robot, jSpec.target.name)»
+                «val destFrameName = jSpec.base.name»
+                «val srcFrameName  = jSpec.target.name»
+                «val dest   = common.getFrameByName(robot, destFrameName)»
+                «val source = common.getFrameByName(robot, srcFrameName)»
+                «checkNonNullFrame(dest, destFrameName, robot)»
+                «checkNonNullFrame(source, srcFrameName, robot)»
+
                 «val destLink   = common.getContainingLink(robot, dest)»
                 «val sourceLink = common.getContainingLink(robot, source)»
+                «checkFrameIsOwnedByLink(destLink, dest, robot)»
+                «checkFrameIsOwnedByLink(sourceLink, source, robot)»
+
                 «transformLiteral(dest, source)» = «frame_X_link(dest,destLink)» «dest_X_source(destLink, sourceLink)» «link_X_frame(sourceLink, source)»
             «ENDFOR»
         «ENDIF»
@@ -281,6 +289,19 @@ class FramesTransforms {
         «ENDIF»
     '''
 
+    def private void checkNonNullFrame(RefFrame f, String name, Robot r) {
+        if(f == null) {
+            throw new RuntimeException("Could not find frame " + name +
+                  " in the " + r.name + " robot. Aborting.")
+         }
+    }
+    def private void checkFrameIsOwnedByLink(AbstractLink l, RefFrame f, Robot r) {
+        if(l == null) {
+            throw new RuntimeException("Could not find the link containing" +
+                  " the reference frame " + f.name + " on the " +
+                  r.name + " robot. Aborting.")
+         }
+    }
 
 }
 
