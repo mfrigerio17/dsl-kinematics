@@ -56,6 +56,7 @@ class FramesTransforms {
         val rx = common.invert(joint.refFrame.rotation.x)
         val ry = common.invert(joint.refFrame.rotation.y)
         val rz = common.invert(joint.refFrame.rotation.z)
+        // the translations are not reordered z-y-x because it is irrelevant
         '''«RzString(rz)» «RyString(ry)» «RxString(rx)» «TxString(tx)» «TyString(ty)» «TzString(tz)»'''
     }
 
