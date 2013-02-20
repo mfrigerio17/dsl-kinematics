@@ -53,6 +53,10 @@ class Generator implements IGenerator {
             Names$Files::folder(robot) + "/" + Names$Files::linkDataMapHeader(robot) + ".h",
             headers.linkDataMap(robot)
         )
+        fsa.generateFile(
+            Names$Files::folder(robot) + "/" + Names$Files::jointDataMapHeader(robot) + ".h",
+            headers.jointDataMap(robot)
+        )
     }
 
     def generateTransforms(Robot robot, IFileSystemAccess fsa) {

@@ -127,4 +127,87 @@ class RobotHeaders {
         }
         #endif
     '''
+
+    def static jointDataMap_type() '''JointDataMap'''
+    def jointDataMap(Robot robot) '''
+        «val className = jointDataMap_type()»
+        #ifndef IIT_«robot.name.toUpperCase()»_«Names$Files::jointDataMapHeader(robot).toUpperCase()»_H_
+        #define IIT_«robot.name.toUpperCase()»_«Names$Files::jointDataMapHeader(robot).toUpperCase()»_H_
+
+        #include "«Names$Files::mainHeader(robot)».h"
+
+        namespace «Names$Namespaces::enclosing» {
+        namespace «Names$Namespaces::rob(robot)» {
+
+        /**
+         * A very simple container to associate a generic data item to each joint
+         */
+        template<typename T> class «className» {
+        private:
+            T data[jointsCount];
+        public:
+            «className»() {};
+            «className»(const T& defaultValue);
+            «className»(const «className»& rhs);
+            «className»& operator=(const «className»& rhs);
+                  T& operator[](JointIdentifiers which);
+            const T& operator[](JointIdentifiers which) const;
+        private:
+            void copydata(const «className»& rhs);
+        };
+
+        template<typename T> inline
+        «className»<T>::«className»(const T& value) {
+        «FOR j : robot.joints»
+            data[«Common::jointIdentifier(j)»] = value;
+        «ENDFOR»
+        }
+
+        template<typename T> inline
+        «className»<T>::«className»(const «className»& rhs)
+        {
+            copydata(rhs);
+        }
+
+        template<typename T> inline
+        «className»<T>& «className»<T>::operator=(const «className»& rhs)
+        {
+            if(&rhs != this) {
+                copydata(rhs);
+            }
+            return *this;
+        }
+
+        template<typename T> inline
+        T& «className»<T>::operator[](JointIdentifiers j) {
+            return data[j];
+        }
+
+        template<typename T> inline
+        const T& «className»<T>::operator[](JointIdentifiers j) const {
+            return data[j];
+        }
+
+        template<typename T> inline
+        void «className»<T>::copydata(const «className»& rhs) {
+        «FOR j : robot.joints»
+            data[«Common::jointIdentifier(j)»] = rhs[«Common::jointIdentifier(j)»];
+        «ENDFOR»
+        }
+
+        template<typename T> inline
+        std::ostream& operator<<(std::ostream& out, const «className»<T>& map) {
+            out
+            «FOR j : robot.joints»
+                << "   «j.name» = "
+                << map[«Common::jointIdentifier(j)»]
+            «ENDFOR»
+            ;
+            return out;
+        }
+
+        }
+        }
+        #endif
+    '''
 }

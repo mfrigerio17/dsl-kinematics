@@ -13,6 +13,9 @@ public class Names {
         static public String linkDataMapHeader(Robot robot) {
             return "link_data_map";
         }
+        static public String jointDataMapHeader(Robot robot) {
+            return "joint_data_map";
+        }
 
         static public String transformsHeader(Robot robot) {
             return "transforms";
