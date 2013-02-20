@@ -30,14 +30,15 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        generateCommons(robot, fsa);
-        generateTransforms(robot, fsa);
-        generateInverseDynamicsStuff(robot, fsa);
-        generateInertiaMatrixStuff(robot, fsa);
-        generateDynamicsTests(robot, fsa);
+//        generateCommons(robot, fsa);
+//        generateTransforms(robot, fsa);
+//        generateInverseDynamicsStuff(robot, fsa);
+//        generateInertiaMatrixStuff(robot, fsa);
+//        generateDynamicsTests(robot, fsa);
         generateJacobiansFiles(robot, fsa)
-        generateLinkInertias(robot, fsa);
+//        generateLinkInertias(robot, fsa);
         fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
+//        fsa.generateFile(Names$Files::folder(robot) + "/" + "CMakeLists.txt", mkg.CMakeFileBody(robot))
 
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
@@ -92,25 +93,23 @@ class Generator implements IGenerator {
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
                     desiredTrasformsAccessor.getDesiredTransforms(robot)
-        if(desiredJacs != null) {
-            jacobiansFile(robot, fsa, desiredJacs);
-        }
+        jacobiansFile(robot, fsa, desiredJacs);
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa, File desired) {
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
                     desiredTrasformsAccessor.getDesiredTransforms(desired)
-        if(desiredJacs != null) {
-            jacobiansFile(robot, fsa, desiredJacs);
-        }
+        jacobiansFile(robot, fsa, desiredJacs);
     }
 
     def private jacobiansFile(Robot robot, IFileSystemAccess fsa,
         iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
     {
         val jacobians = new ArrayList<Jacobian>()
-        for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
-            jacobians.add(new Jacobian(robot, jSpec))
+        if(desired != null) {
+            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+                jacobians.add(new Jacobian(robot, jSpec))
+            }
         }
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(
