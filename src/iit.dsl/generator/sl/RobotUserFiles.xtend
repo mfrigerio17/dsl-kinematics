@@ -333,7 +333,7 @@ class RobotUserFiles {
 
         #include <iit/rbd/rbd.h>
         #include <iit/rbd/utils.h>
-        #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::inertiaMatrixHeader(robot)».h>
+        #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::jsimHeader(robot)».h>
 
         #include "SL.h"
         #include "SL_user.h"
@@ -506,7 +506,7 @@ class RobotUserFiles {
         SRCS_xsimulation = initUserSimulation.c
 
         SRCS_benchID  = «robot.benchmarkIDFileName».cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::source(robot)».cpp initUserSimulation.c
-        SRCS_jsimTest = «robot.main_inertiaM_filename».cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::inertiaMatrixHeader(robot)».cpp
+        SRCS_jsimTest = «robot.main_inertiaM_filename».cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::jsimHeader(robot)».cpp
 
         #
         # Architecture dependent source files:

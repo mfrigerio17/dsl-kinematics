@@ -38,10 +38,10 @@ public class Names {
             static public String testMain(Robot r) {
                 return "test";
             }
-            static public String inertiaMatrixHeader(Robot r) {
+            static public String jsimHeader(Robot r) {
                 return "jsim";
             }
-            static public String inertiaMatrixTestMain(Robot r) {
+            static public String jsimTestMain(Robot r) {
                 return "jsim_test";
             }
             static public String main_benchmarkID(Robot r) {
@@ -50,7 +50,7 @@ public class Names {
             static public String main_sine_task_ID(Robot r) {
                 return "main_sine_task_ID";
             }
-            static public String main_JSIM_test(Robot r) {
+            static public String main_jsim_test(Robot r) {
                 return "test_jsim";
             }
         }

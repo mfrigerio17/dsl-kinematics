@@ -19,7 +19,7 @@ class MakefileGenerator {
         SRCS = $(wildcard «dir_src»*.cpp)
         OBJS = $(patsubst %.cpp,$(DIR_OBJS)/%.o,$(SRCS))
 
-        EXE_OBJS = $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::main_benchmarkID(robot)».o «Names$Files$RBD::main_sine_task_ID(robot)».o «Names$Files$RBD::main_JSIM_test(robot)».o)
+        EXE_OBJS = $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::testMain(robot)».o «Names$Files$RBD::main_benchmarkID(robot)».o «Names$Files$RBD::main_sine_task_ID(robot)».o «Names$Files$RBD::main_jsim_test(robot)».o)
         LIB_OBJS = $(filter-out $(EXE_OBJS), $(OBJS))
 
         EXES = $(patsubst $(DIR_OBJS)/%.o,$(DIR_BIN)/%,$(EXE_OBJS))
@@ -43,7 +43,7 @@ class MakefileGenerator {
         # -------- #
         BUILD = $(CXX) $(CXXFLAGS) $^ -o $@
         «val invdyn_objs = '''«Names$Files$RBD::source(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
-        «val jsim_objs = '''«Names$Files$RBD::inertiaMatrixHeader(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
+        «val jsim_objs = '''«Names$Files$RBD::jsimHeader(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
         executables : $(EXES)
         $(EXES) : | $(DIR_BIN)
         $(DIR_BIN)/«Names$Files$RBD::main_benchmarkID(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_benchmarkID(robot)».o «invdyn_objs»)
@@ -58,7 +58,7 @@ class MakefileGenerator {
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 
-        $(DIR_BIN)/«Names$Files$RBD::main_JSIM_test(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_JSIM_test(robot)».o «jsim_objs»)
+        $(DIR_BIN)/«Names$Files$RBD::main_jsim_test(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_jsim_test(robot)».o «jsim_objs»)
         «TAB»@echo "   * Building binary $@"
         «TAB»$(BUILD)
 
@@ -84,4 +84,6 @@ class MakefileGenerator {
 
         .PHONY = all lib clean debug binaries
 	'''
+
+
 }

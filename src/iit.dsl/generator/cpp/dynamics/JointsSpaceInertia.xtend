@@ -18,8 +18,8 @@ import iit.dsl.kinDsl.Robot
 class JointsSpaceInertia {
     def inertiaMatrixHeader(Robot robot)'''
         «loadInfo(robot)»
-        #ifndef IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
-        #define IIT_«Names$Files$RBD::inertiaMatrixHeader(robot).toUpperCase()»_H_
+        #ifndef IIT_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
+        #define IIT_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
 
         #include <iit/rbd/rbd.h>
         #include <iit/rbd/JStateDependentMatrix.h>
@@ -169,7 +169,7 @@ class JointsSpaceInertia {
     def inertiaMatrixSource(Robot robot) '''
         «loadInfo(robot)»
         #include "«Names$Files::transformsHeader(robot)».h"
-        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+        #include "«Names$Files$RBD::jsimHeader(robot)».h"
 
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
@@ -339,7 +339,7 @@ class JointsSpaceInertia {
     def main_test(Robot robot) '''
         «val jsim = Names$GlobalVars::jsInertia»
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+        #include "«Names$Files$RBD::jsimHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
@@ -373,7 +373,7 @@ class JointsSpaceInertia {
 
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«Names$Files::jacobiansHeader(robot)».h"
-        #include "«Names$Files$RBD::inertiaMatrixHeader(robot)».h"
+        #include "«Names$Files$RBD::jsimHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces::enclosing»;

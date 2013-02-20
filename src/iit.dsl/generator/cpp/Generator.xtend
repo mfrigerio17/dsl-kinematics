@@ -73,14 +73,14 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_sine_task_ID(robot) + ".cpp", invdyn.main_sine_task(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::main_JSIM_test(robot) + ".cpp", jsI.main_test(robot))    
+        fsa.generateFile(folder + "/" + Names$Files$RBD::main_jsim_test(robot) + ".cpp", jsI.main_test(robot))
     }
 
     def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);
 
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaMatrixHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::jsimHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::jsimHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
     }
 
     def generateLinkInertias(Robot robot, IFileSystemAccess fsa) {
