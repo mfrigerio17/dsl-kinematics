@@ -65,18 +65,17 @@ class RobotHeaders {
             «className»(const T& defaultValue);
             «className»(const «className»& rhs);
             «className»& operator=(const «className»& rhs);
+            «className»& operator=(const T& rhs);
                   T& operator[](LinkIdentifiers which);
             const T& operator[](LinkIdentifiers which) const;
         private:
             void copydata(const «className»& rhs);
+            void assigndata(const T& commonValue);
         };
 
         template<typename T> inline
         «className»<T>::«className»(const T& value) {
-            data[«Common::linkIdentifier(robot.base)»] = value;
-            «FOR l : robot.links»
-                data[«Common::linkIdentifier(l)»] = value;
-            «ENDFOR»
+            assigndata(value);
         }
 
         template<typename T> inline
@@ -95,6 +94,13 @@ class RobotHeaders {
         }
 
         template<typename T> inline
+        «className»<T>& «className»<T>::operator=(const T& value)
+        {
+            assigndata(value);
+            return *this;
+        }
+
+        template<typename T> inline
         T& «className»<T>::operator[](LinkIdentifiers l) {
             return data[l];
         }
@@ -109,6 +115,14 @@ class RobotHeaders {
             data[«Common::linkIdentifier(robot.base)»] = rhs[«Common::linkIdentifier(robot.base)»];
             «FOR l : robot.links»
                 data[«Common::linkIdentifier(l)»] = rhs[«Common::linkIdentifier(l)»];
+            «ENDFOR»
+        }
+
+        template<typename T> inline
+        void «className»<T>::assigndata(const T& value) {
+            data[«Common::linkIdentifier(robot.base)»] = value;
+            «FOR l : robot.links»
+                data[«Common::linkIdentifier(l)»] = value;
             «ENDFOR»
         }
 
@@ -150,17 +164,17 @@ class RobotHeaders {
             «className»(const T& defaultValue);
             «className»(const «className»& rhs);
             «className»& operator=(const «className»& rhs);
+            «className»& operator=(const T& rhs);
                   T& operator[](JointIdentifiers which);
             const T& operator[](JointIdentifiers which) const;
         private:
             void copydata(const «className»& rhs);
+            void assigndata(const T& rhs);
         };
 
         template<typename T> inline
         «className»<T>::«className»(const T& value) {
-        «FOR j : robot.joints»
-            data[«Common::jointIdentifier(j)»] = value;
-        «ENDFOR»
+            assigndata(value);
         }
 
         template<typename T> inline
@@ -179,6 +193,13 @@ class RobotHeaders {
         }
 
         template<typename T> inline
+        «className»<T>& «className»<T>::operator=(const T& value)
+        {
+            assigndata(value);
+            return *this;
+        }
+
+        template<typename T> inline
         T& «className»<T>::operator[](JointIdentifiers j) {
             return data[j];
         }
@@ -190,9 +211,16 @@ class RobotHeaders {
 
         template<typename T> inline
         void «className»<T>::copydata(const «className»& rhs) {
-        «FOR j : robot.joints»
-            data[«Common::jointIdentifier(j)»] = rhs[«Common::jointIdentifier(j)»];
-        «ENDFOR»
+            «FOR j : robot.joints»
+                data[«Common::jointIdentifier(j)»] = rhs[«Common::jointIdentifier(j)»];
+            «ENDFOR»
+        }
+
+        template<typename T> inline
+        void «className»<T>::assigndata(const T& value) {
+            «FOR j : robot.joints»
+                data[«Common::jointIdentifier(j)»] = value;
+            «ENDFOR»
         }
 
         template<typename T> inline
