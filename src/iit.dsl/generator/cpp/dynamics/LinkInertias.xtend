@@ -24,7 +24,6 @@ class LinkInertias {
         #include <iit/rbd/utils.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files::transformsHeader(robot)».h"
 
         namespace «Names$Namespaces::enclosing» {
         namespace «Names$Namespaces::rob(robot)» {
