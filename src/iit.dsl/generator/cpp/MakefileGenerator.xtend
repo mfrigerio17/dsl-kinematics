@@ -111,7 +111,7 @@ class MakefileGenerator {
         
         SET(CMAKE_CXX_FLAGS "-g -Wall -O3 -march=native -mtune=native -D EIGEN_NO_DEBUG")
         
-        set(LIB_NAME iit«nameLow»)
+        set(LIB_NAME iitgen«nameLow»)
         
         set(HEADERS ./«Names$Files::mainHeader(rob)».h
                     ./«Names$Files::linkDataMapHeader(rob)».h
