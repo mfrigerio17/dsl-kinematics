@@ -36,13 +36,16 @@ class Generator implements IGenerator {
 //        generateInertiaMatrixStuff(robot, fsa);
 //        generateDynamicsTests(robot, fsa);
 //        generateJacobiansFiles(robot, fsa)
-//        generateLinkInertias(robot, fsa);
-//        fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
-        fsa.generateFile(Names$Files::folder(robot) + "/" + "CMakeLists.txt", mkg.CMakeFileBody(robot))
-
+//        generateLinkInertias(robot, fsa)
+        generateMakefiles(robot, fsa)
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
         //System::out.println(rbd.Minverse(robot))
+    }
+
+    def generateMakefiles(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
+        fsa.generateFile(Names$Files::folder(robot) + "/" + "CMakeLists.txt", mkg.CMakeFileBody(robot))
     }
 
     def generateCommons(Robot robot, IFileSystemAccess fsa) {
