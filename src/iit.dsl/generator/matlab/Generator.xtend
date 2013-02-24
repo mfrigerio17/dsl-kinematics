@@ -26,12 +26,36 @@ class Generator implements IGenerator {
 
     extension Common common = new Common()
 
-    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
-    Jacobians  jacGen   = new Jacobians()
-    Jsim       jsimGen  = new Jsim()
-    Transforms transGen = null
+    private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
+    private Jacobians  jacGen   = null
+    private Jsim       jsimGen  = null
+    private Transforms transGen = null
 
+    private iit.dsl.generator.maxima.IConverterConfigurator maximaConverterConfig = null
     private String TAB = "\t"
+
+    public new() {
+         jacGen = new Jacobians()
+        jsimGen = new Jsim()
+    }
+
+    public new(iit.dsl.generator.maxima.IConverterConfigurator maximaConverterCfg)
+    {
+        this()
+        setMaximaConverterConfigurator(maximaConverterConfig)
+    }
+
+    /**
+     * Sets the iit.dsl.generator.maxima.IConverterConfigurator instance
+     * that will be used by this generator whenever a conversion from Maxima
+     * code has to be performed.
+     */
+    def public void setMaximaConverterConfigurator(
+        iit.dsl.generator.maxima.IConverterConfigurator config)
+    {
+        maximaConverterConfig = config
+        jacGen.setMaximaConverterConfigurator(maximaConverterConfig)
+    }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
@@ -51,7 +75,7 @@ class Generator implements IGenerator {
     }
 
     def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
-        transGen = new Transforms(robot)
+        transGen = new Transforms(robot, maximaConverterConfig)
         fsa.generateFile(robotFolderName(robot) + "/init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))

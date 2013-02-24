@@ -13,23 +13,28 @@ import java.io.File
 class Converter {
     private static TransformsAccessor transformsAccessor = new TransformsAccessor()
 
-    //filesytem location where to find required code to set up the environment
-    static String maximaLibsPath = System::getenv("MAXIMA_LIBS_PATH")
-    static String maximaJacobiansPath = "generated_code/maxima"
-    static String maximaTransformsPath = maximaLibsPath + "/robots"
-    static String transformsFilePath = "generated_code/misc"
+    /**
+     * Default constructor, uses the default configurator.
+     */
+    public new() {
+        this(new DefaultConfigurator)
+    }
 
-    def public static setMaximaLibsPath(String path) {
-        maximaLibsPath = path;
+    /**
+     * @param config the iit.dsl.generator.maxima.IConverterConfigurator to be
+     *        used by this instance.
+     */
+    public new(IConverterConfigurator config) {
+        setConfigurator(config)
     }
-    def public static setMaximaJacobiansPath(String path) {
-        maximaJacobiansPath = path;
-    }
-    def public static setMaximaTransformsPath(String path) {
-        maximaTransformsPath = path;
-    }
-    def public static setTransformsFilePath(String path) {
-        transformsFilePath = path
+
+    def public setConfigurator(IConverterConfigurator config) {
+        maximaLibTransforms  = config.libsPath + "/" + config.transformsLibName
+        maximaLibUtils       = config.libsPath + "/" + config.utilsLibName
+        maximaJacobiansPath  = config.generatedCodeLocation
+        maximaTransformsPath = config.generatedCodeLocation
+        transformsDSLFilesPath = config.transformsDSLFilesPath
+        maximaCfg = config.maximaEngineConfigurator
     }
 
     /**
@@ -39,12 +44,12 @@ class Converter {
      */
     def String[][] getJacobianText(Jacobian J)
     {
-        val maximaRunner = new iit.dsl.maxdsl.utils.MaximaRunner()
-        maximaRunner.runBatch(maximaLibsPath+"/coord_transforms")
-        maximaRunner.runBatch(maximaLibsPath+"/utils")
+        val maximaRunner = new iit.dsl.maxdsl.utils.MaximaRunner(maximaCfg)
+        maximaRunner.runBatch(maximaLibTransforms)
+        maximaRunner.runBatch(maximaLibUtils)
 
         val File transformsFile = new File(
-            transformsFilePath + "/" + FramesTransforms::fileName(J.robot)
+            transformsDSLFilesPath + "/" + FramesTransforms::fileName(J.robot)
         );
         maximaRunner.runBatch(maximaTransformsPath + "/" +
             iit::dsl::coord::generator::Maxima::transformsFileName(
@@ -62,4 +67,25 @@ class Converter {
         return ret
     }
 
+    //filesytem location where to find required code to set up the environment
+    private String maximaLibTransforms  = null
+    private String maximaLibUtils       = null
+    private String maximaJacobiansPath  = null
+    private String maximaTransformsPath = null
+    private String transformsDSLFilesPath = null
+    private iit.dsl.maxdsl.utils.MaximaRunner$IConfigurator maximaCfg = null
+
+}
+
+class DefaultConfigurator
+    extends iit.dsl.coord.generator.maxima.DefaultConfigurator
+    implements IConverterConfigurator
+{
+    override getTransformsDSLFilesPath() {
+        return "generated_code/misc"
+    }
+
+    override getUtilsLibName() {
+        return "utils"
+    }
 }

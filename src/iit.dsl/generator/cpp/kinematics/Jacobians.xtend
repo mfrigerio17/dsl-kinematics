@@ -12,9 +12,22 @@ import iit.dsl.generator.cpp.Common
 
 
 class Jacobians {
-    iit.dsl.generator.maxima.Converter maximaConverter = new iit.dsl.generator.maxima.Converter()
-    iit.dsl.maxdsl.utils.DSLAccessor   maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
-    iit.dsl.maxdsl.generator.cpp.Utils exprGenerator   = new iit.dsl.maxdsl.generator.cpp.Utils()
+    public new() {
+        maximaConverter = new iit.dsl.generator.maxima.Converter()
+        maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
+        exprGenerator   = new iit.dsl.maxdsl.generator.cpp.Utils()
+    }
+    public new(iit.dsl.generator.maxima.IConverterConfigurator conf) {
+        this()
+        setMaximaConverterConfigurator(conf)
+    }
+
+    def public setMaximaConverterConfigurator(
+        iit.dsl.generator.maxima.IConverterConfigurator conf)
+    {
+        maximaConverter.setConfigurator(conf)
+    }
+
 
     def headerFile(Robot robot, List<Jacobian> jacs) '''
         #ifndef «robot.name.toUpperCase()»_JACOBIANS_H_
@@ -159,4 +172,9 @@ class Jacobians {
         val J_asText = maximaConverter.getJacobianText(J)
         return dynamicAssignmentsCode(J, J_asText, "J");
      }
+
+
+    private iit.dsl.generator.maxima.Converter maximaConverter = null
+    private iit.dsl.maxdsl.utils.DSLAccessor   maxdslAccess    = null
+    private iit.dsl.maxdsl.generator.cpp.Utils exprGenerator   = null
 }

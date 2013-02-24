@@ -7,9 +7,26 @@ import org.eclipse.xtend2.lib.StringConcatenation
 import java.util.Iterator
 
 class Jacobians {
-    iit.dsl.generator.maxima.Converter  maximaConverter = new iit.dsl.generator.maxima.Converter()
-    iit.dsl.maxdsl.utils.DSLAccessor      maxdslAccess  = new iit.dsl.maxdsl.utils.DSLAccessor()
-    iit.dsl.maxdsl.generator.matlab.Utils maxdslUtils   = new iit.dsl.maxdsl.generator.matlab.Utils()
+
+    public new() {
+        maximaConverter = new iit.dsl.generator.maxima.Converter()
+        maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
+        maxdslUtils     = new iit.dsl.maxdsl.generator.matlab.Utils()
+    }
+    /**
+     * This constructor takes the maxima.Converter configurator that will be
+     * used to configure the maxima.Converter used by this instance
+     */
+    public new(iit.dsl.generator.maxima.IConverterConfigurator conf) {
+        this()
+        setMaximaConverterConfigurator(conf)
+    }
+
+    def public setMaximaConverterConfigurator(
+        iit.dsl.generator.maxima.IConverterConfigurator conf)
+    {
+        maximaConverter.setConfigurator(conf)
+    }
 
     def init_jacobians_file(Robot robot, List<Jacobian> jacs) '''
         «FOR Jacobian j : jacs»
@@ -63,4 +80,7 @@ class Jacobians {
         return strBuff
     }
 
+    private iit.dsl.generator.maxima.Converter  maximaConverter = null
+    private iit.dsl.maxdsl.utils.DSLAccessor      maxdslAccess  = null
+    private iit.dsl.maxdsl.generator.matlab.Utils maxdslUtils   = null
 }

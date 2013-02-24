@@ -22,13 +22,24 @@ import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 class Generator implements IGenerator {
     RobotHeaders  headers = new RobotHeaders()
     Jacobians      jacobs = new Jacobians()
-    Transforms transforms = new Transforms()
+    Transforms transforms = new Transforms(new iit.dsl.coord.generator.cpp.DefaultConfigurator())
     InverseDynamics invdyn= new InverseDynamics()
     ForwardDynamics fordyn = new ForwardDynamics()
     JointsSpaceInertia jsI= new JointsSpaceInertia()
     LinkInertias inertias = new LinkInertias()
     MakefileGenerator mkg = new MakefileGenerator()
     @Inject TransSpecsAccessor desiredTrasformsAccessor
+
+    /**
+     * Sets the iit.dsl.coord.generator.MaximaConverter$IConfigurator object
+     * that will be used by this generator whenever a conversion from Maxima
+     * code has to be performed.
+     */
+    def public void setMaximaConverterConfigurator(
+        iit.dsl.generator.maxima.IConverterConfigurator config)
+    {
+        jacobs.setMaximaConverterConfigurator(config)
+    }
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
