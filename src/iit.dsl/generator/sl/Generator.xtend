@@ -13,7 +13,7 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        //generateRobotFiles(robot, fsa);
+        generateRobotFiles(robot, fsa);
         generateRobotUserFiles(robot, fsa);
     }
 

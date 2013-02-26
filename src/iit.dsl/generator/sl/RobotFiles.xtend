@@ -6,6 +6,12 @@ import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.Link
+import iit.dsl.kinDsl.PILiteral
+import iit.dsl.kinDsl.FloatLiteral
+import iit.dsl.kinDsl.PlainExpr
+import iit.dsl.kinDsl.MultExpr
+import iit.dsl.kinDsl.ConstantLiteral
+import iit.dsl.kinDsl.DivExpr
 
 class RobotFiles {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -28,8 +34,8 @@ class RobotFiles {
             { (* Joint «j.name» *)
             {jointID,{ID=«j.ID»}},
             «j.jointAxis»,
-            {translation,{«j.refFrame.translation.x.str»,«j.refFrame.translation.y.str»,«j.refFrame.translation.z.str»}},
-            {rotationMatrix,{«j.refFrame.rotation.x.str»,«j.refFrame.rotation.y.str»,«j.refFrame.rotation.z.str»}},
+            {translation,{«jointTranslParams(j)»}},
+            {rotationMatrix,{«jointRotParams(j)»}},
             {successors,{«j.successors»}},
             {inertia,GenInertiaMatrixS["links",ID,1]},
             {massCenterMass,GenMCMVectorS["links",ID,1]},
@@ -66,6 +72,18 @@ class RobotFiles {
                 ,«child.joint.ID»
             «ENDFOR»
         «ENDIF»'''
+
+    def private jointTranslParams(Joint j)
+    '''«val tr=j.refFrame.translation»«string(tr.x)», «string(tr.y)», «string(tr.z)»'''
+    def private jointRotParams(Joint j)
+    '''«val rot=j.refFrame.rotation»«string(rot.x)», «string(rot.y)», «string(rot.z)»'''
+
+    def private dispatch string(FloatLiteral id)'''«id.value.str»'''
+    def private dispatch string(PlainExpr expr) '''«string(expr.identifier)»'''
+    def private dispatch string(MultExpr expr)  '''«expr.mult.str» «string(expr.identifier)»'''
+    def private dispatch string(DivExpr expr)   '''«string(expr.identifier)»/«expr.div»'''
+    def private dispatch string(ConstantLiteral id)  '''«id.str»'''
+    def private dispatch string(PILiteral pi)   '''«IF pi.minus»-«ENDIF»Pi'''
 
     def mathematicaNotebook(Robot robot, String slRootPath) '''
         «val robotName = robot.name»
