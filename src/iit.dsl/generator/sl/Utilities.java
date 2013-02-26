@@ -1,5 +1,8 @@
 package iit.dsl.generator.sl;
 
+import java.util.Arrays;
+import java.util.List;
+
 import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
@@ -55,4 +58,21 @@ public abstract class Utilities {
 		tuned.setIyz(-inertia.getIyz());
 		return tuned;
 	}
+
+
+
+	public static List<String> getDefaultMiscSensors() {
+        if(defaultMiscSensors == null) {
+            String foo[] =
+            {"B_Q_0", "B_Q_1", "B_Q_2", "B_Q_3", "B_Qd_0", "B_Qd_1", "B_Qd_2", "B_Qd_3",
+             "B_Qdd_0", "B_Qdd_1", "B_Qdd_2", "B_Qdd_3", "B_Ad_A", "B_Ad_B", "B_Ad_G",
+             "B_Add_A", "B_Add_B", "B_Add_G", "B_X", "B_Y", "B_Z", "B_Xd", "B_Yd", "B_Zd",
+             "B_Xdd", "B_Ydd", "B_Zdd", "TIME_MOTOR"};
+
+            defaultMiscSensors = Arrays.asList(foo);
+        }
+        return defaultMiscSensors;
+	}
+
+	private static List<String> defaultMiscSensors = null;
 }

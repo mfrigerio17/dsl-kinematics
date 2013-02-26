@@ -13,7 +13,9 @@ import iit.dsl.kinDsl.MultExpr
 import iit.dsl.kinDsl.ConstantLiteral
 import iit.dsl.kinDsl.DivExpr
 
+
 class RobotFiles {
+
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
     extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
 
@@ -398,46 +400,14 @@ class RobotFiles {
             N_ROBOT_DOFS
         };
 
+        «val sens = Utilities::defaultMiscSensors»
         /*! define miscellenous sensors of this robot */
         enum RobotMiscSensors {
-          B_Q_0=1,
-          B_Q_1,
-          B_Q_2,
-          B_Q_3,
-
-          B_Qd_0,
-          B_Qd_1,
-          B_Qd_2,
-          B_Qd_3,
-
-          B_Qdd_0,
-          B_Qdd_1,
-          B_Qdd_2,
-          B_Qdd_3,
-
-          B_Ad_A,
-          B_Ad_B,
-          B_Ad_G,
-
-          B_Add_A,
-          B_Add_B,
-          B_Add_G,
-
-          B_X,
-          B_Y,
-          B_Z,
-
-          B_Xd,
-          B_Yd,
-          B_Zd,
-
-          B_Xdd,
-          B_Ydd,
-          B_Zdd,
-
-          TIME_MOTOR,
-
-          N_ROBOT_MISC_SENSORS
+            «sens.get(0)»=1,
+            «FOR s : sens.drop(1)»
+                «s»,
+            «ENDFOR»
+            N_ROBOT_MISC_SENSORS
         };
 
         /*! number of degrees-of-freedom of robot */
@@ -572,6 +542,12 @@ class RobotFiles {
           {"BLOB4"},
           {"BLOB5"},
           {"BLOB6"}
+        };
+
+        char misc_sensor_names[][20]= {
+            «FOR s : Utilities::defaultMiscSensors SEPARATOR ','»
+                {"«s»"}
+            «ENDFOR»
         };
 
         int link2endeffmap[] = {0,«DUMMY_EE_LINK_ID»};

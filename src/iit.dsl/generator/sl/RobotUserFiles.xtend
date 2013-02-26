@@ -91,6 +91,16 @@ class RobotUserFiles {
        «ENDFOR»
     '''
 
+    def confFile_sensorFilters(Robot robot) '''
+        «FOR Joint joint : robot.joints»
+            «joint.name»   100  100  100  100
+        «ENDFOR»
+
+        «FOR s : Utilities::defaultMiscSensors»
+            «s»«'\t\t'»100  100  100  100
+        «ENDFOR»
+    '''
+
     def imakefileUnix(Robot robot) '''
         «val nameUpperCase = robot.name.toUpperCase»
         «val nameLowerCase = robot.name.toLowerCase»

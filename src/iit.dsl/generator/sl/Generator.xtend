@@ -46,10 +46,14 @@ class Generator implements IGenerator {
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/WhichDOFs.cf", roboUserFiles.confFile_whichDOFs(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
-            "/config/SensorOffset.cf", roboUserFiles.confFile_sensorOffset(robot))    
+            "/config/SensorOffset.cf", roboUserFiles.confFile_sensorOffset(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/LinkParameters.cf",
             roboUserFiles.linkParameters(robot))
+        fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/config/SensorFilter.cf",
+            roboUserFiles.confFile_sensorFilters(robot))
+
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/" + Utilities::makefileFolder +"/imakefile.unix",
             roboUserFiles.imakefileUnix(robot))
