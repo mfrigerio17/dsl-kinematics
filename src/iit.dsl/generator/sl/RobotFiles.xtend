@@ -350,9 +350,13 @@ class RobotFiles {
         NormalObjRule( $(OBJECTS) )'''
 
 
+    private static String DUMMY_EE_LINK_ID = "DUMMY_EE"
+
     def SL_user_dot_h(Robot robot)'''
-        #ifndef _SL_USER_H_
-        #define _SL_USER_H_
+        #ifndef _SL_USER_«robot.name.toUpperCase»_H_
+        #define _SL_USER_«robot.name.toUpperCase»_H_
+
+        #include "SL.h"
 
         /*! the robot name */
         #define ROBOT_NAME "«robot.name»"
@@ -365,6 +369,7 @@ class RobotFiles {
             «FOR Link link : robot.links»
             «link.name.toUpperCase()»,
             «ENDFOR»
+            «DUMMY_EE_LINK_ID»,
             N_ROBOT_LINKS
         };
 
@@ -535,7 +540,7 @@ class RobotFiles {
         #ifdef __cplusplus
         }
         #endif
-        #endif  /* _SL_USER_H_ */'''
+        #endif  /* _SL_USER_«robot.name.toUpperCase»_H_ */'''
 
 
     def SL_user_common_dot_c(Robot robot)'''
@@ -549,7 +554,28 @@ class RobotFiles {
         char cart_names[][20]= {
             {"dummy"},
             {"ENDEFF"}
-        };'''
+        };
+
+        char link_names[][20]= {
+            {"BASE"},
+            «FOR link : robot.links»
+                {"LNK_«link.name»"},
+            «ENDFOR»
+            {"LNK_dummy_ee"}
+        };
+        // don't really know what this is for, but it is required for linking...
+        char blob_names[][20]= {
+          {"dummy"},
+          {"BLOB1"},
+          {"BLOB2"},
+          {"BLOB3"},
+          {"BLOB4"},
+          {"BLOB5"},
+          {"BLOB6"}
+        };
+
+        int link2endeffmap[] = {0,«DUMMY_EE_LINK_ID»};
+        '''
 
     def Makefile(Robot robot) '''
         «val nameLower = robot.name.toLowerCase»
