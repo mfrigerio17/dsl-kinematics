@@ -24,7 +24,7 @@ Workflow {
 			slot = "robot"
 		}
 	}
-
+/*
 	component = org.eclipse.xtext.generator.GeneratorComponent {
 		register = iit.dsl.KinDslStandaloneSetup {}
 		slot = 'robot'
@@ -32,6 +32,8 @@ Workflow {
 			path = '${targetDir}/misc'
 		}
 	}
+//*/
+/*
     component = org.eclipse.xtext.generator.GeneratorComponent {
         register = iit.dsl.KinDslStandaloneSetup_Maxima {}
         slot = 'robot'
@@ -39,13 +41,8 @@ Workflow {
             path = '${targetDir}/maxima'
         }
     }
-    component = org.eclipse.xtext.generator.GeneratorComponent {
-        register = iit.dsl.KinDslStandaloneSetup_SL {}
-        slot = 'robot'
-        outlet = {
-            path = '${targetDir}/SL'
-        }
-    }
+//*/
+/*
     component = org.eclipse.xtext.generator.GeneratorComponent {
         register = iit.dsl.KinDslStandaloneSetup_CPP {}
         slot = 'robot'
@@ -53,6 +50,8 @@ Workflow {
             path = '${targetDir}/cpp'
         }
     }
+//*/
+/*
     component = org.eclipse.xtext.generator.GeneratorComponent {
         register = iit.dsl.KinDslStandaloneSetup_Matlab {}
         slot = 'robot'
@@ -60,5 +59,14 @@ Workflow {
             path = '${targetDir}/matlab'
         }
     }
-
+//*/
+/*
+    component = org.eclipse.xtext.generator.GeneratorComponent {
+        register = iit.dsl.KinDslStandaloneSetup_SL {}
+        slot = 'robot'
+        outlet = {
+            path = '${targetDir}/SL'
+        }
+    }
+//*/
 }
