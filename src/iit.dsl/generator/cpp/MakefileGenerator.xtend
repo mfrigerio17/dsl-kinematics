@@ -120,11 +120,13 @@ class MakefileGenerator {
                     ./«Names$Files::jacobiansHeader(rob)».h
                     ./«Names$Files$RBD::jsimHeader(rob)».h
                     ./«Names$Files$RBD::header(rob)».h
+                    ./«Names$Files$RBD::abaHeader(rob)».h
                     ./«Names$Files$LinkInertias::header(rob)».h)
         set(SOURCES ./«Names$Files::transformsHeader(rob)».cpp
                     ./«Names$Files::jacobiansHeader(rob)».cpp
                     ./«Names$Files$RBD::jsimHeader(rob)».cpp
                     ./«Names$Files$RBD::source(rob)».cpp
+                    ./«Names$Files$RBD::abaHeader(rob)».cpp
                     ./«Names$Files$LinkInertias::source(rob)».cpp)
         
         
