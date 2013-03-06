@@ -15,13 +15,15 @@ class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
     FramesTransforms frTransforms = new FramesTransforms()
     Misc miscGen = Misc::getInstance()
+    MotionDSLDocGenerator motiongen = new MotionDSLDocGenerator()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robot.name+".urdf", miscGen.URDF_ROS_model(robot))
         fsa.generateFile(robot.name+".sd", miscGen.SDFAST_model(robot))
         fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
-          //testUtilities()
+        fsa.generateFile(MotionDSLDocGenerator::fileName(robot), motiongen.documentContent(robot))
+        //testUtilities()
     }
 
     def testITensorRotation(Robot hyl) {
