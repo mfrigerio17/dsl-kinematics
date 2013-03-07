@@ -17,18 +17,18 @@ class Common {
 
     /**
      * The index of the coordinate of a 6D spatial vector that corresponds to the given joint.
-     * These functions assume that the index is in the range [0..5], and that the axis
-     * of the joint is always lying on the z axis. Therefore the possible output of these
-     * functions is either 2 or 5, which correspond to z axis, revolute or prismatic.
-     * Telling whether a revolute joint is 2 or 5 (and similarly for the prismatic) is
-     * basically the job of these functions. In other words, their implementation must
-     * be compliant with the convention about spatial vectors: rotational coordinates
-     * come first and linear ones afterwards, or the other way round.
+     * These functions assume that the axis of the joint is always lying on the
+     * z axis of the joint frame, and they work only with 1-dof prismatic or
+     * revolute joints (these are basically conventions of the whole Kinematics
+     * DSL, anyway).
+     * These functions rely on the constants defined in the 'iit::rbd'
+     * namespace that identify the coordinates for linear motion along z and
+     * rotational motion about z.
      */
-    def public static dispatch spatialVectIndex(RevoluteJoint joint) {
-        return 2
-    }
-    def public static dispatch spatialVectIndex(PrismaticJoint joint) {
-        return 5
-    }
+    ///@{
+    def public static dispatch spatialVectIndex(RevoluteJoint joint)
+        '''«Names$Namespaces$Qualifiers::iit_rbd»::AZ'''
+    def public static dispatch spatialVectIndex(PrismaticJoint joint)
+        '''«Names$Namespaces$Qualifiers::iit_rbd»::LZ'''
+    ///@}
 }
