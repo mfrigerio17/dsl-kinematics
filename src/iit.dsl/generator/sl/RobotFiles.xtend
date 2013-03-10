@@ -808,4 +808,108 @@ class RobotFiles {
 
         .PHONY = all install clean makedebug SL_core SL_install_headers make_folders remove_sl_srcs
     '''
+
+    def CMakeLists(Robot robot) '''
+        «val namelow = robot.name.toLowerCase»
+        # Project configuration
+        cmake_minimum_required(VERSION 2.8)
+        project(«namelow»)
+        set(EXECUTABLE_OUTPUT_PATH ..)
+
+        # Include directories
+        include_directories(${SL_ROOT}/utilities/include)
+        include_directories(${SL_ROOT}/lwpr/include)
+        include_directories(${SL_ROOT}/SL/include)
+        include_directories(math)
+        include_directories(include)
+
+        # Set source directories
+        set(SOURCE_DIR ${SL_ROOT}/${ROBOT}/src)
+
+        if (XENO)
+          # Add extra dependencies for Xenomai
+          include_directories(${IIT_IO_ROOT})
+
+          # Add library
+          add_library(«namelow»common STATIC
+            ${SOURCE_SL_COMMON}
+            src/SL_user_commands.c
+            src/SL_user_common.c)
+
+          # Add executable
+          add_executable(xenomotor
+            ${SOURCE_SL_MOTOR}
+            src/SL_user_motor.c
+            src/SL_user_sensor_proc_xeno.cpp)
+
+          target_link_libraries(xenomotor
+            «namelow»common SLcommon utilities iitio
+            ${XENOMOTOR_LIBS})
+
+          # Add source files lists
+          set(SOURCE_TASK
+            ${SOURCE_DIR}/SL_user_task_xeno.c
+            PARENT_SCOPE)
+
+          set(SOURCE_OPENGL
+            ${SOURCE_DIR}/SL_user_openGL.c
+            PARENT_SCOPE)
+
+          set(SOURCE_SIM
+            ${SOURCE_DIR}/SL_user_simulation.c
+            PARENT_SCOPE)
+
+        else (XENO)
+          # Add library
+          add_library(«namelow»common STATIC
+            ${SOURCE_SL_COMMON}
+            src/SL_user_commands.c
+            src/SL_user_common.c)
+
+          # Add executable
+          add_executable(xmotor
+            ${SOURCE_SL_MOTOR}
+            src/SL_user_motor.c
+            src/SL_user_sensor_proc_unix.c)
+
+          target_link_libraries(xmotor
+            «namelow»common SLcommon utilities
+            ${XMOTOR_LIBS})
+
+          # Add executable
+          add_executable(xrmotor
+            src/SL_user_motor.c
+            src/SL_user_sensor_proc_unix.c
+            ${SOURCE_SL_MOTOR})
+
+          target_link_libraries(xrmotor
+            «namelow»common SLcommon utilities
+            ${XRMOTOR_LIBS})
+
+          if (ROS)
+            # Add executable
+            add_executable(xros
+              ${SOURCE_SL_ROS}
+              src/SL_user_ros.cpp)
+
+            target_link_libraries(xros
+              «namelow»common SLcommon utilities
+              ${ROSPACK_LIBS}
+              ${XROS_LIBS})
+          endif (ROS)
+
+          # Add source files lists
+          set(SOURCE_TASK
+            ${SOURCE_DIR}/SL_user_task.c
+            PARENT_SCOPE)
+
+          set(SOURCE_OPENGL
+            ${SOURCE_DIR}/SL_user_openGL.c
+            PARENT_SCOPE)
+
+          set(SOURCE_SIM
+            ${SOURCE_DIR}/SL_user_simulation.c
+            PARENT_SCOPE)
+        endif (XENO)
+    '''
 }

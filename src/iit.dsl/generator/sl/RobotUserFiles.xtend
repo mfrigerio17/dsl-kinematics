@@ -608,4 +608,85 @@ class RobotUserFiles {
 
         .PHONY = clean all make_«nameLower» make_folders
     '''
+
+    def CMakeLists(Robot robot) '''
+        # Auto-generated CMake file
+        #
+        #
+        «val namelow = robot.name.toLowerCase»
+        # Project configuration
+        cmake_minimum_required(VERSION 2.8)
+        project(«namelow»User)
+        set(EXECUTABLE_OUTPUT_PATH ..)
+
+        set(EIGEN_ROOT   $ENV{EIGEN_ROOT}   CACHE PATH "Path to Eigen headers")
+
+        set(COMMON_LIBS «namelow»common SLcommon utilities)
+
+        # Include directories
+        include_directories(${SL_ROOT}/utilities/include)
+        include_directories(${SL_ROOT}/lwpr/include)
+        include_directories(${SL_ROOT}/SL/include)
+        include_directories(${SL_ROOT}/SLRemote/include)
+        include_directories(${SL_ROOT}/${ROBOT}/math)
+        include_directories(${SL_ROOT}/${ROBOT}/include)
+        include_directories(include)
+
+        include_directories(${IIT_RBD_ROOT})
+        include_directories(${EIGEN_ROOT})
+
+        if (XENO)
+          # Add executable
+          add_executable(xenotask
+            ${SOURCE_SL_TASK}
+            ${SOURCE_TASK}
+            src/initUserTasks.c
+            src/sample_task.c)
+
+          target_link_libraries(xenotask
+            ${COMMON_LIBS}
+            ${XENOTASK_LIBS})
+
+          # Add executable
+          add_executable(xenoopengl
+            ${SOURCE_SL_OPENGL}
+            ${SOURCE_OPENGL}
+            src/initUserGraphics.c)
+
+          target_link_libraries(xenoopengl
+            ${COMMON_LIBS}
+            ${XENOOPENGL_LIBS})
+        else (XENO)
+            # Executables:
+
+          add_executable(xtask
+            ${SOURCE_SL_TASK}
+            ${SOURCE_TASK}
+            src/initUserTasks.c)
+
+          target_link_libraries(xtask
+            ${COMMON_LIBS}
+            ${XTASK_LIBS})
+
+          # Add executable
+          add_executable(xopengl
+            ${SOURCE_SL_OPENGL}
+            ${SOURCE_OPENGL}
+            src/initUserGraphics.c)
+
+          target_link_libraries(xopengl
+            «namelow»common SLcommon utilities
+            ${XOPENGL_LIBS})
+
+          # Add executable
+          add_executable(xsim
+            ${SOURCE_SL_SIM}
+            ${SOURCE_SIM}
+            src/initUserSimulation.c)
+
+          target_link_libraries(xsim
+            ${COMMON_LIBS}
+            ${XSIM_LIBS})
+        endif (XENO)
+    '''
 }
