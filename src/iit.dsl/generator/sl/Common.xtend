@@ -23,4 +23,8 @@ def String main_inertiaM_filename(Robot robot) {
     "main_inertiaM"
 }
 
+def String main_compare_fwd_dyn(Robot robot) {
+    "main_compare_fwd_dyn"
+}
+
 }

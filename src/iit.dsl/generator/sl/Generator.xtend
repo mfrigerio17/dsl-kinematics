@@ -58,14 +58,23 @@ class Generator implements IGenerator {
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/" + Utilities::makefileFolder +"/imakefile.unix",
             roboUserFiles.imakefileUnix(robot))
+
+        fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
+
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/src/" + benchmarkIDFileName(robot) + ".cpp",
             roboUserFiles.main_benchmarkID(robot))
+
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/src/" + main_inertiaM_filename(robot) + ".cpp",
             roboUserFiles.main_inertiaM(robot))
+
         //fsa.generateFile(slCommon.robotUserFolderName(robot) + "/Makefile", roboUserFiles.Makefile(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) + "/CMakeLists.txt", roboUserFiles.CMakeLists(robot))
+
+         fsa.generateFile(slCommon.robotUserFolderName(robot) +
+            "/src/" + main_compare_fwd_dyn(robot) + ".cpp",
+            roboUserFiles.main_compare_fwd_dyn(robot))
     }
 
 }
