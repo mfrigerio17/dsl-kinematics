@@ -15,8 +15,8 @@ class LinkInertias {
     extension Common common = new Common()
 
 	def header(Robot robot) '''
-        #ifndef IIT_RBD_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
-        #define IIT_RBD_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
+        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
+        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
         #include <iit/rbd/rbd.h>

@@ -8,8 +8,8 @@ class RobotHeaders {
     private iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
     def main(Robot robot)'''
-        #ifndef IIT_«Names$Files::mainHeader(robot).toUpperCase()»_H_
-        #define IIT_«Names$Files::mainHeader(robot).toUpperCase()»_H_
+        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files::mainHeader(robot).toUpperCase()»_H_
+        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files::mainHeader(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
 
