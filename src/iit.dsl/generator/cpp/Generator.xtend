@@ -6,7 +6,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import java.util.ArrayList
 import java.io.File
-import com.google.inject.Inject
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
@@ -28,7 +27,7 @@ class Generator implements IGenerator {
     JointsSpaceInertia jsI= new JointsSpaceInertia()
     LinkInertias inertias = new LinkInertias()
     MakefileGenerator mkg = new MakefileGenerator()
-    @Inject TransSpecsAccessor desiredTrasformsAccessor
+    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
     /**
      * Sets the iit.dsl.coord.generator.MaximaConverter$IConfigurator object
@@ -44,7 +43,7 @@ class Generator implements IGenerator {
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
 //        generateCommons(robot, fsa);
-//        generateTransforms(robot, fsa);
+        generateTransforms(robot, fsa);
 //        generateInverseDynamicsStuff(robot, fsa);
         generateForwardDynamicsStuff(robot, fsa);
 //        generateInertiaMatrixStuff(robot, fsa);

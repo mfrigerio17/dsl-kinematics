@@ -6,7 +6,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtend2.lib.StringConcatenation
 
 import java.io.File
-import com.google.inject.Inject
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
@@ -14,8 +13,8 @@ import iit.dsl.generator.Jacobian
 
 class Generator implements IGenerator {
     Transforms transforms = new Transforms()
-    @Inject Jacobians jacs
-    @Inject TransSpecsAccessor desiredTrasformsAccessor
+    Jacobians jacs = new Jacobians()
+    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
