@@ -29,11 +29,10 @@ class ForwardDynamics {
 
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«Names$Files::transformsHeader(robot)».h"
-        #include "«Names$Files$LinkInertias::header(robot)».h"
+        #include "«Names$Files$RBD::inertiaHeader(robot)».h"
         #include "«Names$Files::linkDataMapHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
 
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
@@ -113,8 +112,7 @@ class ForwardDynamics {
         }
 
         }
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
 
         #endif
     '''

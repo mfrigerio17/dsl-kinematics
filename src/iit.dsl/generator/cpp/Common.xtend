@@ -4,6 +4,7 @@ import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.PrismaticJoint
+import iit.dsl.kinDsl.Robot
 
 class Common {
     static iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -31,4 +32,28 @@ class Common {
     def public static dispatch spatialVectIndex(PrismaticJoint joint)
         '''«Names$Namespaces$Qualifiers::iit_rbd»::LZ'''
     ///@}
+
+    def public static enclosingNamespacesOpen() '''
+        «FOR ns : Names$Namespaces::enclosing()»
+            namespace «ns» {
+        «ENDFOR»
+    '''
+    def public static enclosingNamespacesClose() '''
+        «FOR ns : Names$Namespaces::enclosing()»
+            }
+        «ENDFOR»
+    '''
+    def public static enclosingNamespacesQualifier()
+    '''«FOR ns : Names$Namespaces::enclosing() SEPARATOR "::"»«ns»«ENDFOR»'''
+
+    def public static enclosingNamespacesOpen(Robot r) '''
+        «enclosingNamespacesOpen»
+        namespace «Names$Namespaces::rob(r)» {
+    '''
+    def public static enclosingNamespacesClose(Robot r) '''
+        }
+        «enclosingNamespacesClose»
+    '''
+    def public static enclosingNamespacesQualifier(Robot r)
+    '''«enclosingNamespacesQualifier»::«Names$Namespaces::rob(r)»'''
 }

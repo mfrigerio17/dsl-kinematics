@@ -563,7 +563,7 @@ class RobotUserFiles {
                     }
                 }
                 // re-arrange blocks to match the convention of the generated dynamics code
-                «Names$Namespaces::rbd»::Matrix33d temp;
+                «Names$Namespaces$Qualifiers::iit_rbd»::Matrix33d temp;
                 temp = SLM.block<3,3>(0,0);
                 SLM.block<3,3>(0,0) = SLM.block<3,3>(3,3);
                 SLM.block<3,3>(3,3) = temp;

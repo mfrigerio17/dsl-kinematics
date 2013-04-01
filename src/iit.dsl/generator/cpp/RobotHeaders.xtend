@@ -13,8 +13,7 @@ class RobotHeaders {
 
         #include <Eigen/Dense>
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
 
         static const int JointSpaceDimension = «robot.joints.size»;
         static const int jointsCount = «robot.joints.size»;
@@ -38,8 +37,7 @@ class RobotHeaders {
             «ENDFOR»
         };
 
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
         #endif
         '''
 
@@ -51,8 +49,7 @@ class RobotHeaders {
 
         #include "«Names$Files::mainHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
 
         /**
          * A very simple container to associate a generic data item to each link
@@ -137,8 +134,7 @@ class RobotHeaders {
             return out;
         }
 
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
         #endif
     '''
 
@@ -150,8 +146,7 @@ class RobotHeaders {
 
         #include "«Names$Files::mainHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
 
         /**
          * A very simple container to associate a generic data item to each joint
@@ -234,8 +229,7 @@ class RobotHeaders {
             return out;
         }
 
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
         #endif
     '''
 }

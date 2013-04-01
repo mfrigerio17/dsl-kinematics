@@ -42,8 +42,8 @@ class MakefileGenerator {
         # BINARIES #
         # -------- #
         BUILD = $(CXX) $(CXXFLAGS) $^ -o $@
-        «val invdyn_objs = '''«Names$Files$RBD::source(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
-        «val jsim_objs = '''«Names$Files$RBD::jsimHeader(robot)».o «Names$Files$LinkInertias::source(robot)».o «Names$Files::transformsSource(robot)».o'''»
+        «val invdyn_objs = '''«Names$Files$RBD::source(robot)».o «Names$Files$RBD::inertiaSource(robot)».o «Names$Files::transformsSource(robot)».o'''»
+        «val jsim_objs = '''«Names$Files$RBD::jsimHeader(robot)».o «Names$Files$RBD::inertiaSource(robot)».o «Names$Files::transformsSource(robot)».o'''»
         executables : $(EXES)
         $(EXES) : | $(DIR_BIN)
         $(DIR_BIN)/«Names$Files$RBD::main_benchmarkID(robot)» : $(addprefix $(DIR_OBJS)/,«Names$Files$RBD::main_benchmarkID(robot)».o «invdyn_objs»)
@@ -121,14 +121,13 @@ class MakefileGenerator {
                     ./«Names$Files$RBD::jsimHeader(rob)».h
                     ./«Names$Files$RBD::header(rob)».h
                     ./«Names$Files$RBD::abaHeader(rob)».h
-                    ./«Names$Files$LinkInertias::header(rob)».h)
+                    ./«Names$Files$RBD::inertiaHeader(rob)».h)
         set(SOURCES ./«Names$Files::transformsHeader(rob)».cpp
                     ./«Names$Files::jacobiansHeader(rob)».cpp
                     ./«Names$Files$RBD::jsimHeader(rob)».cpp
                     ./«Names$Files$RBD::source(rob)».cpp
                     ./«Names$Files$RBD::abaHeader(rob)».cpp
-                    ./«Names$Files$LinkInertias::source(rob)».cpp)
-        
+                    ./«Names$Files$RBD::inertiaSource(rob)».cpp)
         
         # Include directories
         include_directories(${EIGEN_ROOT})

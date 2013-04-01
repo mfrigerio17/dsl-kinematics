@@ -25,10 +25,9 @@ class JointsSpaceInertia {
         #include <iit/rbd/JStateDependentMatrix.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$LinkInertias::header(robot)».h"
+        #include "«Names$Files$RBD::inertiaHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
         /**
          * The type of the Joint Space Inertia Matrix (JSIM) of the robot «robot.name».
@@ -161,8 +160,7 @@ class JointsSpaceInertia {
 
 
         }
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
         #endif
         '''
 
@@ -202,7 +200,7 @@ class JointsSpaceInertia {
         const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
             «val sortedLinks = robot.links.sortBy(link | link.ID).reverse /* do not consider the robot base */»
             «IF !floatingBase»
-                static «Names$Namespaces::rbd»::ForceVector F;
+                static «Names$Namespaces$Qualifiers::iit_rbd»::ForceVector F;
             «ENDIF»
 
             // Precomputes only once the coordinate transforms:

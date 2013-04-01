@@ -107,8 +107,8 @@ class Generator implements IGenerator {
 
     def generateLinkInertias(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$LinkInertias::header(robot) + ".h", inertias.header(robot))
-        fsa.generateFile(folder + "/" + Names$Files$LinkInertias::source(robot) + ".cpp", inertias.source(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".h", inertias.header(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".cpp", inertias.source(robot))
     }
 
     def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {

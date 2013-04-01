@@ -34,8 +34,7 @@ class InverseDynamics {
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files::linkDataMapHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
 
         typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
@@ -103,15 +102,14 @@ class InverseDynamics {
         }
 
         }
-        }
-        }
+        «Common::enclosingNamespacesClose(robot)»
 
         #endif
         '''
 
     def inverseDynamicsImplementation(Robot robot)'''
             #include "«Names$Files$RBD::header(robot)».h"
-            #include "«Names$Files$LinkInertias::header(robot)».h"
+            #include "«Names$Files$RBD::inertiaHeader(robot)».h"
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
             #endif
@@ -189,7 +187,7 @@ class InverseDynamics {
                 «val acceler    = l.accelerationName»
                 «val transform  = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parentLink, l)»
                 «IF parentLink.getID() == 0»
-                    «acceler» = «transform».col(«Utils::Z_L») * ( - «Names$Namespaces::enclosing»::«Names$Namespaces::rbd»::g);
+                    «acceler» = «transform».col(«Utils::Z_L») * ( - «Names$Namespaces$Qualifiers::iit_rbd»::g);
                     «forceName(l)» = «inertiaMxName(l)» * «acceler»;
                 «ELSE»
                     «acceler» = («transform» * «parentLink.accelerationName»);

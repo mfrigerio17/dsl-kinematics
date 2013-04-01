@@ -15,8 +15,8 @@ class LinkInertias {
     extension Common common = new Common()
 
 	def header(Robot robot) '''
-        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
-        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$LinkInertias::header(robot).toUpperCase()»_H_
+        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::inertiaHeader(robot).toUpperCase()»_H_
+        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::inertiaHeader(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
         #include <iit/rbd/rbd.h>
@@ -25,8 +25,7 @@ class LinkInertias {
 
         #include "«Names$Files::mainHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «iit::dsl::generator::cpp::Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
 
         typedef «Names$Namespaces$Qualifiers::iit_rbd»::InertiaMatrixDense InertiaMatrix;
@@ -82,8 +81,7 @@ class LinkInertias {
         }
 
         }
-        }
-        }
+        «iit::dsl::generator::cpp::Common::enclosingNamespacesClose(robot)»
 
         #endif
 	'''
@@ -92,7 +90,7 @@ class LinkInertias {
         «val nsqualifier    = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
         «val classqualifier = nsqualifier + "::" + className(robot)»
         «val links = getRelevantLinks(robot)»
-        #include "«Names$Files$LinkInertias::header(robot)».h"
+        #include "«Names$Files$RBD::inertiaHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::iit_rbd»;

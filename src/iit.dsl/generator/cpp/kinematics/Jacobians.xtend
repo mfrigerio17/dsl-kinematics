@@ -36,8 +36,7 @@ class Jacobians {
         #include <iit/rbd/JStateDependentMatrix.h>
         #include "«Names$Files::mainHeader(robot)».h"
 
-        namespace «Names$Namespaces::enclosing» {
-        namespace «Names$Namespaces::rob(robot)» {
+        «Common::enclosingNamespacesOpen(robot)»
 
         template<int COLS>
         class «Names$Types::jacobianLocal» : public «Names$Types::jstateDependentMatrix()»<«Names$Types::jointState», 6, COLS> {
@@ -63,8 +62,8 @@ class Jacobians {
             void initAll();
 
         } // end of namespace '«Names$Namespaces::jacobians»'
-        } // end of namespace '«Names$Namespaces::rob(robot)»'
-        } // end of namespace '«Names$Namespaces::enclosing»'
+
+        «Common::enclosingNamespacesClose(robot)»
 
         #endif
         '''
