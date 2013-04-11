@@ -184,7 +184,7 @@ class JointsSpaceInertia {
         {
             //Make sure all the transforms of the robot are initialized
             «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
-            «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::«Names$Namespaces::T6D_force»::initAll();
+            «robo_ns_qualifier»::«Names$Namespaces::T6D_force»::initAll();
             //Initialize the matrix itself
             this->setZero();
             // Initialize the 6D composite-inertia tensor of each body of the robot
