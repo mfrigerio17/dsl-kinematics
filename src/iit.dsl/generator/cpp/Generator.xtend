@@ -17,17 +17,57 @@ import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.generator.cpp.dynamics.LinkInertias
 import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 
+import iit.dsl.generator.cpp.config.TransformsGeneratorConfigurator
+import iit.dsl.generator.cpp.config.IConfiguratorsGetter
+import iit.dsl.generator.cpp.config.DefaultConfiguratorsGetter
+
+
 
 class Generator implements IGenerator {
-    RobotHeaders  headers = new RobotHeaders()
-    Jacobians      jacobs = new Jacobians()
-    Transforms transforms = new Transforms(new iit.dsl.coord.generator.cpp.DefaultConfigurator())
-    InverseDynamics invdyn= new InverseDynamics()
-    ForwardDynamics fordyn = new ForwardDynamics()
-    JointsSpaceInertia jsI= new JointsSpaceInertia()
-    LinkInertias inertias = new LinkInertias()
-    MakefileGenerator mkg = new MakefileGenerator()
-    TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
+
+    new() {
+        this(new DefaultConfiguratorsGetter)
+    }
+
+    new(IConfiguratorsGetter getter) {
+        setConfiguratorsGetter(getter)
+    }
+
+//    def private init() {
+//        headers = new RobotHeaders()
+//         jacobs = new Jacobians()
+//        invdyn  = new InverseDynamics()
+//        jsI     = new JointsSpaceInertia()
+//       inertias = new LinkInertias()
+//         mkg    = new MakefileGenerator()
+//         desiredTrasformsAccessor = new TransSpecsAccessor()
+//    }
+
+
+    private RobotHeaders  headers = new RobotHeaders()
+    private Jacobians      jacobs = new Jacobians()
+    private InverseDynamics invdyn= new InverseDynamics()
+    private ForwardDynamics fordyn= new ForwardDynamics()
+    private JointsSpaceInertia jsI= new JointsSpaceInertia()
+    private LinkInertias inertias = new LinkInertias()
+    private MakefileGenerator mkg = new MakefileGenerator()
+    private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
+
+    private IConfiguratorsGetter configGetter = null
+
+    def public void setConfiguratorsGetter(IConfiguratorsGetter getter) {
+        if(getter == null) {
+            //TODO log warning
+            return;
+        }
+        configGetter = getter
+
+        Names::setConfigurators(
+            configGetter.fileNamesConfigurator,
+            configGetter.namespacesConfigurator)
+
+        jacobs.setMaximaConverterConfigurator(configGetter.maximaConverterConfigurator)
+    }
 
     /**
      * Sets the iit.dsl.coord.generator.MaximaConverter$IConfigurator object
@@ -42,7 +82,7 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-//        generateCommons(robot, fsa);
+        generateCommons(robot, fsa);
         generateTransforms(robot, fsa);
 //        generateInverseDynamicsStuff(robot, fsa);
         generateForwardDynamicsStuff(robot, fsa);
@@ -77,6 +117,8 @@ class Generator implements IGenerator {
     }
 
     def generateTransforms(Robot robot, IFileSystemAccess fsa) {
+        val transforms = new Transforms(
+            configGetter.getTransformsDSLGeneratorConfigurator(robot))
         transforms.generate(robot, fsa);
     }
 
