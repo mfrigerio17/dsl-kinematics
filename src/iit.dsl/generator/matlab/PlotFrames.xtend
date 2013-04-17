@@ -2,22 +2,11 @@ package iit.dsl.generator.matlab
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.generator.Common
-import iit.dsl.TransformsAccessor
-import iit.dsl.generator.FramesTransforms
 import iit.dsl.kinDsl.Link
 import iit.dsl.generator.Utilities
 
-import java.io.File
 
 class PlotFrames {
-    private static String transformsModelPath = "generated_code/misc" // default value
-    private static TransformsAccessor transformsAccessor = new TransformsAccessor()
-
-    def static setTransformsModelPath(String path) {
-        transformsModelPath = path;
-    }
-
-
 
     extension Common common = new Common()
     private Robot robot
@@ -26,9 +15,7 @@ class PlotFrames {
 
     new(Robot rob) {
         robot = rob
-        val transformsModelFile = new File(
-            transformsModelPath + "/" + FramesTransforms::fileName(robot))
-        transforms = transformsAccessor.getTransformsModel(robot, transformsModelFile)
+        transforms = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
     }
 
 	def plotFramesCode() '''
