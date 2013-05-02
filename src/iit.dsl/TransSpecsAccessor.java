@@ -38,6 +38,7 @@ public class TransSpecsAccessor {
     }
 
     public iit.dsl.transspecs.transSpecs.DesiredTransforms getDesiredTransforms(File modelFile) {
+        if(modelFile == null) return null;
         if(modelFile.isFile()) {
             return getModel(URI.createURI(modelFile.getAbsolutePath()));
         } else {
