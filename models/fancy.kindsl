@@ -92,7 +92,6 @@ link link5 {
 }
 
 r_joint jA {
-	id = 1
 	ref_frame {
 		translation = (0.0, 0.0, 0.0)
 		rotation = (0.0, 0.0, 0.0)
@@ -100,7 +99,6 @@ r_joint jA {
 }
 
 p_joint jB {
-	id = 2
 	ref_frame {
 		translation = (1.0, 0.0, 0.0)
 		rotation = (-PI/2.0, 0.0, 0.0)
@@ -108,14 +106,12 @@ p_joint jB {
 }
 
 r_joint jC {
-	id = 3
 	ref_frame {
 		translation = (0.0, 0.0, 1.0)
 		rotation = (0.0, 0.0, 0.0)
 	}
 }
 p_joint jD {
-	id = 4
 	ref_frame {
 		translation = (1.0, 0.0, 0.0)
 		rotation = (PI/2.0, 0.0, 0.0)
@@ -123,7 +119,6 @@ p_joint jD {
 }
 
 r_joint jE {
-	id = 5
 	ref_frame {
 		translation = (0.0, 0.0, 1.0)
 		rotation = (0.0, 0.0, 0.0)
