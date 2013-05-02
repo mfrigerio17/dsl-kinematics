@@ -104,8 +104,10 @@ class Generator implements IGenerator {
         iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
     {
         val jacobians = new ArrayList<Jacobian>()
-        for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
-            jacobians.add(new Jacobian(robot, jSpec))
+        if(desired.jacobians != null) {
+            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+                jacobians.add(new Jacobian(robot, jSpec))
+            }
         }
         fsa.generateFile(robotFolderName(robot) + "/init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
         fsa.generateFile(robotFolderName(robot) + "/update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))

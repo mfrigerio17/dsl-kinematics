@@ -57,8 +57,10 @@ class Generator implements IGenerator {
 
     def private jacsCode(Robot robot, iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs) {
         val StringConcatenation strBuff = new StringConcatenation();
-        for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredJacs.jacobians.getSpecs()) {
-            strBuff.append(jacs.jacobian(new Jacobian(robot, jSpec)));
+        if(desiredJacs.jacobians != null) {
+            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredJacs.jacobians.getSpecs()) {
+                strBuff.append(jacs.jacobian(new Jacobian(robot, jSpec)));
+            }
         }
         return strBuff;
     }

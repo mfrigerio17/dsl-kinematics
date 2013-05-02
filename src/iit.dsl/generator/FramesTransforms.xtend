@@ -284,9 +284,11 @@ class FramesTransforms {
 
         // Transforms required to compute Jacobians more conveniently
         «IF(desiredTransforms != null)»
+        «IF(desiredTransforms.jacobians != null)»
             «FOR iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredTransforms.jacobians.getSpecs()»
                 «transformsForJacobian(robot, jSpec)»
             «ENDFOR»
+        «ENDIF»
         «ENDIF»
     '''
 

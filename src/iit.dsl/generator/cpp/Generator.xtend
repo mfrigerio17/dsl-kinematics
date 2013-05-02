@@ -170,8 +170,10 @@ class Generator implements IGenerator {
     {
         val jacobians = new ArrayList<Jacobian>()
         if(desired != null) {
-            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
-                jacobians.add(new Jacobian(robot, jSpec))
+            if(desired.jacobians != null) {
+                for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+                    jacobians.add(new Jacobian(robot, jSpec))
+                }
             }
         }
         val String folder = Names$Files::folder(robot);
