@@ -236,32 +236,70 @@ class Generator implements IGenerator {
         %  Technology.
         «val structName = robot.name.toLowerCase + "model"»
         «structName».robotname = '«robot.name»';
-        «structName».NB = «robot.movingBodiesCount»;
-        «structName».parent = zeros(1, «robot.links.size»);
 
         «IF robot.base.isFloating»
-            «structName».parent(«robot.base.ID») = 0;
+            «structName».NB = «robot.movingBodiesCount» + 5;
+            «structName».parent = zeros(1, «robot.links.size» + 5);
+
+            «structName».pitch(1:6) = [inf,inf,inf,0,0,0];
+            «structName».parent(1:6) = [0 1 2 3 4 5];
+
+
+            «structName».Xtree{1} = Xroty(pi/2);
+            «structName».Xtree{2} = Xrotx(-pi/2) * Xroty(-pi/2);
+            «structName».Xtree{3} = Xrotx(pi/2);
+            «structName».Xtree{4} = Xroty(pi/2);
+            «structName».Xtree{5} = Xrotx(-pi/2) * Xroty(-pi/2);
+            «structName».Xtree{6} = Xrotx(pi/2);
+
+            for i = 1:6
+                «structName».I{i} = mcI( 0, [0,0,0], zeros(3) );
+            end
+
+            «FOR l : robot.links»
+                «IF l.parent.equals(robot.base)»
+                    «structName».parent(«l.ID»+6) = 6;
+                «ELSE»
+                    «structName».parent(«l.ID»+6) = «l.parent.ID»+6;
+                «ENDIF»
+            «ENDFOR»
+
+            «FOR j : robot.joints»
+                «structName».jtype{«j.ID»+6} = «jointType(j)»;
+            «ENDFOR»
+
+            «FOR j : robot.joints»
+                «structName».Xtree{«j.ID»+6} = «jointTransform(j)»;
+            «ENDFOR»
+
+            «structName».«inertiaParams(robot.base, 6)»
+            «FOR l : robot.links»
+                «structName».«inertiaParams(l, l.ID+6)»
+            «ENDFOR»
+        «ELSE»
+            «structName».NB = «robot.movingBodiesCount»;
+            «structName».parent = zeros(1, «robot.links.size»);
+
+            «FOR l : robot.links»
+                «structName».parent(«l.ID») = «l.parent.ID»;
+            «ENDFOR»
+
+            «FOR j : robot.joints»
+                «structName».jtype{«j.ID»} = «jointType(j)»;
+            «ENDFOR»
+
+            «FOR j : robot.joints»
+                «structName».Xtree{«j.ID»} = «jointTransform(j)»;
+            «ENDFOR»
+
+            «FOR l : robot.links»
+                «structName».«inertiaParams(l, l.ID)»
+            «ENDFOR»
         «ENDIF»
-        «FOR l : robot.links»
-            «structName».parent(«l.ID») = «l.parent.ID»;
-        «ENDFOR»
-
-        «FOR j : robot.joints»
-            «structName».pitch(«j.ID») = «jointPitch(j)»;
-        «ENDFOR»
-
-        «FOR j : robot.joints»
-            «structName».Xtree{«j.ID»} = «jointTransform(j)»;
-        «ENDFOR»
-
-        «FOR l : robot.links»
-            «structName».«inertiaParams(l)»
-        «ENDFOR»
     '''
 
-
-    def private dispatch jointPitch(RevoluteJoint j) '''0.0'''
-    def private dispatch jointPitch(PrismaticJoint j) '''inf'''
+    def private dispatch jointType(RevoluteJoint j)  ''' 'Rz' '''
+    def private dispatch jointType(PrismaticJoint j) ''' 'Pz' '''
     def private jointTransform(Joint j) '''
         Xrotz(«j.refFrame.rotation.z.asFloat» ) * ...
         Xroty(«j.refFrame.rotation.y.asFloat» ) * ...
@@ -272,12 +310,12 @@ class Generator implements IGenerator {
     /* Get the parameters in a frame centered in the COM, since Featherstone's model
        wants the inertia tensor expressed in such a frame
     */
-    def private inertiaParams(AbstractLink l) '''
+    def private inertiaParams(AbstractLink l, int index) '''
         «val inertia_lf = l.linkFrameInertiaParams»
         «val com_lf = l.inertiaParams.com»
         «val inertia_com = Utilities::rototranslate(inertia_lf,
             com_lf.x.asFloat, com_lf.y.asFloat, com_lf.z.asFloat, 0,0,0, false)»
-        I{«l.ID»} = mcI(«inertia_lf.mass», [«inertia_lf.com.listCoordinates»], ...
+        I{«index»} = mcI(«inertia_lf.mass», [«inertia_lf.com.listCoordinates»], ...
         «inertiaTensor(inertia_com)» );
     '''
     def private inertiaTensor(InertiaParams ip)  '''
