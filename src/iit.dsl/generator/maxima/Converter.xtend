@@ -52,7 +52,7 @@ class Converter {
             transformsDSLFilesPath + "/" + FramesTransforms::fileName(J.robot)
         );
         maximaRunner.runBatch(maximaTransformsPath + "/" +
-            iit::dsl::coord::generator::Maxima::transformsFileName(
+            iit::dsl::coord::generator::maxima::Maxima::transformsFileName(
                 transformsAccessor.getTransformsModel(J.robot, transformsFile)
             )
         )

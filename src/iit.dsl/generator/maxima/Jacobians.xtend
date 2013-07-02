@@ -14,7 +14,8 @@ import iit.dsl.generator.Jacobian
 class Jacobians {
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
-    iit.dsl.coord.generator.Maxima coordsMaxima = new iit.dsl.coord.generator.Maxima()
+    iit.dsl.coord.generator.maxima.Maxima coordsMaxima = new iit.dsl.coord.generator.maxima.Maxima()
+    iit.dsl.coord.generator.Common coordsUtils = new iit.dsl.coord.generator.Common()
 
     def static fileName(Robot robot) '''«robot.name»_jacobians'''
 
@@ -33,7 +34,7 @@ class Jacobians {
         }
         var maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(base_X_ee)
         // Some variables of help for the code generation
-        val variablesList = coordsMaxima.argsListText(base_X_ee)
+        val variablesList = coordsUtils.argsListText(base_X_ee)
         val jacName   = '''«J.getName()»(«variablesList»)'''
         val eePosName = '''«J.movingFrame.name»_pos_wrt_«J.baseFrame.name»(«variablesList»)'''
 

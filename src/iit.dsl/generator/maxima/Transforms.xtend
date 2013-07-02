@@ -15,21 +15,21 @@ class Transforms {
            iit::dsl::generator::common::Transforms::getTransformsModel(robot)
 
         fsa.generateFile(
-            iit::dsl::coord::generator::Maxima::transformsFileName(transformsModel),
-            iit::dsl::coord::generator::Maxima::sourceCode(transformsModel,
-                new iit.dsl.coord.generator.Maxima()
+            iit::dsl::coord::generator::maxima::Maxima::transformsFileName(transformsModel),
+            iit::dsl::coord::generator::maxima::Maxima::sourceCode(transformsModel,
+                new iit.dsl.coord.generator.maxima.Maxima()
             )
         );
         fsa.generateFile(
-            iit::dsl::coord::generator::Maxima::transforms6DFileName(transformsModel),
-            iit::dsl::coord::generator::Maxima::sourceCode(transformsModel,
-                new iit.dsl.coord.generator.Maxima6D()
+            iit::dsl::coord::generator::maxima::Maxima::transforms6DFileName(transformsModel),
+            iit::dsl::coord::generator::maxima::Maxima::sourceCode(transformsModel,
+                new iit.dsl.coord.generator.maxima.Maxima6D()
             )
         );
         fsa.generateFile(
-            iit::dsl::coord::generator::Maxima::transforms6DForceFileName(transformsModel),
-            iit::dsl::coord::generator::Maxima::sourceCode(transformsModel,
-                new iit.dsl.coord.generator.Maxima6DForce()
+            iit::dsl::coord::generator::maxima::Maxima::transforms6DForceFileName(transformsModel),
+            iit::dsl::coord::generator::maxima::Maxima::sourceCode(transformsModel,
+                new iit.dsl.coord.generator.maxima.Maxima6DForce()
             )
         );
     }
