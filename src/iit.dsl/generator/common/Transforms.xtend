@@ -1,42 +1,29 @@
 package iit.dsl.generator.common
 
 import iit.dsl.TransformsAccessor
-import java.io.File
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.generator.Common
+import iit.dsl.generator.common.TransformsDSLsUtils
 
 class Transforms {
+    private static TransformsDSLsUtils transformsDSLsUtils = new TransformsDSLsUtils()
     private static TransformsAccessor transformsAccessor = new TransformsAccessor()
-	private static String path_transformsModel  = "generated_code/misc" // default value
-    private static String path_transformsMaxima = "generated_code/maxima"
     private static iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
     private static Common common = new Common()
-    /**
-     * Sets the filesystem path of the .ctdsl file.
-     * This is the path that will be used to look for the DSL document
-     * with the abstract description of the coordinate transformation matrices.
-     */
-    def static setPath_transformsModel(String path) {
-        path_transformsModel = path;
-    }
-    /**
-     * Sets the filesystem path of the Maxima source files.
-     * This is the path that will be used to look for generated files with
-     * the Maxima implementation of the transformation matrices, which are
-     * required to generate the implementation in other languages.
-     */
-    def static setPath_transformsMaxima(String path) {
-        path_transformsMaxima = path;
-    }
 
-    def static getPath_transformsMaxima() {
-        return path_transformsMaxima;
+
+    def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(
+        Robot robot,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
+    {
+        return  transformsAccessor.getModel(
+            transformsDSLsUtils.coordinateTransformsDSLDoc(robot, userTransforms).toString() )
     }
 
     def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot) {
-        val File ctdslFile = new File(path_transformsModel + "/" + TransformsDSLsUtils::documentDefaultName_TransformsDSL(robot));
-        return  transformsAccessor.getTransformsModel(robot, ctdslFile);
+        val modelDoc = transformsDSLsUtils.coordinateTransformsDSLDoc(robot, null)
+        return  transformsAccessor.getModel(modelDoc.toString());
     }
 
     def static iit.dsl.coord.coordTransDsl.Transform getTransform(
