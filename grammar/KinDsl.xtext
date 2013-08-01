@@ -110,8 +110,8 @@ PlainExpr : identifier=Identifier;             // e.g. '-PI'
 MultExpr  : mult=FLOAT identifier=Identifier;  // e.g. '5.0 x'
 DivExpr   : identifier=Identifier'/'div=FLOAT; // e.g. 'PI/2.0'
 
-Identifier : ConstantLiteral | PILiteral;
-ConstantLiteral : minus?='-'? varname=ID;
+Identifier : ParameterLiteral | PILiteral;
+ParameterLiteral : minus?='-'? varname=ID;
 PILiteral  : minus?='-'? varname='PI';
 
 terminal FLOAT returns ecore::EFloat : ('+'?|'-')('0'..'9')*'.'('0'..'9')+;

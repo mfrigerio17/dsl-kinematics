@@ -10,8 +10,8 @@ import iit.dsl.kinDsl.PILiteral
 import iit.dsl.kinDsl.FloatLiteral
 import iit.dsl.kinDsl.PlainExpr
 import iit.dsl.kinDsl.MultExpr
-import iit.dsl.kinDsl.ConstantLiteral
 import iit.dsl.kinDsl.DivExpr
+import iit.dsl.kinDsl.ParameterLiteral
 
 
 class RobotFiles {
@@ -84,7 +84,7 @@ class RobotFiles {
     def private dispatch string(PlainExpr expr) '''«string(expr.identifier)»'''
     def private dispatch string(MultExpr expr)  '''«expr.mult.str» «string(expr.identifier)»'''
     def private dispatch string(DivExpr expr)   '''«string(expr.identifier)»/«expr.div»'''
-    def private dispatch string(ConstantLiteral id)  '''«id.str»'''
+    def private dispatch string(ParameterLiteral id)  '''«id.str»'''
     def private dispatch string(PILiteral pi)   '''«IF pi.minus»-«ENDIF»Pi'''
 
     def mathematicaNotebook(Robot robot, String slRootPath) '''
