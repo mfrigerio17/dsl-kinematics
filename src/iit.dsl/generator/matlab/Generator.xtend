@@ -35,7 +35,6 @@ class Generator implements IGenerator {
     private String TAB = "\t"
 
     public new() {
-         jacGen = new Jacobians()
         jsimGen = new Jsim()
     }
 
@@ -54,7 +53,6 @@ class Generator implements IGenerator {
         iit.dsl.generator.maxima.IConverterConfigurator config)
     {
         maximaConverterConfig = config
-        jacGen.setMaximaConverterConfigurator(maximaConverterConfig)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
@@ -74,8 +72,20 @@ class Generator implements IGenerator {
         fsa.generateFile(robotFolderName(robot) + "/plot_frames.m"  , gen.plotFramesCode())
     }
 
-    def generateTransformsFiles(Robot robot, IFileSystemAccess fsa) {
-        transGen = new Transforms(robot, maximaConverterConfig)
+    def generateTransformsFiles(
+        Robot robot,
+        IFileSystemAccess fsa)
+    {
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+        generateTransformsFiles(robot, fsa, transformsModel)
+    }
+
+    def generateTransformsFiles(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
+        transGen = new Transforms(robot, transformsModel, maximaConverterConfig)
         fsa.generateFile(robotFolderName(robot) + "/init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
         fsa.generateFile(robotFolderName(robot) + "/init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
@@ -84,34 +94,65 @@ class Generator implements IGenerator {
         fsa.generateFile(robotFolderName(robot) + "/update_6Dforce.m", transGen.force6D_update_fileContent(robot))
     }
 
-    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
-                    desiredTrasformsAccessor.getDesiredTransforms(robot)
-        if(desiredJacs != null) {
-            jacobiansFiles(robot, fsa, desiredJacs)
-        }
-    }
 
-    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa, File desired) {
-        val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
-                    desiredTrasformsAccessor.getDesiredTransforms(desired)
-        if(desiredJacs != null) {
-            jacobiansFiles(robot, fsa, desiredJacs)
-        }
-    }
+    //  JACOBIANS //
 
-    def private jacobiansFiles(Robot robot, IFileSystemAccess fsa,
-        iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
+     def generateJacobiansFiles(
+         Robot robot,
+         IFileSystemAccess fsa)
+     {
+         val desiredJacs     = desiredTrasformsAccessor.getDesiredTransforms(robot)
+         val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+         if(transformsModel == null) {
+             //TODO log warning
+             System::err.println("WARNING, could not load the default transforms-model for the robot " + robot)
+         }
+
+         if(desiredJacs != null) {
+             generateJacobiansFiles(robot, fsa, desiredJacs, transformsModel)
+         }
+     }
+
+    def generateJacobiansFiles(
+        Robot robot,
+        IFileSystemAccess fsa,
+        File desiredJacobians)
     {
+        val desiredJacs     = desiredTrasformsAccessor.getDesiredTransforms(desiredJacobians)
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+        if(transformsModel == null) {
+             //TODO log warning
+             System::err.println("WARNING, could not load the default transforms-model for the robot " + robot.name)
+         }
+
+        if(desiredJacs != null) {
+            generateJacobiansFiles(robot, fsa, desiredJacs, transformsModel)
+        }
+    }
+
+    def public generateJacobiansFiles(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desired,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
+        jacGen = new Jacobians(new MaximaReplSpecs(robot, transformsModel))
+        jacGen.setMaximaConverterConfigurator(maximaConverterConfig)
         val jacobians = new ArrayList<Jacobian>()
         if(desired.jacobians != null) {
             for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
                 jacobians.add(new Jacobian(robot, jSpec))
             }
         }
-        fsa.generateFile(robotFolderName(robot) + "/init_jacs.m", jacGen.init_jacobians_file(robot, jacobians))
-        fsa.generateFile(robotFolderName(robot) + "/update_jacs.m", jacGen.update_jacobians_file(robot, jacobians))
+        fsa.generateFile(robotFolderName(robot) + "/init_jacs.m",
+            jacGen.init_jacobians_file(robot, jacobians, transformsModel))
+        fsa.generateFile(robotFolderName(robot) + "/update_jacs.m",
+            jacGen.update_jacobians_file(robot, jacobians, transformsModel))
     }
+
+
+
+
 
     def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(robotFolderName(robot) + "/init_jsim.m"  , jsimGen.jsim_init_code(robot))

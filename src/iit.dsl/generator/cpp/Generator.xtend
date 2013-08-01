@@ -116,11 +116,19 @@ class Generator implements IGenerator {
         )
     }
 
+
+
     def generateTransforms(Robot robot, IFileSystemAccess fsa) {
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot);
+        generateTransforms(robot, fsa, transformsModel)
+    }
+    def generateTransforms(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val transforms = new Transforms(
             configGetter.getTransformsDSLGeneratorConfigurator(robot))
-        transforms.generate(robot, fsa);
+        transforms.generate(robot, fsa, transformsModel);
     }
+
 
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);

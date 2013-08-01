@@ -1,18 +1,13 @@
 package iit.dsl.generator.maxima
 
 import iit.dsl.generator.Jacobian
-import iit.dsl.TransformsAccessor
 
-import java.io.File
-import iit.dsl.generator.common.TransformsDSLsUtils
 
 /**
  * This class should be used to convert the output of the Maxima code generated
  * by the generator in this package, to some other form.
  */
 class Converter {
-    private static TransformsAccessor transformsAccessor = new TransformsAccessor()
-
     /**
      * Default constructor, uses the default configurator.
      */
@@ -38,23 +33,27 @@ class Converter {
     }
 
     /**
-     * Returns a matrix of strings representing a Jacobian matrix.
-     * The Maxima source file with the corresponding definition is retrieved
-     * and executed, and its output is parsed and returned.
+     * Returns a matrix of strings representing the given Jacobian matrix.
+     * The Maxima source file with the definition of the Jacobian is retrieved
+     * and interpreted, and the output is parsed and returned.
+     * @param J the placeholder for the Jacobian matrix of interest
+     * @transformsModel the model of the Transforms-DSL, with the definition of
+     *                  the coordinate transformations of the same robot the
+     *                  given Jacobian refers to
+     * @return a String matrix (array of arrays) with the textual representation
+     *         of the actual elements of the Jacobian
      */
-    def String[][] getJacobianText(Jacobian J)
+    def String[][] getJacobianText(Jacobian J, iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
+        if(transformsModel == null) {
+            throw new RuntimeException("Cannot convert the Jacobian to text, the given transforms-model is null.")
+        }
         val maximaRunner = new iit.dsl.maxdsl.utils.MaximaRunner(maximaCfg)
         maximaRunner.runBatch(maximaLibTransforms)
         maximaRunner.runBatch(maximaLibUtils)
 
-        val File transformsFile = new File(
-            transformsDSLFilesPath + "/" + TransformsDSLsUtils::documentDefaultName_TransformsDSL(J.robot)
-        );
         maximaRunner.runBatch(maximaTransformsPath + "/" +
-            iit::dsl::coord::generator::maxima::Maxima::transformsFileName(
-                transformsAccessor.getTransformsModel(J.robot, transformsFile)
-            )
+            iit::dsl::coord::generator::maxima::Maxima::transformsFileName(transformsModel)
         )
         maximaRunner.runBatch(maximaJacobiansPath +  "/" + Jacobians::fileName(J.robot))
 

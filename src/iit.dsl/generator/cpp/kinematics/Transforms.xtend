@@ -38,13 +38,21 @@ class Transforms {
             //TODO log warning
             return
         }
+        this.configurator = configurator
         eigenCppTransformsGenerator =
             new iit.dsl.coord.generator.cpp.EigenFiles(configurator)
     }
 
-    def public generate(Robot robot, IFileSystemAccess fsa) {
-        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot);
+    def public generate(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val folder = Names$Files::folder(robot);
+        fsa.generateFile(
+            folder + "/" + Names$Files::parametersHeader(robot) + ".h",
+            paramsFileGenerator.headerFileContent(transformsModel, configurator.enclosingNamespaces(transformsModel))
+        );
         fsa.generateFile(
             folder + "/" + Names$Files::transformsHeader(robot) + ".h",
             eigenCppTransformsGenerator.declarationsFileContent(transformsModel)
@@ -55,5 +63,9 @@ class Transforms {
         );
     }
 
+
+    private iit.dsl.coord.generator.cpp.IConfigurator configurator = null
     private iit.dsl.coord.generator.cpp.EigenFiles eigenCppTransformsGenerator = null
+    private iit.dsl.coord.generator.cpp.Parameters paramsFileGenerator = new iit.dsl.coord.generator.cpp.Parameters()
+
 }

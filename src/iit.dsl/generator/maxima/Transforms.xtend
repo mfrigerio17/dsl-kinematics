@@ -7,13 +7,15 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 class Transforms {
 
-    /* This function completely relies on the code generation available in the
-     * iit.dsl.coordTransDsl package.
+    /* The generator functions of this file completely rely on the code
+     * generation available in the iit.dsl.coordTransDsl package
+     * (the Transforms-DSL project).
      */
-    def public generate(Robot robot, IFileSystemAccess fsa) {
-        val iit.dsl.coord.coordTransDsl.Model transformsModel =
-           iit::dsl::generator::common::Transforms::getTransformsModel(robot)
-
+    def public generate(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         fsa.generateFile(
             iit::dsl::coord::generator::maxima::Maxima::transformsFileName(transformsModel),
             iit::dsl::coord::generator::maxima::Maxima::sourceCode(transformsModel,
@@ -33,4 +35,5 @@ class Transforms {
             )
         );
     }
+
 }
