@@ -9,21 +9,25 @@ import org.eclipse.xtext.generator.IGenerator
 
 import iit.dsl.generator.misc.Misc
 import iit.dsl.kinDsl.Robot
+import iit.dsl.generator.common.TransformsDSLsUtils
 
 
 class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
-    FramesTransforms frTransforms = new FramesTransforms()
     Misc miscGen = Misc::getInstance()
     MotionDSLDocGenerator motiongen = new MotionDSLDocGenerator()
+    TransformsDSLsUtils transformsDSLsUtils = new TransformsDSLsUtils()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        System::out.println()
         fsa.generateFile(robot.name+".urdf", miscGen.URDF_ROS_model(robot))
         fsa.generateFile(robot.name+".sd", miscGen.SDFAST_model(robot))
-        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
         fsa.generateFile(MotionDSLDocGenerator::fileName(robot), motiongen.documentContent(robot))
-        //testUtilities()
+        fsa.generateFile(
+            TransformsDSLsUtils::documentDefaultName_TransformsDSL(robot),
+            transformsDSLsUtils.coordinateTransformsDSLDoc(robot, null))
+//        //testUtilities()
     }
 
     def testITensorRotation(Robot hyl) {
@@ -119,4 +123,6 @@ class KinDslGenerator implements IGenerator {
         System::out.println('''«foo.get(0)»  «foo.get(1)»  «foo.get(2)»''')
     }
 
+
+ 
 }

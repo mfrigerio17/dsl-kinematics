@@ -1,10 +1,10 @@
 package iit.dsl.generator.maxima
 
 import iit.dsl.generator.Jacobian
-import iit.dsl.generator.FramesTransforms
 import iit.dsl.TransformsAccessor
 
 import java.io.File
+import iit.dsl.generator.common.TransformsDSLsUtils
 
 /**
  * This class should be used to convert the output of the Maxima code generated
@@ -49,7 +49,7 @@ class Converter {
         maximaRunner.runBatch(maximaLibUtils)
 
         val File transformsFile = new File(
-            transformsDSLFilesPath + "/" + FramesTransforms::fileName(J.robot)
+            transformsDSLFilesPath + "/" + TransformsDSLsUtils::documentDefaultName_TransformsDSL(J.robot)
         );
         maximaRunner.runBatch(maximaTransformsPath + "/" +
             iit::dsl::coord::generator::maxima::Maxima::transformsFileName(

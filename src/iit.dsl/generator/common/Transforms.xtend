@@ -3,7 +3,6 @@ package iit.dsl.generator.common
 import iit.dsl.TransformsAccessor
 import java.io.File
 import iit.dsl.kinDsl.Robot
-import iit.dsl.generator.FramesTransforms
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.generator.Common
 
@@ -36,7 +35,7 @@ class Transforms {
     }
 
     def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot) {
-        val File ctdslFile = new File(path_transformsModel + "/" + FramesTransforms::fileName(robot));
+        val File ctdslFile = new File(path_transformsModel + "/" + TransformsDSLsUtils::documentDefaultName_TransformsDSL(robot));
         return  transformsAccessor.getTransformsModel(robot, ctdslFile);
     }
 

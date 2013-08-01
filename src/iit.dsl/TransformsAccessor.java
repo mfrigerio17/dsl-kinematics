@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.List;
 
 import iit.dsl.coord.coordTransDsl.Model;
-import iit.dsl.generator.FramesTransforms;
 import iit.dsl.kinDsl.Robot;
 
 import com.google.inject.Injector;
@@ -34,13 +33,6 @@ public class TransformsAccessor {
     public TransformsAccessor() {
         set = injector.getInstance(XtextResourceSet.class);
         set.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
-    }
-
-    public iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot) {
-        resource = set.getResource(
-                URI.createURI(
-                        "generated_code/misc/"+ FramesTransforms.fileName(robot)), true);
-        return (Model)resource.getContents().get(0);
     }
 
     public iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot, File modelFile) {
