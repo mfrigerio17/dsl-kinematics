@@ -17,7 +17,6 @@ import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.generator.cpp.dynamics.LinkInertias
 import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 
-import iit.dsl.generator.cpp.config.TransformsGeneratorConfigurator
 import iit.dsl.generator.cpp.config.IConfiguratorsGetter
 import iit.dsl.generator.cpp.config.DefaultConfiguratorsGetter
 
@@ -161,20 +160,38 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".cpp", inertias.source(robot))
     }
 
-    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa) {
+
+
+
+
+    def public generateJacobiansFiles(
+        Robot robot,
+        IFileSystemAccess fsa)
+    {
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
                     desiredTrasformsAccessor.getDesiredTransforms(robot)
-        jacobiansFile(robot, fsa, desiredJacs);
+        generateJacobiansFiles(robot, fsa, desiredJacs, transformsModel);
     }
 
-    def generateJacobiansFiles(Robot robot, IFileSystemAccess fsa, File desired) {
+
+    def public generateJacobiansFiles(
+        Robot robot,
+        IFileSystemAccess fsa,
+        File desired)
+    {
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
         val iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs =
                     desiredTrasformsAccessor.getDesiredTransforms(desired)
-        jacobiansFile(robot, fsa, desiredJacs);
+        generateJacobiansFiles(robot, fsa, desiredJacs, transformsModel);
     }
 
-    def private jacobiansFile(Robot robot, IFileSystemAccess fsa,
-        iit.dsl.transspecs.transSpecs.DesiredTransforms desired)
+
+    def public generateJacobiansFiles(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desired,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
         val jacobians = new ArrayList<Jacobian>()
         if(desired != null) {
@@ -184,14 +201,15 @@ class Generator implements IGenerator {
                 }
             }
         }
+        val paramsHeader = configGetter.getTransformsDSLGeneratorConfigurator(robot).paramsHeaderFileName(transformsModel)
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(
             folder + "/" + Names$Files::jacobiansHeader(robot) + ".h",
-            jacobs.headerFile(robot, jacobians)
+            jacobs.headerFile(robot, transformsModel, jacobians, paramsHeader)
         )
         fsa.generateFile(
             folder + "/" + Names$Files::jacobiansHeader(robot) + ".cpp",
-            jacobs.implementationFile(robot, jacobians)
+            jacobs.sourceFile(robot, transformsModel, jacobians)
         )
     }
 
