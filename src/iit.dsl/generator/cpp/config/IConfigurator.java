@@ -35,6 +35,7 @@ public interface IConfigurator {
             public String h_linkDataMap(Robot robot);
             public String h_jointDataMap(Robot robot);
             public String h_transforms(Robot robot);
+            public String h_parameters(Robot robot);
             public String h_jacobians(Robot robot);
 
             public String h_inertias(Robot r);
@@ -69,9 +70,17 @@ public interface IConfigurator {
 
             public String dynamics();
             public String jacobians();
-            public String T6D_motion();
-            public String T6D_force();
-            public String THomogeneous();
         }
+
+        /**
+         * Type names, class names, etc.
+         * @author Marco Frigerio
+         */
+        public interface ClassesAndTypes {
+            public String transforms_homogeneous();
+            public String transforms_spatial_motion();
+            public String transforms_spatial_force();
+        }
+
     }
 }

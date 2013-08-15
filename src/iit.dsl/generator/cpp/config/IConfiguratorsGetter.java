@@ -25,6 +25,10 @@ public interface IConfiguratorsGetter {
      */
     public IConfigurator.Names.Namespaces getNamespacesConfigurator();
     /**
+     * The configurator for type and class names
+     */
+    public IConfigurator.Names.ClassesAndTypes getClassesAndTypesConfigurator();
+    /**
      * The configurator for the Maxima conversion, required by generators of
      * this package.
      */
