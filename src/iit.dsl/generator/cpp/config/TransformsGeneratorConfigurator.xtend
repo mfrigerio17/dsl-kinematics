@@ -3,12 +3,10 @@ package iit.dsl.generator.cpp.config
 
 import iit.dsl.coord.coordTransDsl.Model
 import iit.dsl.coord.coordTransDsl.Variable
-import iit.dsl.generator.cpp.Names
 
+import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Common
 import iit.dsl.kinDsl.Robot
-
-
 
 /**
  * The configurator for the C++ code generator in the Transforms DSL package.
@@ -36,6 +34,10 @@ class TransformsGeneratorConfigurator extends iit.dsl.coord.generator.cpp.Defaul
         Names$Files::transformsHeader(robot)
     }
 
+    override paramsHeaderFileName(Model model) {
+        Names$Files::parametersHeader(robot)
+    }
+
     override includeDirectives(Model model)
         '''
         #include <Eigen/Dense>
@@ -47,6 +49,16 @@ class TransformsGeneratorConfigurator extends iit.dsl.coord.generator.cpp.Defaul
         val enclosing = Names$Namespaces::enclosing
         enclosing.add(Names$Namespaces::rob(robot))
         return enclosing
+    }
+
+
+    override className(iit.dsl.coord.generator.Utilities$MatrixType mxtype) {
+        switch(mxtype) {
+             case iit::dsl::coord::generator::Utilities$MatrixType::_6D:         Names$Types$Transforms::spatial_motion
+             case iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE:   Names$Types$Transforms::spatial_force
+             case iit::dsl::coord::generator::Utilities$MatrixType::HOMOGENEOUS: Names$Types$Transforms::homogeneous
+             default: throw(new RuntimeException("Unknown MatrixType: " + mxtype))
+         }
     }
 
 //    override localTypeName(MatrixType matrixtype) {
