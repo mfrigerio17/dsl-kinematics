@@ -153,12 +153,24 @@ class Generator implements IGenerator {
 
 
 
+    def generateJSIMFiles(Robot robot, IFileSystemAccess fsa)
+    {
+        // Get the default transforms model for this robot
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+        generateJSIMFiles(robot, transformsModel, fsa)
+    }
 
-    def generateJSIMFiles(Robot robot, IFileSystemAccess fsa) {
+    def generateJSIMFiles(
+        Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel,
+        IFileSystemAccess fsa)
+    {
         fsa.generateFile(robotFolderName(robot) + "/init_jsim.m"  , jsimGen.jsim_init_code(robot))
-        fsa.generateFile(robotFolderName(robot) + "/update_jsim.m", jsimGen.jsim_update_code(robot))
+        fsa.generateFile(robotFolderName(robot) + "/update_jsim.m", jsimGen.jsim_update_code(robot, transformsModel))
         fsa.generateFile(robotFolderName(robot) + "/jsim_inverse.m", jsimGen.jsim_inverse_code(robot))
     }
+
+
 
     def generateCommonDynamicsFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(robotFolderName(robot) + "/inertia.m", inertiaParams(robot))

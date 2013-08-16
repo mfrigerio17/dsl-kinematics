@@ -28,8 +28,10 @@ class Jsim {
         «ENDFOR»
     '''
 
-    def jsim_update_code(Robot robot) '''
-        «val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)»
+    def jsim_update_code(
+        Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         % "Bottom-up" loop to update the inertia-composite property of each link,
         %  for the current configuration
         «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
@@ -46,7 +48,7 @@ class Jsim {
                 «inertiaCompositeName(parent)» = «inertiaName(parent)» + «parent_XFrc_child» * «inertiaCompositeName(l)» * «child_X_parent»;
             «ENDIF»
 
-            % Assuming 1 DoF joints, the multiplication by the motion subspace matrix results in the selection of a column/row
+            % Assuming 1 DoF joints, the multiplication with the motion subspace matrix boils down to the selection of a column/row
             «val linkJoint = getJoint(parent, l)»
             «IF linkJoint instanceof PrismaticJoint»
                 F = «inertiaCompositeName(l)»(:,6);
