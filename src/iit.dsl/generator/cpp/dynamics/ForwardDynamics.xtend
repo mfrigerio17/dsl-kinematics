@@ -3,19 +3,23 @@ package iit.dsl.generator.cpp.dynamics
 import java.util.List
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.generator.cpp.Names
-import iit.dsl.generator.cpp.Common
-import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Link
+
+import iit.dsl.generator.cpp.Names
+import iit.dsl.generator.cpp.Common
 import iit.dsl.generator.cpp.RobotHeaders
+import iit.dsl.generator.common.Transforms
 
 class ForwardDynamics {
     def static className(Robot r) '''ForwardDynamics'''
 
     private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
-    def public headerContent(Robot robot) '''
+    def public headerContent(
+        Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         «val rbd_ns = Names$Namespaces$Qualifiers::iit_rbd»
         «val jState = Names$Types::jointState»
         «val extF_t = Names$Types::extForces»
@@ -52,7 +56,13 @@ class ForwardDynamics {
         public:
             typedef «RobotHeaders::linkDataMap_type()»<«rbd_ns»::ForceVector> «extF_t»;
         public:
-            «className(robot)»();
+            /**
+             * Default constructor
+             * \param tr the container of all the spatial motion transforms of
+             *     the robot «robot.name», which will be used by this instance
+             *     to compute the dynamics.
+             */
+            «className(robot)»(«Names$Types$Transforms::spatial_motion»& tr);
             /** \name Forward dynamics
              * The Articulated-Body-Algorithm to compute the joint accelerations
              */ ///@{
@@ -94,11 +104,13 @@ class ForwardDynamics {
 
             «LinkInertias::className(robot)» «linkInertiasMemeberName»;
         private:
+            «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
+        private:
             static const «extF_t» zeroExtForces;
         };
 
         inline void «className(robot)»::setJointStatus(const «jState»& q) const {
-            «setJointStatusCode(robot.links)»
+            «setJointStatusCode(robot.links, transformsModel)»
         }
 
         inline void «className(robot)»::fd(const «jState»& q,
@@ -118,7 +130,10 @@ class ForwardDynamics {
     '''
     def private linkInertiasMemeberName() '''inpar'''
 
-    def public implementationFileContent(Robot robot) '''
+    def public implementationFileContent(
+        Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         «val jState = Names$Types::jointState»
         «val extF_t = Names$Types::extForces»
         #include "«Names$Files$RBD::abaHeader(robot)».h"
@@ -130,13 +145,14 @@ class ForwardDynamics {
         const «nsqualifier»::«className(robot)»::«extF_t»
             «nsqualifier»::«className(robot)»::zeroExtForces(Force::Zero());
 
-        «nsqualifier»::«className(robot)»::«className(robot)»() {
+        «nsqualifier»::«className(robot)»::«className(robot)»(«Names$Types$Transforms::spatial_motion»& transforms) :
+               «motionTransformsMember»( & transforms )
+        {
             «FOR l : robot.links»
                 «velocityName(l)».setZero();
                 «cTermName(l)».setZero();
             «ENDFOR»
 
-            «Names$Namespaces::transforms6D»::initAll(); // initializes coordinates transforms
         }
 
         void «nsqualifier»::«className(robot)»::fd(const «jState»& qd,
@@ -144,12 +160,16 @@ class ForwardDynamics {
                                                    «jState»& qdd,
                                                    const «extF_t»& fext/* = zeroExtForces */)
         {
-            «ABABody(robot)»
+            «ABABody(robot, transformsModel)»
         }
     '''
 
+    def private motionTransformsMember() '''motionTransforms'''
+    def private Xmotion(iit.dsl.coord.coordTransDsl.Transform t)
+        '''«motionTransformsMember» -> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
 
-    def private ABABody(Robot robot) '''
+    def private ABABody(Robot robot, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         «val rbd_ns = Names$Namespaces$Qualifiers::iit_rbd»
         «val sortedLinks = robot.links.sortBy(link | getID(link))»
 
@@ -167,7 +187,7 @@ class ForwardDynamics {
             «val cterm    = cTermName(l)»
             «val biasF    = biasForceName(l)»
             «val jid      = Common::jointIdentifier(joint)»
-            «val child_X_parent = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parent, l)»
+            «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
 
             «val subspaceIdx = Common::spatialVectIndex(joint)»
             // + Link «l.name»
@@ -180,7 +200,7 @@ class ForwardDynamics {
                 «biasF» += spareMx * «artInertiaName(l)».col(«subspaceIdx») * qd(«jid»);
             «ELSE»
                 //  - The spatial velocity:
-                «velocity» = («child_X_parent» * «parent.velocityName»);
+                «velocity» = ((«child_X_parent») * «parent.velocityName»);
                 «velocity»(«subspaceIdx») += qd(«jid»);
 
                 //  - The velocity-product acceleration term:
@@ -204,7 +224,7 @@ class ForwardDynamics {
             «val p = biasForceName(l)»
             «val I = artInertiaName(l)»
             «val parent = l.parent»
-            «val child_X_parent = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parent, l)»
+            «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
 
             // + Link «l.name»
             «U» = «I».col(«subspaceIdx»);
@@ -215,8 +235,8 @@ class ForwardDynamics {
                 Ia = «I» - «U»/«D» * «U».transpose();
                 pa = «p» + Ia * «cTermName(l)» + «U» * «u»/«D»;
 
-                «artInertiaName(parent)» += «child_X_parent».transpose() * Ia * «child_X_parent»;
-                «biasForceName(parent)» += «child_X_parent».transpose() * pa;
+                «artInertiaName(parent)» += («child_X_parent»).transpose() * Ia * («child_X_parent»);
+                «biasForceName(parent)» += («child_X_parent»).transpose() * pa;
             «ENDIF»
         «ENDFOR»
 
@@ -226,11 +246,11 @@ class ForwardDynamics {
             «val parent = l.parent»
             «val joint  = l.connectingJoint»
             «val jid    = Common::jointIdentifier(joint)»
-            «val child_X_parent = Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(parent, l)»
+            «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
             «IF parent.equals(robot.base)»
-                atmp = «child_X_parent».col(«Names$Namespaces$Qualifiers::iit_rbd»::LZ) * («rbd_ns»::g);
+                atmp = («child_X_parent»).col(«Names$Namespaces$Qualifiers::iit_rbd»::LZ) * («rbd_ns»::g);
             «ELSE»
-                atmp = «child_X_parent» * «accelerationName(parent)» + «cTermName(l)»;
+                atmp = («child_X_parent») * «accelerationName(parent)» + «cTermName(l)»;
             «ENDIF»
             qdd(«jid») = («uTermName(l)» - «UTermName(l)».transpose() * atmp) / «DTermName(l)»;
             «accelerationName(l)» = atmp;
@@ -239,9 +259,11 @@ class ForwardDynamics {
         «ENDFOR»
     '''
 
-    def private setJointStatusCode(List<Link> sortedLinks) '''
+    def private setJointStatusCode(List<Link> sortedLinks, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         «FOR l : sortedLinks»
-            «Names$Namespaces::transforms6D + "::" + Transforms::child_X_parent__mxName(l.parent, l)»(q);
+            «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, l.parent))»
+            («child_X_parent»)(q);
         «ENDFOR»
     '''
 

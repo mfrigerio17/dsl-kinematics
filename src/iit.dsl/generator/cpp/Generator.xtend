@@ -63,7 +63,8 @@ class Generator implements IGenerator {
 
         Names::setConfigurators(
             configGetter.fileNamesConfigurator,
-            configGetter.namespacesConfigurator)
+            configGetter.namespacesConfigurator,
+            configGetter.classesAndTypesConfigurator)
 
         jacobs.setMaximaConverterConfigurator(configGetter.maximaConverterConfigurator)
     }
@@ -81,15 +82,17 @@ class Generator implements IGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
+        // The default transforms model for the robot
+        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot);
         generateCommons(robot, fsa);
-        generateTransforms(robot, fsa);
-//        generateInverseDynamicsStuff(robot, fsa);
-        generateForwardDynamicsStuff(robot, fsa);
-//        generateInertiaMatrixStuff(robot, fsa);
-//        generateDynamicsTests(robot, fsa);
-//        generateJacobiansFiles(robot, fsa)
-//        generateLinkInertias(robot, fsa)
-//        generateMakefiles(robot, fsa)
+        generateTransforms(robot, fsa, transformsModel);
+        generateInverseDynamicsStuff(robot, fsa, transformsModel);
+        generateForwardDynamicsStuff(robot, fsa, transformsModel);
+        generateInertiaMatrixStuff(robot, fsa, transformsModel);
+        generateDynamicsTests(robot, fsa);
+        generateJacobiansFiles(robot, fsa)
+        generateLinkInertias(robot, fsa)
+        generateMakefiles(robot, fsa)
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
         //System::out.println(rbd.Minverse(robot))
@@ -117,11 +120,10 @@ class Generator implements IGenerator {
 
 
 
-    def generateTransforms(Robot robot, IFileSystemAccess fsa) {
-        val transformsModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot);
-        generateTransforms(robot, fsa, transformsModel)
-    }
-    def generateTransforms(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    def generateTransforms(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
         val transforms = new Transforms(
             configGetter.getTransformsDSLGeneratorConfigurator(robot))
@@ -129,29 +131,34 @@ class Generator implements IGenerator {
     }
 
 
-    def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
+    def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot)   + ".h"  , invdyn.mainHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot)   + ".cpp", invdyn.inverseDynamicsImplementation(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot) + ".h"  ,
+            invdyn.mainHeader(robot, transformsModel) )
+        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot) + ".cpp",
+            invdyn.inverseDynamicsImplementation(robot, transformsModel) )
     }
-    def generateForwardDynamicsStuff(Robot robot, IFileSystemAccess fsa) {
+    def generateForwardDynamicsStuff(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".h"  , fordyn.headerContent(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".cpp", fordyn.implementationFileContent(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".h"  , fordyn.headerContent(robot, transformsModel))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".cpp", fordyn.implementationFileContent(robot, transformsModel))
     }
     def generateDynamicsTests(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_sine_task_ID(robot) + ".cpp", invdyn.main_sine_task(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.testMain(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::testMain(robot) + ".cpp", invdyn.main_test(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_benchmarkID(robot) + ".cpp", invdyn.main_benchmarkID(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::main_jsim_test(robot) + ".cpp", jsI.main_test(robot))
     }
 
-    def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa) {
+    def generateInertiaMatrixStuff(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val String folder = Names$Files::folder(robot);
 
         fsa.generateFile(folder + "/" + Names$Files$RBD::jsimHeader(robot)   + ".h",   jsI.inertiaMatrixHeader(robot))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::jsimHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::jsimHeader(robot)   + ".cpp", jsI.inertiaMatrixSource(robot,transformsModel))
     }
 
     def generateLinkInertias(Robot robot, IFileSystemAccess fsa) {
