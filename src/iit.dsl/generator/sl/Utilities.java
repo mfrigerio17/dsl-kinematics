@@ -16,7 +16,6 @@ public abstract class Utilities {
 	public static final String userConfigFolder = "config";
 	public static final String linkParamsFile = "LinkParameters.cf";
 	public static final String makefileFolder = "makefiles";
-	public static final String dynModelFolder = "math";
 
 	private static KinDslPackage dslPackage = KinDslPackageImpl.init();
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();

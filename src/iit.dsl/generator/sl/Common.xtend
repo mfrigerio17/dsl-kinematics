@@ -6,6 +6,10 @@ import iit.dsl.kinDsl.Joint
 
 class Common {
 
+public static String mathFolderName = "math"
+
+public static String DUMMY_EE_LINK_ID = "DUMMY_EE"
+
 def String robotFolderName(Robot robot) {
     robot.name.toLowerCase()
 }
