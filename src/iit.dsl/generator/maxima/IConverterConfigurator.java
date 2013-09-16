@@ -16,7 +16,8 @@ public interface IConverterConfigurator extends
      */
     public String getUtilsLibName();
     /**
-     * The full path where to look for the Coordinate Transforms DSL documents
+     * The full path of the Maxima library with functions for geometric Jacobians
      */
-    public String getTransformsDSLFilesPath();
+    public String getJacobiansLibName();
+
 }

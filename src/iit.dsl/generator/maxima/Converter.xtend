@@ -25,10 +25,10 @@ class Converter {
 
     def public setConfigurator(IConverterConfigurator config) {
         maximaLibTransforms  = config.libsPath + "/" + config.transformsLibName
+        maximaLibJacobians   = config.libsPath + "/" + config.jacobiansLibName
         maximaLibUtils       = config.libsPath + "/" + config.utilsLibName
         maximaJacobiansPath  = config.generatedCodeLocation
         maximaTransformsPath = config.generatedCodeLocation
-        transformsDSLFilesPath = config.transformsDSLFilesPath
         maximaCfg = config.maximaEngineConfigurator
     }
 
@@ -50,6 +50,7 @@ class Converter {
         }
         val maximaRunner = new iit.dsl.maxdsl.utils.MaximaRunner(maximaCfg)
         maximaRunner.runBatch(maximaLibTransforms)
+        maximaRunner.runBatch(maximaLibJacobians)
         maximaRunner.runBatch(maximaLibUtils)
 
         maximaRunner.runBatch(maximaTransformsPath + "/" +
@@ -68,10 +69,10 @@ class Converter {
 
     //filesytem location where to find required code to set up the environment
     private String maximaLibTransforms  = null
+    private String maximaLibJacobians   = null
     private String maximaLibUtils       = null
     private String maximaJacobiansPath  = null
     private String maximaTransformsPath = null
-    private String transformsDSLFilesPath = null
     private iit.dsl.maxdsl.utils.MaximaRunner$IConfigurator maximaCfg = null
 
 }
@@ -80,11 +81,11 @@ class DefaultConfigurator
     extends iit.dsl.coord.generator.maxima.DefaultConfigurator
     implements IConverterConfigurator
 {
-    override getTransformsDSLFilesPath() {
-        return "generated_code/misc"
-    }
-
     override getUtilsLibName() {
         return "utils"
+    }
+
+    override getJacobiansLibName() {
+        return "jacobians"
     }
 }
