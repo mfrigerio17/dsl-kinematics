@@ -30,6 +30,7 @@ class Converter {
         maximaJacobiansPath  = config.generatedCodeLocation
         maximaTransformsPath = config.generatedCodeLocation
         maximaCfg = config.maximaEngineConfigurator
+        mode = iit::dsl::coord::generator::MaximaConverter::parseStringMode(config.conversionMode)
     }
 
     /**
@@ -59,7 +60,24 @@ class Converter {
         maximaRunner.runBatch(maximaJacobiansPath +  "/" + Jacobians::fileName(J.robot))
 
         val jacName = '''«J.getName()»(«J.getArgsList()»)'''
-        val code = '''J : float(ratexpand(ratsimp(trigreduce(«jacName»))));'''
+        var String code
+        switch mode {
+            case iit::dsl::coord::generator::MaximaConverter$Mode::PLAIN:
+                code = '''J : «jacName»;'''
+
+            case iit::dsl::coord::generator::MaximaConverter$Mode::TRIGREDUCE:
+                code = '''J : float(ratexpand(ratsimp(trigreduce(«jacName»))));'''
+
+            case iit::dsl::coord::generator::MaximaConverter$Mode::TRIGSIMP:
+                code = '''J : float(trigsimp(«jacName»));'''
+
+            case iit::dsl::coord::generator::MaximaConverter$Mode::__UNKNOWN:
+                throw new RuntimeException("Unknown Maxima conversion mode.")
+
+            default:
+                throw new RuntimeException("Unknown Maxima conversion mode.")
+        }
+
         maximaRunner.run(code.toString())
         val ret = iit::dsl::maxdsl::utils::MaximaConversionUtils::getMatrix(maximaRunner, "J", 6, J.cols);
 
@@ -74,6 +92,8 @@ class Converter {
     private String maximaJacobiansPath  = null
     private String maximaTransformsPath = null
     private iit.dsl.maxdsl.utils.MaximaRunner$IConfigurator maximaCfg = null
+    private iit.dsl.coord.generator.MaximaConverter$Mode  mode =
+        iit::dsl::coord::generator::MaximaConverter$Mode::PLAIN;
 
 }
 
