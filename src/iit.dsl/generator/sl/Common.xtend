@@ -1,6 +1,8 @@
 package iit.dsl.generator.sl
 
 import iit.dsl.kinDsl.Robot
+import iit.dsl.kinDsl.AbstractLink
+import iit.dsl.kinDsl.Joint
 
 class Common {
 
@@ -25,6 +27,14 @@ def String main_inertiaM_filename(Robot robot) {
 
 def String main_compare_fwd_dyn(Robot robot) {
     "main_compare_fwd_dyn"
+}
+
+def public static linkEnumID(AbstractLink link) {
+    return link.name.toUpperCase()
+}
+
+def public static jointEnumID(Joint joint) {
+    return joint.name.toUpperCase()
 }
 
 }
