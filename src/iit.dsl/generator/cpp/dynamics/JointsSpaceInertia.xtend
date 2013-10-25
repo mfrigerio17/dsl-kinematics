@@ -112,9 +112,15 @@ class JointsSpaceInertia {
                  */
                 void computeLInverse();
             private:
+                «LinkInertias::className(robot)» linkInertias;
+
                 // The composite-inertia tensor for each link
                 «FOR l : links»
-                    InertiaMatrix «inertiaCompositeName(l)»;
+                    «IF l.childrenList.children.empty»
+                        const InertiaMatrix& «inertiaCompositeName(l)»;
+                    «ELSE»
+                        InertiaMatrix «inertiaCompositeName(l)»;
+                    «ENDIF»
                 «ENDFOR»
 
                 MatrixType L;
@@ -165,15 +171,14 @@ class JointsSpaceInertia {
 
         //Implementation of default constructor
         «class_qualifier»::«className»(«Names$Types$Transforms::spatial_force»& forceTransforms) :
-             «forceTransformsMember»( &forceTransforms )
+            linkInertias(),
+            «FOR l : robot.chainEndLinks SEPARATOR ',' AFTER ','»
+                «inertiaCompositeName(l)»(linkInertias.«LinkInertias::tensorGetterName(l)»())
+            «ENDFOR»
+            «forceTransformsMember»( &forceTransforms )
         {
             //Initialize the matrix itself
             this->setZero();
-            // Initialize the 6D composite-inertia tensor of each body of the robot
-            «LinkInertias::className(robot)» linkInertias;
-            «FOR l : links»
-                «inertiaCompositeName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
-            «ENDFOR»
         }
 
         #define DATA operator()
@@ -191,6 +196,13 @@ class JointsSpaceInertia {
                 «IF floatingBase || !(parent.equals(robot.base))»
                     «val parent_X_child = Transforms::getTransform(transformsModel, parent, l)»
                     «Xforce(parent_X_child)»(state);
+                «ENDIF»
+            «ENDFOR»
+
+            // Initializes the composite inertia tensors
+            «FOR l : robot.links»
+                «IF ! l.childrenList.children.empty»
+                    «inertiaCompositeName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
                 «ENDIF»
             «ENDFOR»
 
