@@ -3,11 +3,9 @@ package iit.dsl.generator.cpp.dynamics
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.Link
-
 import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.RobotHeaders
 import iit.dsl.generator.cpp.Common
-
 import java.util.List
 import iit.dsl.generator.common.Transforms
 import java.util.Map
@@ -22,8 +20,8 @@ class InverseDynamics {
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
         «loadInfo(robot, transformsModel)»
-        #ifndef IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::header(robot).toUpperCase()»_H_
-        #define IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::header(robot).toUpperCase()»_H_
+        #ifndef IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::invDynHeader(robot).toUpperCase()»_H_
+        #define IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::invDynHeader(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
         #include <iit/rbd/rbd.h>
@@ -267,8 +265,9 @@ class InverseDynamics {
 
     def inverseDynamicsImplementation(
         Robot robot,
-        iit.dsl.coord.coordTransDsl.Model transformsModel) '''
-            #include "«Names$Files$RBD::header(robot)».h"
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
+            #include "«Names$Files$RBD::invDynHeader(robot)».h"
             #include "«Names$Files$RBD::inertiaHeader(robot)».h"
             #ifndef EIGEN_NO_DEBUG
                 #include <iostream>
@@ -663,7 +662,7 @@ class InverseDynamics {
         #include <ctime>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$RBD::header(robot)».h"
+        #include "«Names$Files$RBD::invDynHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces::enclosing»;
@@ -766,7 +765,7 @@ class InverseDynamics {
         #include <cmath>
         #include <iostream>
 
-        #include "«Names$Files$RBD::header(robot)».h"
+        #include "«Names$Files$RBD::invDynHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
@@ -803,7 +802,7 @@ class InverseDynamics {
         #include <ctime>
 
         #include "«Names$Files::mainHeader(robot)».h"
-        #include "«Names$Files$RBD::header(robot)».h"
+        #include "«Names$Files$RBD::invDynHeader(robot)».h"
 
         using namespace std;
         using namespace «Names$Namespaces::enclosing»;

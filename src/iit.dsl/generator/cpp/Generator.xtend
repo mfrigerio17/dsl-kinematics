@@ -3,10 +3,8 @@ package iit.dsl.generator.cpp
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
-
 import java.util.ArrayList
 import java.io.File
-
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
@@ -16,7 +14,6 @@ import iit.dsl.generator.cpp.kinematics.Jacobians
 import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.generator.cpp.dynamics.LinkInertias
 import iit.dsl.generator.cpp.dynamics.ForwardDynamics
-
 import iit.dsl.generator.cpp.config.IConfiguratorsGetter
 import iit.dsl.generator.cpp.config.DefaultConfiguratorsGetter
 
@@ -134,16 +131,16 @@ class Generator implements IGenerator {
     def generateInverseDynamicsStuff(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$RBD::header(robot) + ".h"  ,
+        fsa.generateFile(folder + "/" + Names$Files$RBD::invDynHeader(robot) + ".h"  ,
             invdyn.mainHeader(robot, transformsModel) )
-        fsa.generateFile(folder + "/" + Names$Files$RBD::source(robot) + ".cpp",
+        fsa.generateFile(folder + "/" + Names$Files$RBD::invDynSource(robot) + ".cpp",
             invdyn.inverseDynamicsImplementation(robot, transformsModel) )
     }
     def generateForwardDynamicsStuff(Robot robot, IFileSystemAccess fsa, iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
         val String folder = Names$Files::folder(robot);
-        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".h"  , fordyn.headerContent(robot, transformsModel))
-        fsa.generateFile(folder + "/" + Names$Files$RBD::abaHeader(robot) + ".cpp", fordyn.implementationFileContent(robot, transformsModel))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::fwdDynHeader(robot) + ".h"  , fordyn.headerContent(robot, transformsModel))
+        fsa.generateFile(folder + "/" + Names$Files$RBD::fwdDynHeader(robot) + ".cpp", fordyn.implementationFileContent(robot, transformsModel))
     }
     def generateDynamicsTests(Robot robot, IFileSystemAccess fsa) {
         val String folder = Names$Files::folder(robot);

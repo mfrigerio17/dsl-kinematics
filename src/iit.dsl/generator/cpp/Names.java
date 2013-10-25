@@ -82,10 +82,10 @@ public class Names {
 
 
         static public class RBD {
-            static public String header(Robot r) {
+            static public String invDynHeader(Robot r) {
                 return files.h_invdyn(r);
             }
-            static public String source(Robot r) {
+            static public String invDynSource(Robot r) {
                 return files.src_invdyn(r);
             }
             static public String jsimHeader(Robot r) {
@@ -114,7 +114,7 @@ public class Names {
             static public String main_jsim_test(Robot r) {
                 return "test_jsim";
             }
-            static public String abaHeader(Robot r) {
+            static public String fwdDynHeader(Robot r) {
                 return "forward_dynamics";
             }
         }

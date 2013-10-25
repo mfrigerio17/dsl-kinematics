@@ -337,7 +337,7 @@ class RobotUserFiles {
             #include <ctime>
 
             #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files::mainHeader(robot)».h>
-            #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::abaHeader(robot)».h>
+            #include <iit/robots/«Names$Files::folder(robot)»/«Names$Files$RBD::fwdDynHeader(robot)».h>
 
             #include <SL.h>
             #include <SL_kinematics.h>
@@ -684,7 +684,7 @@ class RobotUserFiles {
         SRCS_xopengl = initUserGraphics.c
         SRCS_xsimulation = initUserSimulation.c
 
-        SRCS_benchID  = «robot.benchmarkIDFileName».cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::source(robot)».cpp initUserSimulation.c
+        SRCS_benchID  = «robot.benchmarkIDFileName».cpp  «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::invDynSource(robot)».cpp initUserSimulation.c
         SRCS_jsimTest = «robot.main_inertiaM_filename».cpp «Names$Files::transformsHeader(robot)».cpp «Names$Files$RBD::jsimHeader(robot)».cpp
 
         #

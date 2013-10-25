@@ -5,7 +5,6 @@ import java.util.List
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Link
-
 import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Common
 import iit.dsl.generator.cpp.RobotHeaders
@@ -20,8 +19,8 @@ class ForwardDynamics {
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
         «loadInfo(robot)»
-        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::abaHeader(robot).toUpperCase()»_H_
-        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::abaHeader(robot).toUpperCase()»_H_
+        #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::fwdDynHeader(robot).toUpperCase()»_H_
+        #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::fwdDynHeader(robot).toUpperCase()»_H_
 
         #include <Eigen/Dense>
         #include <iit/rbd/rbd.h>
@@ -177,7 +176,7 @@ class ForwardDynamics {
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
         «loadInfo(robot)»
-        #include "«Names$Files$RBD::abaHeader(robot)».h"
+        #include "«Names$Files$RBD::fwdDynHeader(robot)».h"
 
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
         using namespace «rbd_ns»;
