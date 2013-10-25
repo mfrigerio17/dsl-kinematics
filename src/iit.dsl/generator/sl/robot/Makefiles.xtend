@@ -29,6 +29,7 @@ class Makefiles {
 
         set(SOURCES_COMMON
             ${SOURCE_SL_COMMON}
+            ${SOURCE_DIR}/robogen_globals.cpp
             ${SOURCE_DIR}/SL_user_commands.cpp
             ${SOURCE_DIR}/SL_user_common.cpp
             ${SOURCE_DIR}/SL_dynamics.cpp

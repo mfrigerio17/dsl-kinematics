@@ -17,6 +17,41 @@ class Sources {
      * the old SL_kinematics_body.h)
      */
     def public kinematics(Robot robot) '''
+        #include <iit/commons/SL/eigen_conversion.h>
+        #include <iit/commons/SL/rbd_conversion.h>
+        #include <iit/commons/SL/joint_status_conversion.h>
+
+        «val include_dir = "iit/robots/" + Names$Files::folder(robot)»
+        #include <«include_dir»/«Names$Files::mainHeader(robot)».h>
+        #include <«include_dir»/«Names$Files::transformsHeader(robot)».h>
+        #include <«include_dir»/«Names$Files::jacobiansHeader(robot)».h>
+        #include <«include_dir»/«Names$Files::traitsHeader(robot)».h>
+        #include <«include_dir»/«Names$Files$RBD::inertiaHeader(robot)».h>
+
+        #include <iit/rbd/utils.h>
+
+        #include "«Common::robogenGlobalsFileName(robot)».h"
+
+        #include <iostream>
+
+        // the system headers
+        #include "SL_system_headers.h"
+        #include "SL.h"
+        #include "SL_user.h"
+        #include "SL_common.h"
+        #include "mdefs.h"
+        #include "SL_kinematics.h"
+        #include "utility_macros.h"
+
+        using namespace «iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier»;
+        using namespace «iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier(robot)»;
+
+
+        static «Names$Types::jointState» q;
+        static «Names$Namespaces::dynamics»::«LinkInertias::className(robot)» inertias;
+
+        typedef typename commons::SL::SLtoRobogen<Traits> SLtoRGen;
+
         /*!
          * Original documentation:
          *
@@ -51,11 +86,17 @@ class Sources {
             // Convenient alias of the global variable
             «rob_ns»::«Names$Types$Transforms::homogeneous»& HT = * «rob_ns»::SL::homogeneousTransforms;
             // Copy the joint status
-            SL::fromSLState(state, q);
+            SLtoRGen::pos(state, q);
             // Support vector
             Eigen::Matrix<double,4,1> tmp_vec;
 
-            «kinematics_depthVisit(rob_ns, robot.base, world_X_base)»
+            «IF robot.base.floating»
+                «kinematics_depthVisit(rob_ns, robot.base, world_X_base)»
+            «ELSE»
+                «val tmpX = "tmpX"»
+                static «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType «tmpX» = «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType::Identity();
+                «kinematics_depthVisit(rob_ns, robot.base, tmpX)»
+            «ENDIF»
         }
     '''
 
@@ -104,15 +145,179 @@ class Sources {
      * given link/joint.
      */
     def private kinematics_linkBlock(AbstractLink link, Joint dof, CharSequence world_X_link) '''
-        commons::SL::copy(Xaxis  [::«dof.name»], «iit_rbd_ns»::Utils::zAxis(«world_X_link») );
-        commons::SL::copy(Xorigin[::«dof.name»], «iit_rbd_ns»::Utils::positionVector(«world_X_link») );
+        commons::SL::copy(Xaxis  [::«Common::jointEnumID(dof)»], «iit_rbd_ns»::Utils::zAxis(«world_X_link») );
+        commons::SL::copy(Xorigin[::«Common::jointEnumID(dof)»], «iit_rbd_ns»::Utils::positionVector(«world_X_link») );
 
         commons::SL::copy(Xlink[::«Common::linkEnumID(link)»], «iit_rbd_ns»::Utils::positionVector(«world_X_link») );
         commons::SL::copy(Ahmat[::«Common::linkEnumID(link)»], «world_X_link»);
 
         tmp_vec.block<3,1>(0,0) = inertias.«LinkInertias::comGetterName(link)»() * inertias.«LinkInertias::massGetterName(link)»();
         tmp_vec(3) = inertias.«LinkInertias::massGetterName(link)»();
-        commons::SL::copy(Xmcog[::«dof.name»], «world_X_link» * tmp_vec);
+        commons::SL::copy(Xmcog[::«Common::jointEnumID(dof)»], «world_X_link» * tmp_vec);
+    '''
+
+
+
+    def public dynamics(Robot robot) '''
+        «val dyn_ns = Names$Namespaces::dynamics»
+        «val rbd_ns = Names$Namespaces$Qualifiers::iit_rbd()»
+        «val floating = robot.base.floating»
+        /************************************************************* STRT CPYHDR
+        *
+        * SL - realtime robot control and simulation framework
+        * (c) 2010 Stefan Schaal, all rights reserved
+        *
+        * Copy, use and distribution of SL, both in source and binary form is
+        * not permitted without explicit permission by the copyright holder.
+        *
+        * Please contact Stefan Schaal <sschaal@usc.edu>
+        * for licensing information.
+        *
+        *
+        ************************************************************* EOF CPYHDR */
+
+        «val include_dir = Names$Files::folder(robot)»
+        #include <iit/robots/«include_dir»/«Names$Files::mainHeader(robot)».h>
+        #include <iit/robots/«include_dir»/«Names$Files$RBD::fwdDynHeader(robot)».h>
+        #include <iit/robots/«include_dir»/«Names$Files::traitsHeader(robot)».h>
+
+        #include <iit/rbd/rbd.h>
+        #include <iit/rbd/utils.h>
+
+        #include <iit/commons/SL/rbd_conversion.h>
+        #include <iit/commons/matrix_utils.h>
+        #include <iit/commons/SL/rbd_conversion.h>
+        #include <iit/commons/SL/joint_status_conversion.h>
+        #include <iit/commons/SL/generic_dynamics.h>
+
+        #include "robogen_globals.h"
+
+        #include "SL_system_headers.h"
+        #include "SL.h"
+        #include "SL_dynamics.h"
+
+
+        // global variables
+        int    freeze_base               = FALSE;
+        double freeze_base_pos[N_CART+1] = {0.0,0.0,0.0,0.0};
+        double freeze_base_quat[N_QUAT+1] = {0.0,1.0,0.0,0.0,0.0};
+
+
+        using namespace «iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier»;
+        using namespace «iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier(robot)»;
+
+
+        int init_dynamics( void )
+        {
+            setDefaultEndeffector();
+            return TRUE;
+        }
+
+        /*!
+         * Inverse dynamics
+         *
+         * Original documentation (Sept 2010):
+         *
+         * Standard Newton Euler inverse dynamics, which switches automatically between
+         * floating base and fixed base robots
+         *
+         * \param[in]     cstate  : the current state (pass NULL to use only desired state)
+         * \param[in,out] lstate  : the desired state
+         * \param[in]     endeff  : the endeffector parameters
+         * \param[in]     cbase   : the position state of the base
+         * \param[in]     obase   : the orientational state of the base
+         *
+         * Returns:
+         * The appropriate feedforward torques are added in the uff component of the lstate
+         * structure.
+         *
+         */
+        void SL_InvDyn(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+              SL_Cstate *cbase, SL_quat *obase)
+        {
+            «IF floating»
+                commons::SL::inverse_dynamics<Traits>::
+                floating_base(*SL::invDynEngine, SL::world_X_base.block<3,3>(0,0),
+                        cstate, lstate, cbase, obase);
+            «ELSE»
+                iit::commons::SL::inverse_dynamics<Traits>::
+                    fixed_base(*SL::invDynEngine, cstate, lstate);
+            «ENDIF»
+        }
+
+
+        /*!
+         * Forward Dynamics
+         *
+         * Original documentation (date June 1999)
+         *
+         *         computes the forward dynamics accelerations
+         *
+         *
+         *  \param[in,out] lstate  : the state containing th, thd, thdd, and receiving the
+         *                           appropriate u
+         *  \param[in,out] cbase   : the position state of the base
+         *  \param[in,out] obase   : the orientational state of the base
+         *  \param[in]     ux      : the external forces acting on each joint,
+         *                           in world coordinates, e.g., as computed from contact
+         *                           forces
+         *  \param[in]     endeff  : the endeffector parameters
+         *
+         */
+        void SL_ForDyn(
+            SL_Jstate *lstate,
+            SL_Cstate *cbase, SL_quat *obase,
+            SL_uext *ux, SL_endeff *leff)
+        {
+            «IF floating»
+                static «dyn_ns»::ForwardDynamics::ExtForces extForces(«rbd_ns»::ForceVector::Zero());
+                // TODO convert the external forces!
+
+                commons::SL::forward_dynamics<Traits>::
+                        floating_base(*SL::fwdDynEngine, extForces,
+                        SL::world_X_base.block<3,3>(0,0), lstate, cbase, obase);
+
+                if(freeze_base) {
+                    //trunk_a.setZero();
+                    //trunk_v.setZero();
+                    commons::SL::baseVelToSL(iit::rbd::VelocityVector::Zero(), *cbase, *obase);
+                    commons::SL::baseAccelToSL(iit::rbd::VelocityVector::Zero(), *cbase, *obase);
+                }
+            «ELSE»
+                iit::commons::SL::forward_dynamics<Traits>::
+                    fixed_base(*SL::fwdDynEngine, lstate);
+            «ENDIF»
+        }
+
+
+        /*!
+         *  Original documentation (date  Sept 2010)
+         *
+         *
+         * computes the generalized joint forces due to friction and spring terms, i.e.,
+         * the sum of all forces that act per joint independently of all others. The sign
+         * of the terms is as if they were on the LEFT side of the RBD equations:
+         *
+         * M qdd + C qd + G + f = u
+         *
+         *
+         *  \param[in] state       : the joint state of the robot
+         *  \param[in] li          : the link parameters for this joint
+         *
+         *  returns the generalized joint force for this joint due friction and spring terms
+         *
+         */
+        double compute_independent_joint_forces(SL_Jstate state, SL_link li)
+        {
+          double f=0;
+
+          f = state.thd*li.vis +
+            COULOMB_FUNCTION(state.thd)*li.coul +
+            state.th*li.stiff +
+            li.cons;
+
+          return f;
+        }
     '''
 
 
@@ -120,6 +325,12 @@ class Sources {
      * The code for SL_user_common
      */
     def SL_user_common(Robot robot)'''
+        #include "SL.h"
+        #include "SL_user.h"
+        #include "SL_common.h"
+        #include "SL_dynamics.h" // only because of setDefaultEndeffector()
+
+
         char joint_names[][20]= {
             {"BASE"}
             «FOR Joint joint : robot.joints»
@@ -165,6 +376,7 @@ class Sources {
 
         /* the following include must be the last line of the variable declaration section */
         #include "SL_user_common.h"   /* do not erase!!! */
+
 
         void setDefaultEndeffector(void)
         {

@@ -35,9 +35,10 @@ class Generator implements IGenerator {
 
         fsa.generateFile(folder + "/src/SL_user_common.cpp",
             roboSrcGen.SL_user_common(robot))
-
         fsa.generateFile(folder + "/src/SL_kinematics.cpp",
             roboSrcGen.kinematics(robot))
+        fsa.generateFile(folder + "/src/SL_dynamics.cpp",
+            roboSrcGen.dynamics(robot))
 
         fsa.generateFile(folder + "/CMakeLists.txt", roboMake.CMakeLists(robot))
 

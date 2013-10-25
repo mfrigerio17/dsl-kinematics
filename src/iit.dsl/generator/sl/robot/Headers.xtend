@@ -134,6 +134,7 @@ class Headers {
         #include <SL.h>
         #include <SL_user.h>
 
+        namespace robot = «ns»;
 
         «iit::dsl::generator::cpp::Common::enclosingNamespacesOpen(robot)»
         namespace SL {
