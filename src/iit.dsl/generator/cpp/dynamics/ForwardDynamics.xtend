@@ -1,6 +1,7 @@
 package iit.dsl.generator.cpp.dynamics
 
 import java.util.List
+
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Link
@@ -69,8 +70,8 @@ class ForwardDynamics {
             /**
              * \param qdd the joint accelerations vector (output parameter).
              «IF floatingBase»
-                  * \param «robot.base.accelerationName»
-                  * \param «robot.base.velocityName»
+                  * \param «robot.base.acceleration»
+                  * \param «robot.base.velocity»
                   * \param g the gravity acceleration vector, expressed in the
                   *          base coordinates
              «ENDIF»
@@ -82,8 +83,8 @@ class ForwardDynamics {
              *              exerted on.
              */
              «val params ='''const «jState»& qd, const «jState»& tau, const «extF_t»& fext = zeroExtForces'''»
-             «val fb_out_params = '''«jState»& qdd, Acceleration& «robot.base.accelerationName», // output parameters'''»
-             «val fb_in_params  = '''const Velocity& «robot.base.velocityName», const Acceleration& g'''»
+             «val fb_out_params = '''«jState»& qdd, Acceleration& «robot.base.acceleration», // output parameters'''»
+             «val fb_in_params  = '''const Velocity& «robot.base.velocity», const Acceleration& g'''»
             «IF floatingBase»
                 void fd(
                    «fb_out_params»,
@@ -117,8 +118,8 @@ class ForwardDynamics {
             «FOR l : robot.links»
                 // Link '«l.name»' :
                 InertiaMatrix «artInertiaName(l)»;
-                Velocity «accelerationName(l)»;
-                Velocity «velocityName(l)»;
+                Velocity «l.acceleration»;
+                Velocity «l.velocity»;
                 Velocity «cTermName(l)»;
                 Force    «biasForceName(l)»;
 
@@ -148,7 +149,7 @@ class ForwardDynamics {
                 const «extF_t»& fext/* = zeroExtForces */)
             {
                 setJointStatus(q);
-                fd(qdd, «robot.base.accelerationName», «robot.base.velocityName», g, qd, tau, fext);
+                fd(qdd, «robot.base.acceleration», «robot.base.velocity», g, qd, tau, fext);
             }
         «ELSE»
             inline void «className(robot)»::fd(
@@ -189,7 +190,7 @@ class ForwardDynamics {
                «motionTransformsMember»( & transforms )
         {
             «FOR l : robot.links»
-                «velocityName(l)».setZero();
+                «l.velocity».setZero();
                 «cTermName(l)».setZero();
             «ENDFOR»
 
@@ -198,8 +199,8 @@ class ForwardDynamics {
         void «nsqualifier»::«className(robot)»::fd(
             «jState»& qdd,
             «IF floatingBase»
-                Acceleration& «robot.base.accelerationName»,
-                const Velocity& «robot.base.velocityName»,
+                Acceleration& «robot.base.acceleration»,
+                const Velocity& «robot.base.velocity»,
                 const Acceleration& g,
             «ENDIF»
             const «jState»& qd,
@@ -232,7 +233,7 @@ class ForwardDynamics {
         «FOR l : sortedLinks»
             «val parent   = l.parent»
             «val joint    = l.connectingJoint»
-            «val velocity = l.velocityName»
+            «val velocity = l.velocity»
             «val cterm    = cTermName(l)»
             «val biasF    = biasForceName(l)»
             «val jid      = Common::jointIdentifier(joint)»
@@ -249,7 +250,7 @@ class ForwardDynamics {
                 «biasF» += spareMx * «artInertiaName(l)».col(«subspaceIdx») * qd(«jid»);
             «ELSE»
                 //  - The spatial velocity:
-                «velocity» = ((«child_X_parent») * «parent.velocityName»);
+                «velocity» = ((«child_X_parent») * «parent.velocity»);
                 «velocity»(«subspaceIdx») += qd(«jid»);
 
                 //  - The velocity-product acceleration term:
@@ -263,8 +264,8 @@ class ForwardDynamics {
 
         «IF floatingBase»
             // + The floating base
-            Utils::fillAsForceCrossProductMx(«robot.base.velocityName», spareMx);
-            «biasForceName(robot.base)» += spareMx * («artInertiaName(robot.base)» * «robot.base.velocityName»);
+            Utils::fillAsForceCrossProductMx(«robot.base.velocity», spareMx);
+            «biasForceName(robot.base)» += spareMx * («artInertiaName(robot.base)» * «robot.base.velocity»);
         «ENDIF»
 
         // ---------------------- SECOND PASS ---------------------- //
@@ -297,7 +298,7 @@ class ForwardDynamics {
 
         «IF floatingBase»
             // + The acceleration of the floating base «robot.base.name», without gravity
-            «robot.base.accelerationName» = - «artInertiaName(robot.base)».inverse() * «biasForceName(robot.base)»;
+            «robot.base.acceleration» = - «artInertiaName(robot.base)».inverse() * «biasForceName(robot.base)»;
         «ENDIF»
 
         // ---------------------- THIRD PASS ---------------------- //
@@ -310,17 +311,17 @@ class ForwardDynamics {
             «IF parent.equals(robot.base) && (!floatingBase)»
                 atmp = («child_X_parent»).col(«Names$Namespaces$Qualifiers::iit_rbd»::LZ) * («rbd_ns»::g);
             «ELSE»
-                atmp = («child_X_parent») * «accelerationName(parent)» + «cTermName(l)»;
+                atmp = («child_X_parent») * «acceleration(parent)» + «cTermName(l)»;
             «ENDIF»
             qdd(«jid») = («uTermName(l)» - «UTermName(l)».transpose() * atmp) / «DTermName(l)»;
-            «accelerationName(l)» = atmp;
-            «accelerationName(l)».row(«Common::spatialVectIndex(joint)»)(0,0) += qdd(«jid»);
+            «l.acceleration» = atmp;
+            «l.acceleration».row(«Common::spatialVectIndex(joint)»)(0,0) += qdd(«jid»);
 
         «ENDFOR»
 
         «IF floatingBase»
             // + Add gravity to the acceleration of the floating base
-            «robot.base.accelerationName» += g;
+            «robot.base.acceleration» += g;
         «ENDIF»
     '''
 
@@ -360,6 +361,7 @@ class ForwardDynamics {
     }
 
     private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    private extension VariableNames varNames = new VariableNames()
 
     private Robot currRobot
     private int dofs
