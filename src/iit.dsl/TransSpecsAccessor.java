@@ -1,6 +1,8 @@
 package iit.dsl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import iit.dsl.kinDsl.Robot;
@@ -11,13 +13,14 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.eclipse.xtext.util.StringInputStream;
 
 
 /**
- * Class that lets access the models created by the TransSpecs DSL.
+ * Class that lets access the models created by the TransSpecs-DSL.
  * Documents of such DSL contain the list of the desired transformations
  * and Jacobians for a given Robot.
- * @author phd
+ * @author Marco Frigerio
  *
  */
 public class TransSpecsAccessor {
@@ -47,6 +50,15 @@ public class TransSpecsAccessor {
         return null;
     }
 
+    public iit.dsl.transspecs.transSpecs.DesiredTransforms getModel(String model) throws IOException
+    {
+        URI uri = URI.createURI("dummy:/"+Long.toString(System.nanoTime())+".dtdsl");
+        resource = set.createResource(uri);
+        InputStream in = new StringInputStream(model);
+        resource.load(in, set.getLoadOptions());
+        return getModel(uri);
+    }
+
     private iit.dsl.transspecs.transSpecs.DesiredTransforms getModel(final URI uri) {
         resource = set.getResource(uri, true);
         List<Resource.Diagnostic> errors = resource.getErrors();
@@ -61,4 +73,5 @@ public class TransSpecsAccessor {
         }
         return (iit.dsl.transspecs.transSpecs.DesiredTransforms)resource.getContents().get(0);
     }
+
 }

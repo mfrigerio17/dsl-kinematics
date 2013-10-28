@@ -7,33 +7,28 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.PrismaticJoint
-import iit.dsl.coord.coordTransDsl.Model
+
 import iit.dsl.generator.Jacobian
 
 
 class Jacobians {
-    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
-    iit.dsl.coord.generator.Maxima coordsMaxima = new iit.dsl.coord.generator.Maxima()
 
     def static fileName(Robot robot) '''«robot.name»_jacobians'''
 
-    def jacobian(Jacobian J) {
-        val iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
-
-        val Model transforms = iit::dsl::generator::common::Transforms::getTransformsModel(J.robot)
-
+    def jacobian(Jacobian J, iit.dsl.coord.coordTransDsl.Model transforms)
+    {
         val baseFrameName = J.baseFrame.name;
 
         // The "longest" transform, between the base link and the moving link
-        val base_X_ee = coordTransCommon.getTransform(transforms, baseFrameName, J.movingFrame.name)
+        val base_X_ee = coordsUtils.getTransform(transforms, baseFrameName, J.movingFrame.name)
         if(base_X_ee == null) {
             throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
                 J.baseFrame.name + "_X_" + J.movingFrame.name + " (robot " + J.robot.name + ")");
         }
         var maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(base_X_ee)
         // Some variables of help for the code generation
-        val variablesList = coordsMaxima.argsListText(base_X_ee)
+        val variablesList = coordsUtils.argsListText(base_X_ee)
         val jacName   = '''«J.getName()»(«variablesList»)'''
         val eePosName = '''«J.movingFrame.name»_pos_wrt_«J.baseFrame.name»(«variablesList»)'''
 
@@ -47,7 +42,7 @@ class Jacobians {
         for(Joint el : J.jointsChain) {
             // Get the transform 'base_X_<current link>'
             val tmpFrameName = common.getFrameName(el).toString();
-            transform = coordTransCommon.getTransform(transforms, baseFrameName, tmpFrameName)
+            transform = coordsUtils.getTransform(transforms, baseFrameName, tmpFrameName)
             if(transform == null) {
                 throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
                     baseFrameName + "_X_" + tmpFrameName + " (robot " + J.robot.name + ")");
@@ -73,4 +68,7 @@ class Jacobians {
     }
 
 
+    private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    private iit.dsl.coord.generator.maxima.Maxima coordsMaxima = new iit.dsl.coord.generator.maxima.Maxima()
+    private iit.dsl.coord.generator.Common coordsUtils = new iit.dsl.coord.generator.Common()
 }

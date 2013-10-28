@@ -117,6 +117,7 @@ class MakefileGenerator {
                     ./«Names$Files::linkDataMapHeader(rob)».h
                     ./«Names$Files::jointDataMapHeader(rob)».h
                     ./«Names$Files::transformsHeader(rob)».h
+                    ./«Names$Files::parametersHeader(rob)».h
                     ./«Names$Files::jacobiansHeader(rob)».h
                     ./«Names$Files$RBD::jsimHeader(rob)».h
                     ./«Names$Files$RBD::header(rob)».h

@@ -1,14 +1,18 @@
 package iit.dsl.generator.matlab
 
 import iit.dsl.kinDsl.Robot
-import java.util.List
 import iit.dsl.generator.Jacobian
+
 import org.eclipse.xtend2.lib.StringConcatenation
+
+import java.util.List
 import java.util.Iterator
 
 class Jacobians {
 
-    public new() {
+    public new(iit.dsl.maxdsl.generator.IIdentifiersReplacement maximaReplacer)
+    {
+        replaceSpecs = maximaReplacer
         maximaConverter = new iit.dsl.generator.maxima.Converter()
         maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
         maxdslUtils     = new iit.dsl.maxdsl.generator.matlab.Utils()
@@ -17,8 +21,11 @@ class Jacobians {
      * This constructor takes the maxima.Converter configurator that will be
      * used to configure the maxima.Converter used by this instance
      */
-    public new(iit.dsl.generator.maxima.IConverterConfigurator conf) {
-        this()
+    public new(
+        iit.dsl.maxdsl.generator.IIdentifiersReplacement maximaReplacer,
+        iit.dsl.generator.maxima.IConverterConfigurator  conf)
+    {
+        this(maximaReplacer)
         setMaximaConverterConfigurator(conf)
     }
 
@@ -28,25 +35,27 @@ class Jacobians {
         maximaConverter.setConfigurator(conf)
     }
 
-    def init_jacobians_file(Robot robot, List<Jacobian> jacs) '''
+    def init_jacobians_file(Robot robot, List<Jacobian> jacs, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    '''
         «FOR Jacobian j : jacs»
-            «val jText = maximaConverter.getJacobianText(j)»
+            «val jText = maximaConverter.getJacobianText(j, transformsModel)»
             «j.name» = zeros(«j.rows»,«j.cols»);
             «maxdslUtils.staticInitAssignements(jText, j.name)»
 
         «ENDFOR»
     '''
 
-    def update_jacobians_file(Robot robot, List<Jacobian> jacs) {
+    def update_jacobians_file(Robot robot, List<Jacobian> jacs, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val StringConcatenation strBuff = new StringConcatenation();
-        val replaceSpecs = new MaximaReplSpecs(robot)
+
         val identifiers = iit::dsl::maxdsl::generator::Identifiers::getInstance()
         var r = 1 // row index
         var c = 1 // column index
 
         for (J : jacs) {
-            val jText     = maximaConverter.getJacobianText(J);
-            val maxdslDoc = iit::dsl::generator::maxima::MaximaDSLUtils::MaximaDSLDocumentText(J, jText)
+            val jText     = maximaConverter.getJacobianText(J, transformsModel);
+            val maxdslDoc = iit::dsl::generator::common::Jacobians::expressionsAsMaximaDSLDocument(J, jText, transformsModel)
             //Check if the current Jacobian is actually a function of something. If not, it is a constant,
             // and no code generation is required here
             if(maxdslDoc.length > 0) {
@@ -80,6 +89,7 @@ class Jacobians {
         return strBuff
     }
 
+    private iit.dsl.maxdsl.generator.IIdentifiersReplacement replaceSpecs = null
     private iit.dsl.generator.maxima.Converter  maximaConverter = null
     private iit.dsl.maxdsl.utils.DSLAccessor      maxdslAccess  = null
     private iit.dsl.maxdsl.generator.matlab.Utils maxdslUtils   = null

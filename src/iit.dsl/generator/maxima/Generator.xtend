@@ -5,11 +5,11 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtend2.lib.StringConcatenation
 
-import java.io.File
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
+
 
 class Generator implements IGenerator {
     Transforms transforms = new Transforms()
@@ -23,47 +23,88 @@ class Generator implements IGenerator {
         generateJacobiansSources(robot, fsa);
     }
 
-    def generateTransformsSources(Robot robot, IFileSystemAccess fsa) {
-        transforms.generate(robot, fsa);
+    def generateTransformsSources(
+        Robot robot,
+        IFileSystemAccess fsa)
+    {
+        val transformsModel =
+           iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+        generateTransformsSources(robot, fsa, transformsModel);
+    }
+    def generateTransformsSources(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
+    {
+        val transformsModel =
+           iit::dsl::generator::common::Transforms::getTransformsModel(robot, userTransforms)
+        generateTransformsSources(robot, fsa, transformsModel);
+    }
+    def generateTransformsSources(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
+        transforms.generate(robot, fsa, transformsModel);
     }
 
 
-    def generateJacobiansSources(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(Jacobians::fileName(robot).toString(), jacobiansFileCode(robot))
-    }
-    def generateJacobiansSources(Robot robot, IFileSystemAccess fsa, File desiredJacobians) {
-        fsa.generateFile(Jacobians::fileName(robot).toString(), jacobiansFileCode(robot, desiredJacobians))
-    }
-
-    def jacobiansFileCode(Robot robot) {
-        return jacobiansFileCode(robot,
-                    // gets the default desired-jacobians model
-                    desiredTrasformsAccessor.getDesiredTransforms(robot));
+    def generateJacobiansSources(
+        Robot robot,
+        IFileSystemAccess fsa)
+    {
+        generateJacobiansSources(
+            robot,
+            fsa,
+            desiredTrasformsAccessor.getDesiredTransforms(robot))
     }
 
-    def jacobiansFileCode(Robot robot, File desiredJacobians) {
-         return jacobiansFileCode(robot,
-                    desiredTrasformsAccessor.getDesiredTransforms(desiredJacobians));
+    def generateJacobiansSources(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacobians)
+    {
+        val transformsModel =
+           iit::dsl::generator::common::Transforms::getTransformsModel(robot, desiredJacobians)
+        generateJacobiansSources(
+            robot,
+            fsa,
+            desiredTrasformsAccessor.getDesiredTransforms(robot),
+            transformsModel)
     }
 
-    def jacobiansFileCode(Robot robot, iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs) {
+    def generateJacobiansSources(
+        Robot robot,
+        IFileSystemAccess fsa,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacobians,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
+        fsa.generateFile(
+            Jacobians::fileName(robot).toString(),
+            jacobiansFileCode(robot, transformsModel, desiredJacobians)
+        )
+    }
+
+
+    def private jacobiansFileCode(
+        Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs)
+    {
         if(desiredJacs != null) {
-            return jacsCode(robot, desiredJacs);
+            val StringConcatenation strBuff = new StringConcatenation();
+            if(desiredJacs.jacobians != null) {
+                for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredJacs.jacobians.getSpecs()) {
+                    strBuff.append(jacs.jacobian(new Jacobian(robot, jSpec), transformsModel));
+                }
+            }
+            return strBuff;
         } else {
             return new StringConcatenation();//empty
         }
     }
 
 
-    def private jacsCode(Robot robot, iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacs) {
-        val StringConcatenation strBuff = new StringConcatenation();
-        if(desiredJacs.jacobians != null) {
-            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desiredJacs.jacobians.getSpecs()) {
-                strBuff.append(jacs.jacobian(new Jacobian(robot, jSpec)));
-            }
-        }
-        return strBuff;
-    }
 
     def inertiaTensorSource(Robot robot) '''
         «val bp = robot.base.inertiaParams»

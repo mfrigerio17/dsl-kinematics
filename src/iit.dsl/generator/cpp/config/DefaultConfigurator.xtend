@@ -16,6 +16,7 @@ import java.util.ArrayList
 class DefaultConfigurator implements
     IConfigurator$Names$Files,
     IConfigurator$Names$Namespaces,
+    IConfigurator$Names$ClassesAndTypes,
     IConfigurator$Paths
 
 {
@@ -60,6 +61,10 @@ class DefaultConfigurator implements
         "transforms"
     }
 
+    override h_parameters(Robot robot) {
+        "parameters_utils"
+    }
+
     override src_fwddyn(Robot r) {
         h_fwddyn(r)
     }
@@ -84,17 +89,7 @@ class DefaultConfigurator implements
         h_transforms(r)
     }
 
-    override T6D_force() {
-        "force_transf"
-    }
 
-    override T6D_motion() {
-        "motion_transf"
-    }
-
-    override THomogeneous() {
-        "homogeneous_transf"
-    }
 
 
     // NAMESPACES //
@@ -126,6 +121,21 @@ class DefaultConfigurator implements
 
 
 
+    // TYPE NAMES //
+
+    override transforms_homogeneous() {
+        "HomogeneousTransforms"
+    }
+
+    override transforms_spatial_force() {
+        "ForceTransforms"
+    }
+
+    override transforms_spatial_motion() {
+        "MotionTransforms"
+    }
+
+
     // PATHS //
 
     override maximaCodeJacobians() {
@@ -139,5 +149,8 @@ class DefaultConfigurator implements
     override maximaLibs() {
         "maxima_libs"
     }
+
+
+
 
 }

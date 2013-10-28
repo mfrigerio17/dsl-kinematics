@@ -7,12 +7,12 @@ import org.eclipse.xtend2.lib.StringConcatenation
 
 import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Common
-import iit.dsl.generator.cpp.kinematics.Transforms
 import iit.dsl.generator.common.TreeUtils
 
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.Robot
+import iit.dsl.generator.common.Transforms
 
 
 class JointsSpaceInertia {
@@ -22,20 +22,23 @@ class JointsSpaceInertia {
         #define IIT_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
 
         #include <iit/rbd/rbd.h>
-        #include <iit/rbd/JStateDependentMatrix.h>
+        #include <iit/rbd/StateDependentMatrix.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::inertiaHeader(robot)».h"
 
         «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
+
         /**
          * The type of the Joint Space Inertia Matrix (JSIM) of the robot «robot.name».
          */
-        class «className» : public «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «dofs», «dofs»>
+        «val superType = Names$Namespaces$Qualifiers::iit_rbd() + "::" + Names$Types$IIT_RBD::stateDependentMatrix(jointStateQualifiedTypeName, dofs.toString, dofs.toString, className)»
+        class «className» : public «superType»
         {
             private:
-                typedef «Names$Types::jstateDependentMatrix()»<«Names$Namespaces$Qualifiers::robot(robot)»::«Names$Types::jointState», «dofs», «dofs»> Base;
+                typedef «superType» Base;
             public:
                 typedef Base::Scalar Scalar;
                 typedef Base::Index Index;
@@ -49,14 +52,11 @@ class JointsSpaceInertia {
                     typedef const Eigen::Block<const MatrixType,«jointDOFs»,«jointDOFs»> «typename_blockFixedBase»;
                 «ENDIF»
             public:
-                «className»();
+                «className»(«Names$Types$Transforms::spatial_force»&);
                 ~«className»() {}
 
-                const «Names$Types::jspaceMLocal»& operator()(const «Names$Types::jointState»&);
+                const «className»& update(const «Names$Types::jointState»&);
 
-                //need to redeclare these because previous overloading hides the base class versions
-                const Scalar& operator()(Index row, Index col) const;
-                Scalar& operator()(Index row, Index col);
 
                 /**
                  * Computes and saves the matrix L of the L^T L factorization of this JSIM.
@@ -120,18 +120,10 @@ class JointsSpaceInertia {
                 MatrixType L;
                 MatrixType Linv;
                 MatrixType inverse;
+
+                «Names$Types$Transforms::spatial_force»* «forceTransformsMember»;
         };
 
-
-        inline const «className»::Scalar&
-        «className»::operator()(Index row, Index col) const {
-            return this->Base::operator() (row,col);
-        }
-
-        inline «className»::Scalar&
-        «className»::operator()(Index row, Index col) {
-            return this->Base::operator() (row,col);
-        }
 
         inline const «className»::MatrixType& «className»::getL() const {
             return L;
@@ -155,8 +147,6 @@ class JointsSpaceInertia {
             }
         «ENDIF»
 
-        // The joint space inertia matrix of this robot
-        extern «Names$Types::jspaceMLocal» «Names$GlobalVars::jsInertia»;
 
 
         }
@@ -164,27 +154,19 @@ class JointsSpaceInertia {
         #endif
         '''
 
-    def inertiaMatrixSource(Robot robot) '''
+    def inertiaMatrixSource(Robot robot, iit.dsl.coord.coordTransDsl.Model transformsModel) '''
         «loadInfo(robot)»
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::jsimHeader(robot)».h"
-
-        using namespace «Names$Namespaces$Qualifiers::robot(robot)»;
-        using namespace «Names$Namespaces$Qualifiers::robot(robot)»::«Names$Namespaces::transforms6D»;
 
         «val robo_ns_qualifier = Names$Namespaces$Qualifiers::robot(robot)»
         «val robodyn_ns_qualifier = robo_ns_qualifier + "::" + Names$Namespaces::dynamics»
         «val class_qualifier = robodyn_ns_qualifier + "::" + className»
 
-        // The joint space inertia matrix of this robot
-        «robodyn_ns_qualifier»::«Names$Types::jspaceMLocal» «robodyn_ns_qualifier»::«Names$GlobalVars::jsInertia»;
-
         //Implementation of default constructor
-        «class_qualifier»::«className»()
+        «class_qualifier»::«className»(«Names$Types$Transforms::spatial_force»& forceTransforms) :
+             «forceTransformsMember»( &forceTransforms )
         {
-            //Make sure all the transforms of the robot are initialized
-            «robo_ns_qualifier»::«Names$Namespaces::transforms6D»::initAll();
-            «robo_ns_qualifier»::«Names$Namespaces::T6D_force»::initAll();
             //Initialize the matrix itself
             this->setZero();
             // Initialize the 6D composite-inertia tensor of each body of the robot
@@ -197,7 +179,7 @@ class JointsSpaceInertia {
         #define DATA operator()
         #define F(j) (block<6,1>(0,(j)+6))
 
-        const «class_qualifier»& «class_qualifier»::operator()(const «Names$Types::jointState»& state) {
+        const «class_qualifier»& «class_qualifier»::update(const «Names$Types::jointState»& state) {
             «val sortedLinks = robot.links.sortBy(link | link.ID).reverse /* do not consider the robot base */»
             «IF !floatingBase»
                 static «Names$Namespaces$Qualifiers::iit_rbd»::ForceVector F;
@@ -207,8 +189,8 @@ class JointsSpaceInertia {
             «FOR l : sortedLinks»
                 «val parent = l.parent»
                 «IF floatingBase || !(parent.equals(robot.base))»
-                    «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)»(state);
-                    «Transforms::child_X_parent__mxName(parent, l)»(state);
+                    «val parent_X_child = Transforms::getTransform(transformsModel, parent, l)»
+                    «Xforce(parent_X_child)»(state);
                 «ENDIF»
             «ENDFOR»
 
@@ -217,8 +199,9 @@ class JointsSpaceInertia {
 
                 // Link «l.name»:
                 «val parent = l.parent»
+                «val parent_X_child = Transforms::getTransform(transformsModel, parent, l)»
                 «IF floatingBase || !(parent.equals(robot.base))»
-                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, l)» * «inertiaCompositeName(l)» * «Transforms::child_X_parent__mxName(parent, l)»;
+                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Xforce(parent_X_child)» * «inertiaCompositeName(l)» * («Xforce(parent_X_child)»).transpose();
                 «ENDIF»
 
                 «val jt = getJoint(parent, l)»
@@ -228,9 +211,10 @@ class JointsSpaceInertia {
                 DATA(«jointIndex», «jointIndex») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
 
                 «val chain = TreeUtils::chainToBase(l)»
-                «inertiaMatrix_lastStep(chain, jt)»
+                «inertiaMatrix_lastStep(chain, jt, transformsModel)»
                 «IF floatingBase»
-                    «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(robot.base, chain.last)» * «F»;
+                    «val base_X_last = Transforms::getTransform(transformsModel, robot.base, chain.last)»
+                    «F» = «Xforce(base_X_last)» * «F»;
                 «ENDIF»
             «ENDFOR»
 
@@ -279,18 +263,9 @@ class JointsSpaceInertia {
         }
 
         className = Names$Types::jspaceMLocal
+        jointStateQualifiedTypeName = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Types::jointState
     }
-    /*
-     * Code to update all and only the required spatial vectors transforms
-     * required by the composite-rigid-body algorithm for the JSIM
-     */
-    def private parentChildTransform(AbstractLink p, AbstractLink c) '''
-        «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(p, c)»(state);
-        «Transforms::child_X_parent__mxName(p, c)»(state);
-        «FOR child : c.childrenList.children»
-            «parentChildTransform(c, child.link)»
-        «ENDFOR»
-    '''
+
 
     def private getF(Joint j) {
         if( !floatingBase) {
@@ -309,14 +284,22 @@ class JointsSpaceInertia {
     }
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
+    def private forceTransformsMember() '''frcTransf'''
+    def private Xforce(iit.dsl.coord.coordTransDsl.Transform t)
+        '''«forceTransformsMember» -> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
 
-    def private inertiaMatrix_lastStep(List<AbstractLink> chainToBase, Joint rowJoint) {
+    def private inertiaMatrix_lastStep(
+        List<AbstractLink> chainToBase,
+        Joint rowJoint,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         val strBuff = new StringConcatenation()
 
         var AbstractLink parent
         var Joint parentJ
         var CharSequence F
         var CharSequence col
+        var iit.dsl.coord.coordTransDsl.Transform parent_X_child
         val row = jsimIndex(rowJoint)
         for( link : chainToBase ) {
             parent = link.parent
@@ -324,8 +307,9 @@ class JointsSpaceInertia {
             if( ! parent.equals( currRobot.base ) ) {
                 parentJ = parent.connectingJoint;
                 col     = jsimIndex(parentJ)
+                parent_X_child = Transforms::getTransform(transformsModel, parent, link)
                 strBuff.append('''
-                «F» = «Names$Namespaces::T6D_force»::«Transforms::parent_X_child__mxName(parent, link)» * «F»;
+                «F» = «Xforce(parent_X_child)» * «F»;
                 DATA(«row», «col») = «F».transpose().col(«Common::spatialVectIndex(parentJ)»)(0,0);
                 DATA(«col», «row») = DATA(«row», «col»);
                 ''');
@@ -335,7 +319,7 @@ class JointsSpaceInertia {
     }
 
     def main_test(Robot robot) '''
-        «val jsim = Names$GlobalVars::jsInertia»
+        «val jsim = "jsim"»
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«Names$Files$RBD::jsimHeader(robot)».h"
 
@@ -354,6 +338,8 @@ class JointsSpaceInertia {
                 q(«j.getID()-1»)   = std::atof(argv[«j.getID()»]);
             «ENDFOR»
 
+            «Names$Types$Transforms::spatial_force» ft;
+            JSIM «jsim»(ft);
             «jsim»(q);
             «jsim».computeL();
             «jsim».computeInverse();
@@ -587,7 +573,7 @@ class JointsSpaceInertia {
         '''
 
     def private LTLfactorization(Robot robot) '''
-        L = «Names$GlobalVars::jsInertia».triangularView<Eigen::Lower>();
+        L = this -> triangularView<Eigen::Lower>();
         «FOR Joint joint : robot.joints.reverseView»
             «val row = joint.getID()-1»
             // Joint «joint.name», index «row» :
@@ -663,6 +649,6 @@ class JointsSpaceInertia {
     private List<AbstractLink> links
     private boolean floatingBase
     private String className
-
+    private String jointStateQualifiedTypeName
 
 }

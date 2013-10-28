@@ -3,28 +3,45 @@
  */
 package iit.dsl.generator
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
-
+import iit.dsl.generator.common.TransformsDSLsUtils
 import iit.dsl.generator.misc.Misc
 import iit.dsl.kinDsl.Robot
 
 
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+import iit.dsl.TransSpecsAccessor
+import com.google.inject.Guice
+import org.eclipse.xtext.parsetree.reconstr.Serializer
+import iit.dsl.transspecs.TransSpecsRuntimeModule
+import iit.dsl.generator.common.Jacobians
+
+
 class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
-    FramesTransforms frTransforms = new FramesTransforms()
     Misc miscGen = Misc::getInstance()
     MotionDSLDocGenerator motiongen = new MotionDSLDocGenerator()
+    TransformsDSLsUtils transformsDSLsUtils = new TransformsDSLsUtils()
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robot.name+".urdf", miscGen.URDF_ROS_model(robot))
-        fsa.generateFile(robot.name+".sd", miscGen.SDFAST_model(robot))
-        fsa.generateFile(FramesTransforms::fileName(robot), frTransforms.coordinateTransformsDSLDocument(robot))
+        System::out.println()
+        val desiredTrasformsAccessor = new TransSpecsAccessor()
+        val desired = desiredTrasformsAccessor.getDesiredTransforms(robot)
+
+        //fsa.generateFile(robot.name+".urdf", miscGen.URDF_ROS_model(robot))
+        //fsa.generateFile(robot.name+".sd", miscGen.SDFAST_model(robot))
         fsa.generateFile(MotionDSLDocGenerator::fileName(robot), motiongen.documentContent(robot))
-        //testUtilities()
+        fsa.generateFile(
+            TransformsDSLsUtils::documentDefaultName_TransformsDSL(robot),
+            transformsDSLsUtils.coordinateTransformsDSLDoc(robot, desired))
+//        //testUtilities()
+//        testJacobianUtils(robot)
     }
+
+
+
 
     def testITensorRotation(Robot hyl) {
         val hip = hyl.getLinkByName("hip")
@@ -118,5 +135,71 @@ class KinDslGenerator implements IGenerator {
         val double[] foo = Utilities::get_rxryrz(mx)
         System::out.println('''«foo.get(0)»  «foo.get(1)»  «foo.get(2)»''')
     }
+
+    def testJacobianUtils(Robot robot) {
+        val desiredTrasformsAccessor = new TransSpecsAccessor()
+        val desJacs = desiredTrasformsAccessor.getDesiredTransforms(robot)
+
+        val jacsList = Jacobians::getJacobiansList(robot, desJacs)
+        var iit.dsl.transspecs.transSpecs.TransformsList allTransforms =
+            desJacs.transforms
+        for (J : jacsList ) {
+            allTransforms = iit::dsl::transspecs::utils::Utils::merge(
+                allTransforms,
+                Jacobians::getRequiredTransformsSpecs(J) )
+        }
+        val allTransformsModel = iit::dsl::transspecs::utils::Utils::createModel(allTransforms)
+        System::out.println()
+        for (spec : allTransformsModel.transforms.specs) {
+            System::out.println("base: " + spec.base.name + "  target: " + spec.target.name)
+        }
+    }
+
+   def testDesiredTransformsAccessor() {
+        val accessor = new TransSpecsAccessor
+        val model1 = accessor.getModel(dtdsl_doc1.toString)
+        val model2 = accessor.getModel(dtdsl_doc2.toString)
+
+        val injector = Guice::createInjector(new TransSpecsRuntimeModule());
+        val serializer = injector.getInstance(typeof(Serializer));
+
+        val merged = iit::dsl::transspecs::utils::Utils::merge(model1, model2)
+
+        System::out.println(serializer.serialize(merged.framesList))
+        //System::out.println(serializer.serialize(merged.transforms))
+        for(t : merged.transforms.specs) {
+            System::out.println(t.base.name + " " + t.target.name)
+        }
+    }
+
+    val dtdsl_doc1 = '''
+        Robot doc1
+
+        Frames {
+        f1,f2,f4
+        }
+
+        Transforms {
+            base=f1, target=f2
+            base=f2, target=f1
+            base=f2, target=f4
+        }
+
+    '''
+
+    val dtdsl_doc2 = '''
+        Robot doc2
+
+        Frames {
+        f1,f2,f3
+        }
+
+        Transforms {
+            base=f1, target=f2
+            base=f2, target=f3
+        }
+
+    '''
+
 
 }

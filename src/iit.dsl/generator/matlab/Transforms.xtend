@@ -7,10 +7,13 @@ class Transforms {
     private iit.dsl.coord.generator.matlab.Generator matlabGen = null
     private iit.dsl.coord.coordTransDsl.Model transModel = null
 
-    new(Robot robot, iit.dsl.coord.generator.MaximaConverter$IConfigurator maximaCfg) {
-        transModel = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+    new(Robot robot,
+        iit.dsl.coord.coordTransDsl.Model transformsModel,
+        iit.dsl.coord.generator.MaximaConverter$IConfigurator maximaCfg)
+    {
+        transModel = transformsModel
         matlabGen =  new iit.dsl.coord.generator.matlab.Generator()
-        matlabGen.setMaximaReplSpecs(new MaximaReplSpecs(robot))
+        matlabGen.setMaximaReplSpecs(new MaximaReplSpecs(robot,transModel))
         matlabGen.setMaximaConverterConfigurator(maximaCfg)
     }
 

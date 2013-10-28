@@ -22,6 +22,9 @@ class DefaultConfiguratorsGetter implements IConfiguratorsGetter {
     override getNamespacesConfigurator() {
         return namesConfigurator
     }
+    override getClassesAndTypesConfigurator() {
+        return namesConfigurator
+    }
     override getPathsConfigurator() {
         return namesConfigurator
     }
