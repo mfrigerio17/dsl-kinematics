@@ -37,31 +37,6 @@ class Common {
     static KinDslFactory kinDSLFactory = KinDslFactoryImpl::init()
     static FloatLiteral zeroFloat = kinDSLFactory.createFloatLiteral()//relies on default constructor setting it to zero
 
-def inertiaMxName(AbstractLink link) {
-    link.name + "_Imx"
-}
-
-def coordTransformName(Joint j) {
-    j.name + "_X"
-}
-
-def subspaceMxName(Joint par) {
-    par.name + "_S"
-}
-
-def childToParentMxName(Link child) {
-    child.name + "_X_" + child.getParent().name
-}
-
-def velocityName(AbstractLink par) {
-    par.name + "_v"
-}
-def accelerationName(AbstractLink par) {
-    par.name + "_a"
-}
-def forceName(AbstractLink par) {
-    par.name + "_f"
-}
 
 def dispatch boolean isFloating(RobotBase par) {
     false
