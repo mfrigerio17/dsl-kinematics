@@ -2,6 +2,8 @@ package iit.dsl.generator.cpp
 
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
+import iit.dsl.generator.cpp.dynamics.InverseDynamics
+import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 
 
 class RobotHeaders {
@@ -36,6 +38,12 @@ class RobotHeaders {
             , «Common::linkIdentifier(l)»
             «ENDFOR»
         };
+
+        static const JointIdentifiers orderedJointIDs[jointsCount] =
+            {«FOR j : robot.joints SEPARATOR ','»«Common::jointIdentifier(j)»«ENDFOR»};
+
+        static const LinkIdentifiers orderedLinkIDs[linksCount] =
+            {«FOR l : robot.links SEPARATOR ','»«Common::linkIdentifier(l)»«ENDFOR»};
 
         «Common::enclosingNamespacesClose(robot)»
         #endif
@@ -230,6 +238,55 @@ class RobotHeaders {
         }
 
         «Common::enclosingNamespacesClose(robot)»
+        #endif
+    '''
+
+    def public traits(Robot robot) '''
+        #ifndef IIT_ROBOGEN__«robot.name.toUpperCase()»_TRAITS_H_
+        #define IIT_ROBOGEN__«robot.name.toUpperCase()»_TRAITS_H_
+
+        #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files::transformsHeader(robot)».h"
+        #include "«Names$Files$RBD::invDynHeader(robot)».h"
+        #include "«Names$Files$RBD::fwdDynHeader(robot)».h"
+        #include "«Names$Files$RBD::jsimHeader(robot)».h"
+
+        «Common::enclosingNamespacesOpen(robot)»
+
+        «val ns  = Names$Namespaces::rob(robot)»
+        «val dyn = Names$Namespaces::dynamics»
+        struct Traits {
+            typedef typename «ns»::«Names$Types::jointState» «Names$Types::jointState»;
+
+            typedef typename «ns»::JointIdentifiers JointID;
+            typedef typename «ns»::LinkIdentifiers  LinkID;
+
+            typedef typename «ns»::«Names$Types$Transforms::homogeneous» «Names$Types$Transforms::homogeneous»;
+            typedef typename «ns»::«Names$Types$Transforms::spatial_motion» «Names$Types$Transforms::spatial_motion»;
+            typedef typename «ns»::«Names$Types$Transforms::spatial_force» «Names$Types$Transforms::spatial_force»;
+
+            typedef typename «ns»::«dyn»::«ForwardDynamics::className(robot)» FwdDynEngine;
+            typedef typename «ns»::«dyn»::«InverseDynamics::className(robot)» InvDynEngine;
+            typedef typename «ns»::«dyn»::«Names$Types::jspaceMLocal» JSIM;
+
+            static const int joints_count = «ns»::jointsCount;
+            static const int links_count  = «ns»::linksCount;
+            static const bool floating_base = «IF common.isFloating(robot.base)»true«ELSE»false«ENDIF»;
+
+            static inline const JointID* orderedJointIDs();
+            static inline const LinkID*  orderedLinkIDs();
+        };
+
+
+        inline const Traits::JointID*  Traits::orderedJointIDs() {
+            return «ns»::orderedJointIDs;
+        }
+        inline const Traits::LinkID*  Traits::orderedLinkIDs() {
+            return «ns»::orderedLinkIDs;
+        }
+
+        «Common::enclosingNamespacesClose(robot)»
+
         #endif
     '''
 }

@@ -72,10 +72,13 @@ public class Names {
         static public String parametersHeader(Robot robot) {
             return files.h_parameters(robot);
         }
-
         static public String jacobiansHeader(Robot robot) {
             return files.h_jacobians(robot);
         }
+        static public String traitsHeader(Robot robot) {
+            return "traits";
+        }
+
         static public String transformsSource(Robot robot) {
             return files.src_transforms(robot);
         }
