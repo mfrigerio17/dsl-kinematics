@@ -33,6 +33,10 @@ def String main_compare_fwd_dyn(Robot robot) {
     "main_compare_fwd_dyn"
 }
 
+def public static robogenGlobalsFileName(Robot robot) {
+    return "robogen_globals"
+}
+
 def public static linkEnumID(AbstractLink link) {
     return link.name.toUpperCase()
 }

@@ -2,6 +2,7 @@ package iit.dsl.generator.sl.robot
 
 import iit.dsl.kinDsl.Robot
 
+import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.sl.Utilities
 import iit.dsl.generator.sl.Common
 
@@ -117,5 +118,54 @@ class Headers {
         #endif
         #endif  /* _SL_USER_«robot.name.toUpperCase»_H_ */
     '''
+
+    def public robogenGlobals(Robot robot) '''
+        «val robodir = Names$Files::folder(robot)»
+        «val ns = iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier(robot)»
+        #ifndef _IIT_«robot.name.toUpperCase»_SL__ROBOGEN_GLOBALS_H_
+        #define _IIT_«robot.name.toUpperCase»_SL__ROBOGEN_GLOBALS_H_
+
+        #include <iit/robots/«robodir»/«Names$Files::mainHeader(robot)».h>
+        #include <iit/robots/«robodir»/«Names$Files::parametersHeader(robot)».h>
+        #include <iit/robots/«robodir»/«Names$Files::transformsHeader(robot)».h>
+        #include <iit/robots/«robodir»/«Names$Files$RBD::fwdDynHeader(robot)».h>
+        #include <iit/robots/«robodir»/«Names$Files$RBD::invDynHeader(robot)».h>
+
+        #include <SL.h>
+        #include <SL_user.h>
+
+
+        «iit::dsl::generator::cpp::Common::enclosingNamespacesOpen(robot)»
+        namespace SL {
+
+        extern «ns»::HomogeneousTransforms* homogeneousTransforms;
+        extern «ns»::MotionTransforms* motionTransforms;
+        extern «ns»::ForceTransforms* forceTransforms;
+        extern «ns»::«Names$Namespaces::dynamics»::ForwardDynamics* fwdDynEngine;
+        extern «ns»::«Names$Namespaces::dynamics»::InverseDynamics* invDynEngine;
+
+        «IF robot.base.floating»
+            extern «ns»::HomogeneousTransforms::MatrixType world_X_base;
+        «ENDIF»
+
+        inline void updateEndeffectorsParams(SL_endeff* eff) {
+            //TODO
+        }
+
+        void createDefaultTransformsAndDynamics();
+
+        «IF robot.base.floating»
+            void update__world_X_base(const SL_Cstate& base_pos,const SL_quat& base_orient);
+        «ENDIF»
+
+        }
+        «iit::dsl::generator::cpp::Common::enclosingNamespacesClose(robot)»
+
+
+
+        #endif
+    '''
+
+    private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
 }
