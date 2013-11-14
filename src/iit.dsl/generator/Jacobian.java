@@ -76,8 +76,15 @@ public class Jacobian {
     }
 
     /**
-     * Returns a comma-separated list of the names of the variables of this Jacobian
-     * @return
+     * Returns a comma-separated list of the name of the joint-variables of
+     * this Jacobian.
+     * The list is generated from the list returned by getJointsChain(). Note
+     * that there are some special cases in which even though such list is not
+     * empty the Jacobian is constant, or depends on less variables than the
+     * number of joints. This function does NOT take care of such special cases.
+     * @return a string with the comma-separated list of the name of the
+     *    joint-variables, for each joint in the kinematic chain of this
+     *    Jacobian
      */
     public String getArgsList() {
         if(jointsChain.size() == 0) return "";

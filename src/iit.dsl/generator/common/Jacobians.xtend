@@ -146,30 +146,56 @@ class Jacobians {
      *
      * Returns an empty text if the given Jacobian is not a function of any
      * joint (therefore it does not contain any expression which is a function
-     * of a joint variable) nor of any parameter. The text will be empty also
-     * if the Jacobian does not contain any expression at all (which can happen
-     * even if it formally depends on some joint)
+     * of a joint variable) nor of any parameter. The Jacobian may be constant
+     * even if it formally depends on some joint.
+     * @param the Jacobian placeholder
+     * @param the textual representation of the Jacobian matrix, as returned by
+     *     iit.dsl.generator.maxima.Converter.getjacobianText()
+     * @param transformsModel the Transforms-DSL model with all the coordinate
+     *     transforms of the same robot the Jacobian belongs to
+     * @return the text of a document of the Maxima-DSL, with all the non
+     *     constant algebraic expressions of the J
      */
     def public static expressionsAsMaximaDSLDocument(
         Jacobian J,
         String[][] JasText,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
-     '''
-        «val params = getParameters(J, transformsModel)»
+    {
+        val params = getParameters(J, transformsModel)
+        val vars_list_str = J.getArgsList()
+        if(vars_list_str.length() == 0  &&  params.size() == 0) {
+            //TODO log INFO, the Jacobian is constant
+            return ''''''
+        }
+        val StringBuffer expressions = new StringBuffer
+        // Write down the non constant expression of the given Jacobian
+        for(row : JasText) {
+            for(el : row) {
+                if(!iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el))
+                {
+                    expressions.append(el + ";")
+                }
+            }
+        }
+
+        if(expressions.length == 0) {
+            //TODO log INFO, the Jacobian is constant even though it apparently
+            // depends on some joints
+            return ''''''
+        }
+        // The Jacobian is not constant; return a non empty document text
+        return
+        '''
         Variables {
-               «J.getArgsList()»
+               «vars_list_str»
                «IF J.jointsChain.size > 0 && params.size > 0»,«ENDIF»
                «FOR p : params SEPARATOR ", "»«iit::dsl::coord::generator::maxima::Maxima::parameterToMaximaVarName(p)»«ENDFOR»
            }
 
-        «FOR row : JasText»
-            «FOR el : row»
-                «IF (!iit::dsl::maxdsl::utils::MaximaConversionUtils::isConstant(el))»
-                    «el»;
-                «ENDIF»
-            «ENDFOR»
-        «ENDFOR»
-     '''
+        «expressions»
+        '''
+    }
+
 
     private static iit.dsl.coord.generator.Common transformsUtils = new iit.dsl.coord.generator.Common()
 }
