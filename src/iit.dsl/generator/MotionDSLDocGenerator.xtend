@@ -194,7 +194,7 @@ class MotionDSLDocGenerator {
     def private dispatch value(PILiteral p)
         '''«p.varname»'''
     def private dispatch value(ParameterLiteral p)
-        '''«currentParameterGroup».«p.varname»'''
+        '''«IF p.minus»-«ENDIF»«currentParameterGroup».«p.varname»'''
 
     private String currentParameterGroup = null
 }
