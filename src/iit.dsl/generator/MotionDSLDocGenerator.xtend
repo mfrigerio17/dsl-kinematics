@@ -7,23 +7,25 @@ import iit.dsl.kinDsl.Expr
 import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.RotoTrasl
-import org.eclipse.xtend2.lib.StringConcatenation
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import iit.dsl.kinDsl.ParameterLiteral
-import java.util.ArrayList
-import iit.dsl.generator.common.Parameters
-import java.util.HashSet
-import java.util.List
 import iit.dsl.kinDsl.PlainExpr
 import iit.dsl.kinDsl.PILiteral
+
+import iit.dsl.generator.common.Parameters
+
+
+import java.util.HashSet
+import java.util.List
+import java.util.ArrayList
+
+import org.eclipse.xtend2.lib.StringConcatenation
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils
+
 
 class MotionDSLDocGenerator {
     def public static String fileName(Robot robot) {
         return robot.name + "_frames.motdsl"
     }
-
-    def public static String lengthsParametersGroupName() { "lengths" }
-    def public static String anglesParametersGroupName()  { "angles" }
 
     private extension Common common = new Common()
 
@@ -75,7 +77,7 @@ class MotionDSLDocGenerator {
         var CharSequence tmp
         var isEmpty = true
         // Translation
-        currentParameterGroup = lengthsParametersGroupName
+        currentParameterGroup = Parameters::lengthsGroupName
         tmp = value(transl.x)
         if(tmp.length() > 0) {
             text.append('''trx(«tmp»)''')
@@ -97,7 +99,7 @@ class MotionDSLDocGenerator {
         }
 
         //Rotation
-        currentParameterGroup = anglesParametersGroupName
+        currentParameterGroup = Parameters::anglesGroupName
         tmp = value(rot.x)
         if(tmp.length() > 0) {
             if(!isEmpty) text.append(" ")
@@ -166,13 +168,13 @@ class MotionDSLDocGenerator {
         if(lengthsList.size == 0 && anglesList.size == 0) return ''''''
         return'''
         «IF lengthsList.size > 0»
-            Params «lengthsParametersGroupName» {
+            Params «Parameters::lengthsGroupName» {
                 «FOR p:lengthsList SEPARATOR ", "»«p.varname»«ENDFOR»
             }
         «ENDIF»
 
         «IF anglesList.size > 0»
-            Params «anglesParametersGroupName» {
+            Params «Parameters::anglesGroupName» {
                 «FOR p:anglesList SEPARATOR ", "»«p.varname»«ENDFOR»
             }
         «ENDIF»
