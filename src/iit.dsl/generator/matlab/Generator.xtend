@@ -66,9 +66,15 @@ class Generator implements IGenerator {
         generateJSIMFiles(robot, fsa)
     }
 
-
     def generatePlotFramesFile(Robot robot, IFileSystemAccess fsa) {
-        val PlotFrames gen = new PlotFrames(robot)
+        // Uses the default transforms model
+        generatePlotFramesFile( robot, fsa,
+            iit::dsl::generator::common::Transforms::getTransformsModel(robot))
+    }
+    def generatePlotFramesFile(Robot robot, IFileSystemAccess fsa,
+        iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
+        val PlotFrames gen = new PlotFrames(robot, transformsModel)
         fsa.generateFile(robotFolderName(robot) + "/plot_frames.m"  , gen.plotFramesCode())
     }
 

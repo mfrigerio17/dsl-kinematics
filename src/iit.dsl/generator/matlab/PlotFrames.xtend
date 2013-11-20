@@ -13,9 +13,10 @@ class PlotFrames {
     private iit.dsl.coord.coordTransDsl.Model transforms
     private iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
 
-    new(Robot rob) {
+    new(Robot rob, iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         robot = rob
-        transforms = iit::dsl::generator::common::Transforms::getTransformsModel(robot)
+        transforms = transformsModel
     }
 
 	def plotFramesCode() '''
