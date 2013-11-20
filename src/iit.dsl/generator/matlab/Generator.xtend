@@ -294,19 +294,14 @@ class Generator implements IGenerator {
             «structName».NB = «robot.movingBodiesCount» + 5;
             «structName».parent = zeros(1, «robot.links.size» + 5);
 
-            «structName».pitch(1:6) = [inf,inf,inf,0,0,0];
+            «structName».jtype(1:6) = {'Px', 'Py', 'Pz', 'Rx', 'Ry', 'Rz'};
             «structName».parent(1:6) = [0 1 2 3 4 5];
 
-
-            «structName».Xtree{1} = Xroty(pi/2);
-            «structName».Xtree{2} = Xrotx(-pi/2) * Xroty(-pi/2);
-            «structName».Xtree{3} = Xrotx(pi/2);
-            «structName».Xtree{4} = Xroty(pi/2);
-            «structName».Xtree{5} = Xrotx(-pi/2) * Xroty(-pi/2);
-            «structName».Xtree{6} = Xrotx(pi/2);
-
             for i = 1:6
+                % For the 'I' field, a loop until i=5 would be enough
                 «structName».I{i} = mcI( 0, [0,0,0], zeros(3) );
+                % 'Xtree' instead must be initialized up to i=6
+                «structName».Xtree{i} = eye(6);
             end
 
             «FOR l : robot.links»
@@ -354,10 +349,10 @@ class Generator implements IGenerator {
     def private dispatch jointType(RevoluteJoint j)  ''' 'Rz' '''
     def private dispatch jointType(PrismaticJoint j) ''' 'Pz' '''
     def private jointTransform(Joint j) '''
-        Xrotz(«j.refFrame.rotation.z.asFloat» ) * ...
-        Xroty(«j.refFrame.rotation.y.asFloat» ) * ...
-        Xrotx(«j.refFrame.rotation.x.asFloat» ) * ...
-        Xtrans([«j.refFrame.translation.listCoordinates()»]);
+        rotz(«j.refFrame.rotation.z.asFloat» ) * ...
+        roty(«j.refFrame.rotation.y.asFloat» ) * ...
+        rotx(«j.refFrame.rotation.x.asFloat» ) * ...
+        xlt([«j.refFrame.translation.listCoordinates()»]);
     '''
 
     /* Get the parameters in a frame centered in the COM, since Featherstone's model
