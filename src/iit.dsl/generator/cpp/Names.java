@@ -131,15 +131,11 @@ public class Names {
         }
 
         static public String dynamics  = nspaces.dynamics();
-        static public String jacobians = nspaces.jacobians();
         static public String internal = "internal";
 
         static public class Qualifiers {
             static public String robot(Robot rob) {
                 return Common.enclosingNamespacesQualifier() + "::" + rob(rob);
-            }
-            static public String roboJacs(Robot rob) {
-                return robot(rob) + "::" + jacobians;
             }
             static public String iit_rbd() {
                 String ret = "";

@@ -69,7 +69,6 @@ public interface IConfigurator {
             public String robot(Robot r);
 
             public String dynamics();
-            public String jacobians();
         }
 
         /**

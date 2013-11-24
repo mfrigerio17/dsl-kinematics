@@ -111,10 +111,6 @@ class DefaultConfigurator implements
         return foo
     }
 
-    override jacobians() {
-        "jacs"
-    }
-
     override robot(Robot r) {
         r.name
     }
@@ -149,7 +145,6 @@ class DefaultConfigurator implements
     override maximaLibs() {
         "maxima_libs"
     }
-
 
 
 
