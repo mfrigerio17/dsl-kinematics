@@ -123,7 +123,8 @@ class MakefileGenerator {
                     ./«Names$Files$RBD::jsimHeader(rob)».h
                     ./«Names$Files$RBD::invDynHeader(rob)».h
                     ./«Names$Files$RBD::fwdDynHeader(rob)».h
-                    ./«Names$Files$RBD::inertiaHeader(rob)».h)
+                    ./«Names$Files$RBD::inertiaHeader(rob)».h
+                    ./«Names$Files$RBD::massParametersHeader(rob)».h)
         set(SOURCES ./«Names$Files::transformsHeader(rob)».cpp
                     ./«Names$Files::jacobiansHeader(rob)».cpp
                     ./«Names$Files$RBD::jsimHeader(rob)».cpp
