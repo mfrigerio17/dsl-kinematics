@@ -52,7 +52,7 @@ class JointsSpaceInertia {
                     typedef const Eigen::Block<const MatrixType,«jointDOFs»,«jointDOFs»> «typename_blockFixedBase»;
                 «ENDIF»
             public:
-                «className»(«Names$Types$Transforms::spatial_force»&);
+                «className»(«LinkInertias::className(robot)»&, «Names$Types$Transforms::spatial_force»&);
                 ~«className»() {}
 
                 const «className»& update(const «Names$Types::jointState»&);
@@ -112,7 +112,8 @@ class JointsSpaceInertia {
                  */
                 void computeLInverse();
             private:
-                «LinkInertias::className(robot)» linkInertias;
+                «LinkInertias::className(robot)»& linkInertias;
+                «Names$Types$Transforms::spatial_force»* «forceTransformsMember»;
 
                 // The composite-inertia tensor for each link
                 «FOR l : links»
@@ -126,8 +127,6 @@ class JointsSpaceInertia {
                 MatrixType L;
                 MatrixType Linv;
                 MatrixType inverse;
-
-                «Names$Types$Transforms::spatial_force»* «forceTransformsMember»;
         };
 
 
@@ -170,12 +169,12 @@ class JointsSpaceInertia {
         «val class_qualifier = robodyn_ns_qualifier + "::" + className»
 
         //Implementation of default constructor
-        «class_qualifier»::«className»(«Names$Types$Transforms::spatial_force»& forceTransforms) :
-            linkInertias(),
-            «FOR l : robot.chainEndLinks SEPARATOR ',' AFTER ','»
+        «class_qualifier»::«className»(«LinkInertias::className(robot)»& inertiaProperties, «Names$Types$Transforms::spatial_force»& forceTransforms) :
+            linkInertias(inertiaProperties),
+            «forceTransformsMember»( &forceTransforms ),
+            «FOR l : robot.chainEndLinks SEPARATOR ','»
                 «inertiaCompositeName(l)»(linkInertias.«LinkInertias::tensorGetterName(l)»())
             «ENDFOR»
-            «forceTransformsMember»( &forceTransforms )
         {
             //Initialize the matrix itself
             this->setZero();

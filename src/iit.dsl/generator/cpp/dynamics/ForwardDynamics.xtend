@@ -58,11 +58,12 @@ class ForwardDynamics {
         public:
             /**
              * Default constructor
+             * \param in the inertia properties of the links
              * \param tr the container of all the spatial motion transforms of
              *     the robot «robot.name», which will be used by this instance
              *     to compute the dynamics.
              */
-            «className(robot)»(«Names$Types$Transforms::spatial_motion»& tr);
+            «className(robot)»(«LinkInertias::className(robot)»& in, «Names$Types$Transforms::spatial_motion»& tr);
             /** \name Forward dynamics
              * The Articulated-Body-Algorithm to compute the joint accelerations
              */ ///@{
@@ -105,7 +106,10 @@ class ForwardDynamics {
 
             /** Updates all the kinematics transforms used by this instance. */
             void setJointStatus(const «jState»& q) const;
+
         private:
+            «LinkInertias::className(robot)»* «linkInertiasMember»;
+            «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
 
             «rbd_ns»::Matrix66d spareMx; // support variable
             «IF floatingBase»
@@ -126,10 +130,6 @@ class ForwardDynamics {
                 double «DTermName(l)»;
                 double «uTermName(l)»;
             «ENDFOR»
-
-            «LinkInertias::className(robot)» «linkInertiasMemeberName»;
-        private:
-            «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
         private:
             static const «extF_t» zeroExtForces;
         };
@@ -168,8 +168,6 @@ class ForwardDynamics {
 
         #endif
     '''
-    def private linkInertiasMemeberName() '''inpar'''
-
 
     def public implementationFileContent(
         Robot robot,
@@ -185,8 +183,9 @@ class ForwardDynamics {
         const «nsqualifier»::«className(robot)»::«extF_t»
             «nsqualifier»::«className(robot)»::zeroExtForces(Force::Zero());
 
-        «nsqualifier»::«className(robot)»::«className(robot)»(«Names$Types$Transforms::spatial_motion»& transforms) :
-               «motionTransformsMember»( & transforms )
+        «nsqualifier»::«className(robot)»::«className(robot)»(«LinkInertias::className(robot)»& inertia, «Names$Types$Transforms::spatial_motion»& transforms) :
+            «linkInertiasMember»( & inertia ),
+            «motionTransformsMember»( & transforms )
         {
             «FOR l : robot.links»
                 «l.velocity».setZero();
@@ -210,6 +209,7 @@ class ForwardDynamics {
         }
     '''
 
+    def private linkInertiasMember() '''inertiaProps'''
     def private motionTransformsMember() '''motionTransforms'''
     def private Xmotion(iit.dsl.coord.coordTransDsl.Transform t)
         '''«motionTransformsMember» -> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
@@ -221,11 +221,11 @@ class ForwardDynamics {
         «val sortedLinks = robot.links.sortBy(link | getID(link))»
 
         «IF floatingBase»
-            «artInertiaName(robot.base)» = «linkInertiasMemeberName».«LinkInertias::tensorGetterName(robot.base)»();
+            «artInertiaName(robot.base)» = «linkInertiasMember»->«LinkInertias::tensorGetterName(robot.base)»();
             «biasForceName(robot.base)» = - fext[«Common::linkIdentifier(robot.base)»];
         «ENDIF»
         «FOR l : sortedLinks»
-            «artInertiaName(l)» = «linkInertiasMemeberName».«LinkInertias::tensorGetterName(l)»();
+            «artInertiaName(l)» = «linkInertiasMember»->«LinkInertias::tensorGetterName(l)»();
             «biasForceName(l)» = - fext[«Common::linkIdentifier(l)»];
         «ENDFOR»
         // ---------------------- FIRST PASS ---------------------- //
