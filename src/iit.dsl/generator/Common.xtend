@@ -33,7 +33,11 @@ import iit.dsl.kinDsl.InertiaParams
 
 
 class Common {
+    private static Common instance = new Common()
 
+    def public static Common getInstance() {
+        return instance
+    }
     static KinDslFactory kinDSLFactory = KinDslFactoryImpl::init()
     static FloatLiteral zeroFloat = kinDSLFactory.createFloatLiteral()//relies on default constructor setting it to zero
 
