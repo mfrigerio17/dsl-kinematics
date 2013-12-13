@@ -55,7 +55,7 @@ class Jacobians {
         #ifndef «robot.name.toUpperCase()»_JACOBIANS_H_
         #define «robot.name.toUpperCase()»_JACOBIANS_H_
 
-        #include <iit/rbd/StateDependentMatrix.h>
+        #include <iit/rbd/TransformsBase.h>
         #include "«Names$Files::mainHeader(robot)».h"
         #include "«parametersHeaderFileName».h"
 
