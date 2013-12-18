@@ -15,7 +15,6 @@ import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
 import iit.dsl.generator.Utilities
 
-import java.util.List
 import java.io.File
 import java.util.ArrayList
 
@@ -30,9 +29,10 @@ class Generator implements IGenerator {
     private Jacobians  jacGen   = null
     private Jsim       jsimGen  = null
     private Transforms transGen = null
+    private InertiaProperties inertiaGen = new InertiaProperties()
 
     private iit.dsl.generator.maxima.IConverterConfigurator maximaConverterConfig = null
-    private String TAB = "\t"
+
 
     public new() {
         jsimGen = new Jsim()
@@ -179,106 +179,11 @@ class Generator implements IGenerator {
 
 
     def generateCommonDynamicsFiles(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(robotFolderName(robot) + "/inertia.m", inertiaParams(robot))
+        fsa.generateFile(robotFolderName(robot) + "/inertia_properties.m",
+            inertiaGen.scriptContent(robot)  )
     }
 
-    /**
-     * Generates Matlab code that creates several structs with the inertia parameters
-     * of the links of the given robot.
-     * Each struct has three members, the inertia tensor, the COM location (3d vector) and the mass.
-     * This code contains the values corresponding to the inertia parameters as contained
-     * in the robot model, as well as parameters expressed in the default frame of each link
-     * and in a frame centered in the COM, aligned with the link-frame. Therefore, three
-     * structures are created for each rigid body of the given robot.
-     */
-    def inertiaParams(Robot robot) {
-        val List<InertiaParams> userFrame = new ArrayList<InertiaParams>()
-        val List<InertiaParams> linkFrame = new ArrayList<InertiaParams>()
-        val List<InertiaParams> comFrame  = new ArrayList<InertiaParams>()
-        allInertiaParams(robot, userFrame, linkFrame, comFrame)
-        val userFrameIt = userFrame.iterator()
-        val linkFrameIt = linkFrame.iterator()
-        val comFrameIt  = comFrame.iterator()
-        val allLinks = robot.abstractLinks
 
-        return'''
-
-        % Inertia parameters as written in the .kindsl model file
-        «FOR l : allLinks»
-            «val tmp = userFrameIt.next»
-            «val struct = "inertia_" + l.name»
-            «struct».mass = «tmp.mass»;
-            «struct».tensor = ...
-                «tensor(tmp)»;
-            «struct».com = «com(tmp)»;
-
-        «ENDFOR»
-
-        % Now the same inertia parameters expressed in the link frame (may be equal or not to
-        %  the previous ones, depending on the model file)
-        «FOR l : allLinks»
-            «val tmp = linkFrameIt.next»
-            «val struct = "inertia_lf_" + l.name»
-            «struct».mass = «tmp.mass»;
-            «struct».tensor = ...
-                «tensor(tmp)»;
-            «struct».com = «com(tmp)»;
-            com = «struct».com;
-            block = [  0,    -com(3),  com(2);
-                     com(3),  0,      -com(1);
-                    -com(2),  com(1),  0 ] * «struct».mass;
-            «struct».tensor6D = [«struct».tensor, block; block', «struct».mass*eye(3)];
-
-        «ENDFOR»
-
-        % Same inertial properties expressed in a frame with origin in the COM of the link
-        %  oriented as the default link-frame (the COM coordinates in such a frame should
-        %  always be [0,0,0] ).
-        «FOR l : allLinks»
-            «val tmp = comFrameIt.next»
-            «val struct = "inertia_com_" + l.name»
-            «struct».mass = «tmp.mass»;
-            «struct».tensor = ...
-                «tensor(tmp)»;
-            «struct».com = «com(tmp)»;
-
-        «ENDFOR»
-    '''}
-
-
-    def private tensor(InertiaParams params) '''
-         [[  «params.ix»,«TAB»-(«params.ixy»),«TAB»-(«params.ixz»)];
-          [-(«params.ixy»),«TAB»  «params.iy» ,«TAB»-(«params.iyz»)];
-          [-(«params.ixz»),«TAB»-(«params.iyz»),«TAB»  «params.iz»]]'''
-    def private com(InertiaParams params) '''
-         [«params.com.x.str»; «params.com.y.str»; «params.com.z.str»]'''
-    /*
-     * Fills three lists with the inertia parameters of all the links, expressed in
-     * different frames.
-     * First list: parameters as written in the robot model
-     * Second list: parameters expressed in the default link-frame
-     * Third list: parameters expressed in a frame with origin in the COM, aligned
-     *             as the default link-frame
-     * All the lists are ordered as robot.abstractLinks
-     */
-    def private allInertiaParams(Robot rob,
-        List<InertiaParams> userFrame,
-        List<InertiaParams> linkFrame,
-        List<InertiaParams> comFrame)
-    {
-        // Start with the robot base
-        var InertiaParams inLinkFrame = null
-        var InertiaParams inComFrame  = null
-        for(l : rob.abstractLinks) {
-            inLinkFrame = l.linkFrameInertiaParams
-            inComFrame  = Utilities::rototranslate(inLinkFrame, inLinkFrame.com.x.asFloat,
-                inLinkFrame.com.y.asFloat, inLinkFrame.com.z.asFloat, 0,0,0, false)
-
-            userFrame.add(l.inertiaParams)
-            linkFrame.add(inLinkFrame)
-            comFrame.add(inComFrame)
-        }
-    }
 
     /**
      * This template generates a matlab file with the initialization of
