@@ -52,7 +52,7 @@ class LinkInertias {
                     const InertiaMatrix& «tensorGetterName(l)»() const;
                 «ENDFOR»
                 «FOR l : links»
-                    const double& «massGetterName(l)»() const;
+                    double «massGetterName(l)»() const;
                 «ENDFOR»
                 «FOR l : links»
                     const «Names$Types::vector3d»& «comGetterName(l)»() const;
@@ -80,9 +80,6 @@ class LinkInertias {
                     InertiaMatrix «memberName_tensor(l)»;
                 «ENDFOR»
                 «FOR l : links»
-                    double «memberName_mass(l)»;
-                «ENDFOR»
-                «FOR l : links»
                     «Names$Types::vector3d» «memberName_com(l)»;
                 «ENDFOR»
         };
@@ -96,8 +93,8 @@ class LinkInertias {
             }
         «ENDFOR»
         «FOR l : links»
-            inline const double& «className(robot)»::«massGetterName(l)»() const {
-                return this->«memberName_mass(l)»;
+            inline double «className(robot)»::«massGetterName(l)»() const {
+                return this->«memberName_tensor(l)».getMass();
             }
         «ENDFOR»
         «FOR l : links»
@@ -127,26 +124,17 @@ class LinkInertias {
         using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
 
         «classqualifier»::«className(robot)»(«IF parametric»const «InertiaParameters::namespace»::«InertiaParameters::className»& pGetter«ENDIF»)
-            :
             «IF parametric»
-                «memberName_paramsGetter»(& pGetter),
+                : «memberName_paramsGetter»(& pGetter)
             «ENDIF»
-            «FOR l : links SEPARATOR ','»
-                «memberName_mass(l)»(«value(l.inertiaParams.mass)»)
-            «ENDFOR»
         {
             «FOR l : links»
                 «val params = getLinkFrameInertiaParams(l)»
                 «memberName_com(l)» = «comRHS(params)»;
                 «memberName_tensor(l)».fill(
-                    «memberName_mass(l)», «memberName_com(l)»,
-                    Utils::buildInertiaTensor(
-                        «value(params.ix)»,
-                        «value(params.iy)»,
-                        «value(params.iz)»,
-                        «value(params.ixy)»,
-                        «value(params.ixz)»,
-                        «value(params.iyz)»));
+                    «value(l.inertiaParams.mass)»,
+                    «memberName_com(l)»,
+                    «buildTensorExpr(l.inertiaParams)» );
 
             «ENDFOR»
         }
@@ -161,33 +149,40 @@ class LinkInertias {
     '''
 
     def private updateRuntimeParamsCode(AbstractLink link) '''
-        «IF(Parameters::isParametric(link.inertiaParams))»
-            «val inertia = getLinkFrameInertiaParams(link)»
-            «IF( Parameters::isParameter(inertia.mass))»
-                «memberName_mass(link)» = «value(inertia.mass)»;
+        «val inertia = getLinkFrameInertiaParams(link)»
+        «val parametricFlags = Parameters::whoIsParametric(inertia)»
+        «IF( parametricFlags.all )»
+            «memberName_com(link)» = «comRHS(inertia)»;
+                «memberName_tensor(link)».fill(
+                    «value(inertia.mass)»,
+                    «memberName_com(link)»,
+                    «buildTensorExpr(inertia)»);
+        «ELSE»
+            «IF( parametricFlags.mass)»
+                «memberName_tensor(link)».changeMass(«value(inertia.mass)»);
             «ENDIF»
-            «IF( Parameters::isParametric(inertia.com))»
+            «IF( parametricFlags.com)»
                 «memberName_com(link)» = «comRHS(inertia)»;
+                «memberName_tensor(link)».changeCOM(«memberName_com(link)»);
             «ENDIF»
-            «memberName_tensor(link)».fill(
-                «memberName_mass(link)», «memberName_com(link)»,
-                «IF( anyParametricMoment(inertia))»
-                    Utils::buildInertiaTensor(
-                        «value(inertia.ix)»,
-                        «value(inertia.iy)»,
-                        «value(inertia.iz)»,
-                        «value(inertia.ixy)»,
-                        «value(inertia.ixz)»,
-                        «value(inertia.iyz)»)
-                «ELSE»
-                    «memberName_tensor(link)».get3x3Tensor()
-                «ENDIF»
-                );
+            «IF( parametricFlags.tensor)»
+                «memberName_tensor(link)».changeRotationalInertia(
+                    «buildTensorExpr(inertia)»);
+            «ENDIF»
         «ENDIF»
     '''
 
     def private comRHS(InertiaParams in)
         '''«Names$Types::vector3d»(«value(in.com.x)»,«value(in.com.y)»,«value(in.com.z)»)'''
+    def private buildTensorExpr(InertiaParams inertia)
+        '''
+        Utils::buildInertiaTensor(
+                «value(inertia.ix)»,
+                «value(inertia.iy)»,
+                «value(inertia.iz)»,
+                «value(inertia.ixy)»,
+                «value(inertia.ixz)»,
+                «value(inertia.iyz)»)'''
 
     def private value(Var v) {
         if( Parameters::isParameter(v) ) {
@@ -198,17 +193,6 @@ class LinkInertias {
         return '''«v.asFloat»'''
     }
 
-    def private boolean anyParametricMoment(InertiaParams in) {
-        return
-            Parameters::isParameter(in.ix)  ||
-            Parameters::isParameter(in.iy)  ||
-            Parameters::isParameter(in.iz)  ||
-            Parameters::isParameter(in.ixy) ||
-            Parameters::isParameter(in.ixz) ||
-            Parameters::isParameter(in.iyz)
-    }
-
-    def private memberName_mass(AbstractLink l) '''mass_«l.name»'''
     def private memberName_tensor(AbstractLink l) '''tensor_«l.name»'''
     def private memberName_com(AbstractLink l) '''com_«l.name»'''
     def private memberName_paramsGetter() '''paramsGetter'''
