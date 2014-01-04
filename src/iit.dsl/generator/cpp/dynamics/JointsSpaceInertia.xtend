@@ -200,7 +200,7 @@ class JointsSpaceInertia {
             «ENDFOR»
 
             // Initializes the composite inertia tensors
-            «FOR l : robot.links»
+            «FOR l : links»
                 «IF ! l.childrenList.children.empty»
                     «inertiaCompositeName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
                 «ENDIF»
