@@ -106,6 +106,14 @@ class InverseDynamics {
                     «fParam_gravity»);
                 ///@}
                 /** \name Centrifugal and Coriolis terms, fully actuated base
+                 *
+                 * These functions take only velocity inputs, that is, they assume
+                 * a zero spatial acceleration of the base (in addition to zero acceleration
+                 * at the actuated joints).
+                 * Note that this is NOT the same as imposing zero acceleration
+                 * at the virtual 6-dof-floting-base joint, which would result, in general,
+                 * in a non-zero spatial acceleration of the base, due to velocity
+                 * product terms.
                  */
                 ///@{
                 void C_terms_fully_actuated(
