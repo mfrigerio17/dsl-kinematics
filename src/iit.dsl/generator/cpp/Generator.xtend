@@ -171,6 +171,7 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".cpp", inertias.source(robot))
         inertiaPar = new InertiaParameters(robot)
         fsa.generateFile(folder + "/" + Names$Files$RBD::massParametersHeader(robot) + ".h", inertiaPar.headerFileContent())    
+        fsa.generateFile(folder + "/default_dynparams_getter.h", inertiaPar.defaultGetterHeader)
     }
 
 

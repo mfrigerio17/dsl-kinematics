@@ -52,6 +52,45 @@ class InertiaParameters {
         #endif
     '''
 
+    def public defaultGetterHeader() '''
+        #ifndef _«robot.name.toUpperCase»_DEFAULT_GETTER_INERTIA_PARAMETERS_
+        #define _«robot.name.toUpperCase»_DEFAULT_GETTER_INERTIA_PARAMETERS_
+
+        #include "«Names$Files$RBD::massParametersHeader(robot)».h"
+
+        «Common::enclosingNamespacesOpen(robot)»
+        namespace «Names$Namespaces::dynamics» {
+        namespace «getNamespace» {
+
+        class DefaultParamsGetter : public «className»
+        {
+            public:
+                DefaultParamsGetter() {
+                    resetDefaults();
+                }
+                ~DefaultParamsGetter() {};
+
+            public:
+                void resetDefaults() {
+                    «FOR p : params»
+                        values.«structFieldName(p)» = 0; // TODO auto-generated -- fix me
+                    «ENDFOR»
+                }
+                «FOR p : params»
+                    double «getterFunctionName(p)»() const {
+                        return values.«structFieldName(p)»;
+                    }
+                «ENDFOR»
+
+            private:
+                «valuesStructName» values;
+        };
+
+        }
+        }
+        «Common::enclosingNamespacesClose(robot)»
+        #endif
+    '''
 
 
     def protected valuesStructDefinition() '''
