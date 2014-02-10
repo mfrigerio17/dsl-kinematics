@@ -20,7 +20,7 @@ class LinkInertias {
 
 	def header(Robot robot) '''
         «val parametric = Parameters::massPropertiesAreParametric(robot)»
-        «val paramsClass = InertiaParameters::getNamespace() + "::" + InertiaParameters::className»
+        «val paramsClass = InertiaParameters::className»
         #ifndef IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::inertiaHeader(robot).toUpperCase()»_H_
         #define IIT_ROBOT_«robot.name.toUpperCase()»_«Names$Files$RBD::inertiaHeader(robot).toUpperCase()»_H_
 
@@ -64,7 +64,7 @@ class LinkInertias {
                      * Forces the update of the runtime inertia parameters of the robot
                      * «robot.name».
                      *
-                     * This function uses in turn the getter methods of the «InertiaParameters::namespace»::«InertiaParameters::className»
+                     * This function uses in turn the getter methods of the «InertiaParameters::className»
                      * member of this instance. All the inertia properties contained in
                      * this instance that are defined in terms of non-constant parameters,
                      * will be updated.
@@ -123,7 +123,7 @@ class LinkInertias {
         using namespace std;
         using namespace «Names$Namespaces$Qualifiers::iit_rbd»;
 
-        «classqualifier»::«className(robot)»(«IF parametric»const «InertiaParameters::namespace»::«InertiaParameters::className»& pGetter«ENDIF»)
+        «classqualifier»::«className(robot)»(«IF parametric»const «InertiaParameters::className»& pGetter«ENDIF»)
             «IF parametric»
                 : «memberName_paramsGetter»(& pGetter)
             «ENDIF»

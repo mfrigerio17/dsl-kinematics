@@ -18,8 +18,6 @@ class InertiaParameters {
     def public static structFieldName(ParameterLiteral p)
         '''«p.varname»'''
 
-    def public static getNamespace() '''params'''
-
 
     new(Robot r) {
         robot = r
@@ -34,8 +32,9 @@ class InertiaParameters {
         «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
         /**
-         * This namespace contains facilities related to the parameters of the
-         * inertia properties of the robot «robot.name».
+         * \defgroup dynparams Dynamics-parameters
+         * Facilities related to the parameters of the inertia properties of the
+         * robot «robot.name».
          *
          * Inertia parameters are non-constants used in the robot model, where the
          * inertia properties (mass, center of mass, intertia tensor) of the links
@@ -45,23 +44,23 @@ class InertiaParameters {
          *
          * Do not confuse them with the "inertia properties" of links, which
          * unfortunately, in the literature, are commonly referred to as
-         * "inertia parameters"... Here, the parameters are the non constant
+         * "inertia parameters"... Here, the parameters are the non-constant
          * fields of the inertia properties.
          */
-        namespace «getNamespace» {
 
             /**
              * A container for the set of non-constant inertia parameters of the robot «robot.name»
+             * \ingroup dynparams
              */
             «valuesStructDefinition»
 
             /**
              * The interface for classes that can compute the actual value of the
              * non-constant inertia parameters of the robot «robot.name».
+             * \ingroup dynparams
              */
             «classDefinition»
 
-        }
         }
         «Common::enclosingNamespacesClose(robot)»
         #endif
@@ -75,7 +74,6 @@ class InertiaParameters {
 
         «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
-        namespace «getNamespace» {
 
         class DefaultParamsGetter : public «className»
         {
@@ -101,7 +99,6 @@ class InertiaParameters {
                 «valuesStructName» values;
         };
 
-        }
         }
         «Common::enclosingNamespacesClose(robot)»
         #endif
