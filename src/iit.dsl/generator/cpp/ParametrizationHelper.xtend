@@ -45,10 +45,10 @@ class ParametrizationHelper {
      */
     ///@{
     def public lengthsStructVarDeclaration()
-    '''«IF lengthsGroup!=null»«ns»::«iit::dsl::coord::generator::cpp::Parameters::structName(lengthsGroup)»«ENDIF»'''
+    '''«IF lengthsGroup!=null»«iit::dsl::coord::generator::cpp::Parameters::structName(lengthsGroup)»«ENDIF»'''
 
     def public anglesStructVarDeclaration()
-    '''«IF anglesGroup!=null»«ns»::«iit::dsl::coord::generator::cpp::Parameters::structName(anglesGroup)»«ENDIF»'''
+    '''«IF anglesGroup!=null»«iit::dsl::coord::generator::cpp::Parameters::structName(anglesGroup)»«ENDIF»'''
     ///@}
 
     /**
@@ -104,8 +104,6 @@ class ParametrizationHelper {
     private Map<String, ParameterLiteral> angleParams  = new HashMap<String, ParameterLiteral>
     private List<ParameterLiteral> lengths = new ArrayList<ParameterLiteral>
     private List<ParameterLiteral> angles  = new ArrayList<ParameterLiteral>
-
-    private static String ns = iit::dsl::coord::generator::cpp::Parameters::namespaceName
 
 /*
     def public static structVarDeclaration(ParameterLiteral p)

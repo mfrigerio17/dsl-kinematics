@@ -82,11 +82,11 @@ class Jacobians {
 
             protected:
                 «FOR gr : paramGroups»
-                    «Parameters::namespaceName»::«Parameters::structName(gr)» «member_paramValues(gr)»;
+                    «Parameters::structName(gr)» «member_paramValues(gr)»;
                 «ENDFOR»
 
                 «FOR gr : paramGroups»
-                    const «Parameters::namespaceName»::«Parameters::className(gr)»* «member_paramsGetter(gr)»;
+                    const «Parameters::className(gr)»* «member_paramsGetter(gr)»;
                 «ENDFOR»
         };
 
@@ -145,7 +145,7 @@ class Jacobians {
                 const «localClassName(J)»& «updateFunctionName»(const «jointStateTypeName»&);
             protected:
                 «FOR gr : param_groups»
-                    const «Parameters::namespaceName»::«Parameters::structName(gr)»* «member_paramValues(gr)»;
+                    const «Parameters::structName(gr)»* «member_paramValues(gr)»;
                 «ENDFOR»
             };
 
@@ -186,13 +186,13 @@ class Jacobians {
         '''«member_paramValues( iit::dsl::coord::generator::Common::getGroup(p))» -> «p.name»'''
 
     def private static constructorArguments(List<ParametersDeclaration> param_groups)
-        '''«FOR gr:param_groups SEPARATOR ", "»const «Parameters::namespaceName»::«Parameters::structName(gr)»& «formalparam_paramValues(gr)»«ENDFOR»'''
+        '''«FOR gr:param_groups SEPARATOR ", "»const «Parameters::structName(gr)»& «formalparam_paramValues(gr)»«ENDFOR»'''
 
     def private static formalparam_paramValues(ParametersDeclaration gr)
         '''_«member_paramValues(gr)»'''
 
     def private static paramsGetterType(ParametersDeclaration gr)
-        '''«Parameters::namespaceName»::«Parameters::className(gr)»'''
+        '''«Parameters::className(gr)»'''
 
     def private static member_paramValues(ParametersDeclaration gr)
        '''«gr.name»_values'''
