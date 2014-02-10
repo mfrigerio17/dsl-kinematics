@@ -36,6 +36,7 @@ public interface IConfigurator {
             public String h_jointDataMap(Robot robot);
             public String h_transforms(Robot robot);
             public String h_parameters(Robot robot);
+            public String h_mass_parameters(Robot robot);
             public String h_jacobians(Robot robot);
 
             public String h_inertias(Robot r);

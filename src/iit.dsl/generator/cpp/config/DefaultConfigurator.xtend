@@ -62,7 +62,10 @@ class DefaultConfigurator implements
     }
 
     override h_parameters(Robot robot) {
-        "parameters_utils"
+        "kinematics_parameters"
+    }
+    override h_mass_parameters(Robot robot) {
+        "dynamics_parameters"
     }
 
     override src_fwddyn(Robot r) {

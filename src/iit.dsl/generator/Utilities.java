@@ -1,5 +1,6 @@
 package iit.dsl.generator;
 
+import iit.dsl.generator.common.Parameters;
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
 import iit.dsl.kinDsl.Vector3;
@@ -9,9 +10,11 @@ import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
 public class Utilities {
 
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
+	private static Common utils = new Common();
 
 	/**
      * Computes the inertia parameters of a rigid body in a different frame.
+     *
      * The frame in which the inertia-parameters (COM position and inertia tensor)
      * are currently expressed is C; the new frame in which such parameters
      * have to be expressed is N.
@@ -19,9 +22,14 @@ public class Utilities {
      * If the last argument 'inverse' is false, then the rotation/translation
      * parameters encode the pose of N with respect to C. Otherwise they represent
      * the pose of C with respect to N.
+     *
      * The translation is expressed in the current frame. Rotation values are basically
      * euler angles, consecutive rotations about x, y, and z axis, in this order, of the
      * current frame; each rotation is about the axis rotated by the previous one.
+     *
+     * This method does NOT support parametric properties, ie it only works
+     * when the given inertia properties are all floating point constants.
+     *
      * @param inertia the input inertia parameters to be expressed in the new frame
      * @param tx translation along the X axis
      * @param ty translation along the Y axis
@@ -37,29 +45,29 @@ public class Utilities {
     public static InertiaParams rototranslate(InertiaParams inertia,
             float tx, float ty, float tz, float rx, float ry, float rz, boolean inverse)
     {
-        float mass  = inertia.getMass();
-        Vector3 com = inertia.getCom();
-        if( ! (com.getX() instanceof FloatLiteral) ||
-            ! (com.getY() instanceof FloatLiteral) ||
-            ! (com.getZ() instanceof FloatLiteral))
-        {
-            throw new RuntimeException("Cannot translate inertia parameters if the COM is defined with some variables");
+        if(Parameters.isParametric(inertia)) {
+            throw new RuntimeException("Cannot roto-translate the inertia " +
+                                       "properties if they are parametric");
         }
+        float mass  = utils.asFloat(inertia.getMass());
 
-        float comx = ((FloatLiteral)com.getX()).getValue();
-        float comy = ((FloatLiteral)com.getY()).getValue();
-        float comz = ((FloatLiteral)com.getZ()).getValue();
+        Vector3 com = inertia.getCom();
+        float comx = utils.asFloat(com.getX());
+        float comy = utils.asFloat(com.getY());
+        float comz = utils.asFloat(com.getZ());
 
-        float ixx = inertia.getIx();
-        float iyy = inertia.getIy();
-        float izz = inertia.getIz();
-        float ixy = inertia.getIxy();
-        float ixz = inertia.getIxz();
-        float iyz = inertia.getIyz();
+        float ixx = utils.asFloat(inertia.getIx());
+        float iyy = utils.asFloat(inertia.getIy());
+        float izz = utils.asFloat(inertia.getIz());
+        float ixy = utils.asFloat(inertia.getIxy());
+        float ixz = utils.asFloat(inertia.getIxz());
+        float iyz = utils.asFloat(inertia.getIyz());
 
         InertiaParams translated = factory.createInertiaParams();
         // The mass obviously does not change with a change in the reference frame:
-        translated.setMass(mass);
+        FloatLiteral newMass = factory.createFloatLiteral();
+        newMass.setValue(mass);
+        translated.setMass(newMass);
 
         double[][] tmpM = rotated_X_original(rx, ry, rz);
         float[][] M = new float[3][3];
@@ -149,7 +157,9 @@ public class Utilities {
              -2 * M[0][0] * M[0][1] * ixy +
              -2 * M[0][0] * M[0][2] * ixz +
              -2 * M[0][1] * M[0][2] * iyz;
-        translated.setIx(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIx(tmpLiteral);
         // Iyy
         tmp =     M[1][0] * M[1][0] * ixx +
                   M[1][1] * M[1][1] * iyy +
@@ -157,7 +167,9 @@ public class Utilities {
              -2 * M[1][0] * M[1][1] * ixy +
              -2 * M[1][0] * M[1][2] * ixz +
              -2 * M[1][1] * M[1][2] * iyz;
-        translated.setIy(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIy(tmpLiteral);
         // Izz
         tmp =     M[2][0] * M[2][0] * ixx +
                   M[2][1] * M[2][1] * iyy +
@@ -165,7 +177,9 @@ public class Utilities {
              -2 * M[2][0] * M[2][1] * ixy +
              -2 * M[2][0] * M[2][2] * ixz +
              -2 * M[2][1] * M[2][2] * iyz;
-        translated.setIz(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIz(tmpLiteral);
         // Ixy
         tmp =- M[0][0] * M[1][0] * ixx +
              - M[0][1] * M[1][1] * iyy +
@@ -173,7 +187,9 @@ public class Utilities {
              (M[0][0]*M[1][1] + M[0][1]*M[1][0]) * ixy +
              (M[0][0]*M[1][2] + M[0][2]*M[1][0]) * ixz +
              (M[0][1]*M[1][2] + M[0][2]*M[1][1]) * iyz;
-        translated.setIxy(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIxy(tmpLiteral);
         // Ixz
         tmp =- M[0][0] * M[2][0] * ixx +
              - M[0][1] * M[2][1] * iyy +
@@ -181,7 +197,9 @@ public class Utilities {
             (M[0][0]*M[2][1] + M[0][1]*M[2][0]) * ixy +
             (M[0][0]*M[2][2] + M[0][2]*M[2][0]) * ixz +
             (M[0][1]*M[2][2] + M[0][2]*M[2][1]) * iyz;
-        translated.setIxz(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIxz(tmpLiteral);
         // Iyz
         tmp =- M[1][0] * M[2][0] * ixx +
              - M[1][1] * M[2][1] * iyy +
@@ -189,7 +207,9 @@ public class Utilities {
              (M[1][0]*M[2][1] + M[1][1]*M[2][0]) * ixy +
              (M[1][0]*M[2][2] + M[1][2]*M[2][0]) * ixz +
              (M[1][1]*M[2][2] + M[1][2]*M[2][1]) * iyz;
-        translated.setIyz(tmp);
+        tmpLiteral = factory.createFloatLiteral();
+        tmpLiteral.setValue(tmp);
+        translated.setIyz(tmpLiteral);
 
         return translated;
     }

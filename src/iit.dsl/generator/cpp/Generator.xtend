@@ -16,6 +16,8 @@ import iit.dsl.generator.cpp.dynamics.LinkInertias
 import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 import iit.dsl.generator.cpp.config.IConfiguratorsGetter
 import iit.dsl.generator.cpp.config.DefaultConfiguratorsGetter
+import iit.dsl.generator.cpp.dynamics.InertiaParameters
+import iit.dsl.generator.common.Parameters
 
 
 
@@ -46,6 +48,7 @@ class Generator implements IGenerator {
     private ForwardDynamics fordyn= new ForwardDynamics()
     private JointsSpaceInertia jsI= new JointsSpaceInertia()
     private LinkInertias inertias = new LinkInertias()
+    private InertiaParameters inertiaPar = null
     private MakefileGenerator mkg = new MakefileGenerator()
     private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
@@ -166,6 +169,9 @@ class Generator implements IGenerator {
         val String folder = Names$Files::folder(robot);
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".h", inertias.header(robot))
         fsa.generateFile(folder + "/" + Names$Files$RBD::inertiaHeader(robot) + ".cpp", inertias.source(robot))
+        inertiaPar = new InertiaParameters(robot)
+        fsa.generateFile(folder + "/" + Names$Files$RBD::massParametersHeader(robot) + ".h", inertiaPar.headerFileContent())    
+        fsa.generateFile(folder + "/default_dynparams_getter.h", inertiaPar.defaultGetterHeader)
     }
 
 

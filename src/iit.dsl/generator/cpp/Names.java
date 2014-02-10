@@ -97,6 +97,9 @@ public class Names {
             static public String inertiaHeader(Robot r) {
                 return files.h_inertias(r);
             }
+            static public String massParametersHeader(Robot robot) {
+                return files.h_mass_parameters(robot);
+            }
             static public String inertiaSource(Robot r) {
                 return files.src_inertias(r);
             }

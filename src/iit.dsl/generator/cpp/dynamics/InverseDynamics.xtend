@@ -29,6 +29,7 @@ class InverseDynamics {
         #include <iit/rbd/utils.h>
 
         #include "«Names$Files::mainHeader(robot)».h"
+        #include "«Names$Files$RBD::inertiaHeader(robot)».h"
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files::linkDataMapHeader(robot)».h"
 
@@ -60,11 +61,12 @@ class InverseDynamics {
         public:
             /**
              * Default constructor
+             * \param in the inertia properties of the links
              * \param tr the container of all the spatial motion transforms of
              *     the robot «robot.name», which will be used by this instance
              *     to compute inverse-dynamics.
              */
-            «className(robot)»(«Names$Types$Transforms::spatial_motion»& tr);
+            «className(robot)»(«LinkInertias::className(robot)»& in, «Names$Types$Transforms::spatial_motion»& tr);
 
             «val params ='''«fParam_qd», «fParam_qdd», «fParam_fext» = zeroExtForces'''»
             «IF floatingBase»
@@ -106,6 +108,14 @@ class InverseDynamics {
                     «fParam_gravity»);
                 ///@}
                 /** \name Centrifugal and Coriolis terms, fully actuated base
+                 *
+                 * These functions take only velocity inputs, that is, they assume
+                 * a zero spatial acceleration of the base (in addition to zero acceleration
+                 * at the actuated joints).
+                 * Note that this is NOT the same as imposing zero acceleration
+                 * at the virtual 6-dof-floting-base joint, which would result, in general,
+                 * in a non-zero spatial acceleration of the base, due to velocity
+                 * product terms.
                  */
                 ///@{
                 void C_terms_fully_actuated(
@@ -163,10 +173,21 @@ class InverseDynamics {
             «ENDIF»
 
         private:
+            «LinkInertias::className(robot)»* «linkInertiasMember»;
+            «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
+        private:
             «rbd_ns»::Matrix66d spareMx; // support variable
+            «FOR l : robot.links»
+                // Link '«l.name»' :
+                const InertiaMatrix& «l.inertia»;
+                Velocity      «l.velocity»;
+                Acceleration  «l.acceleration»;
+                Force         «l.force»;
+            «ENDFOR»
+
             «IF floatingBase»
                 // The robot base
-                InertiaMatrix «robot.base.inertia»;
+                const InertiaMatrix& «robot.base.inertia»;
                 InertiaMatrix «robot.base.inertiaC»;
                 Force         «robot.base.force»;
                 // The composite inertia tensors
@@ -179,15 +200,6 @@ class InverseDynamics {
                 «ENDFOR»
             «ENDIF»
 
-            «FOR l : robot.links»
-                // Link '«l.name»' :
-                InertiaMatrix «l.inertia»;
-                Velocity      «l.velocity»;
-                Acceleration  «l.acceleration»;
-                Force         «l.force»;
-            «ENDFOR»
-
-            «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
         private:
             static const «extF_t» zeroExtForces;
         };
@@ -281,28 +293,23 @@ class InverseDynamics {
             const «nsqualifier»::«className(robot)»::«extF_t»
             «nsqualifier»::«className(robot)»::zeroExtForces(Force::Zero());
 
-            «nsqualifier»::«className(robot)»::«className(robot)»(«Names$Types$Transforms::spatial_motion»& transforms) :
-                «IF floatingBase»
-                    «FOR l : robot.chainEndLinks SEPARATOR ',' AFTER ','»
+            «nsqualifier»::«className(robot)»::«className(robot)»(«LinkInertias::className(robot)»& inertia, «Names$Types$Transforms::spatial_motion»& transforms) :
+                «linkInertiasMember»( & inertia ),
+                «motionTransformsMember»( & transforms ),
+                «FOR l : robot.links SEPARATOR ','»
+                    «l.inertia»(«linkInertiasMember»->«LinkInertias::tensorGetterName(l)»() )
+                «ENDFOR»
+                «IF floatingBase»,
+                    «robot.base.inertia»( «linkInertiasMember»->«LinkInertias::tensorGetterName(robot.base)»() ),
+                    «FOR l : robot.chainEndLinks SEPARATOR ','»
                         «l.inertiaC»(«l.inertia»)
                      «ENDFOR»
                 «ENDIF»
-
-               «motionTransformsMember»( & transforms )
             {
             #ifndef EIGEN_NO_DEBUG
                 std::cout << "Robot «robot.name», «className(robot)»::«className(robot)»()" << std::endl;
                 std::cout << "Compiled with Eigen debug active" << std::endl;
             #endif
-
-                «LinkInertias::className(robot)» linkInertias;
-                «IF floatingBase»
-                    «robot.base.inertia» = linkInertias.«LinkInertias::tensorGetterName(robot.base)»();
-                «ENDIF»
-                «FOR l : robot.links»
-                    «l.inertia» = linkInertias.«LinkInertias::tensorGetterName(l)»();
-                «ENDFOR»
-
                 «FOR l : robot.links»
                     «l.velocity».setZero();
                 «ENDFOR»
@@ -636,7 +643,7 @@ class InverseDynamics {
         «ENDFOR»
     '''
 
-
+    def private linkInertiasMember() '''inertiaProps'''
     def private motionTransformsMember() '''xm'''
     def private Xmotion(iit.dsl.coord.coordTransDsl.Transform t)
         '''«motionTransformsMember»->«iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''

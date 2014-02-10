@@ -11,6 +11,9 @@ import java.util.ArrayList
 import java.util.HashSet
 import java.util.List
 import iit.dsl.kinDsl.InertiaParams
+import java.util.Set
+import iit.dsl.generator.Common
+import iit.dsl.kinDsl.FloatLiteral
 
 /**
  * Utilities related to the parameters (i.e. non-constants) possibly included
@@ -31,6 +34,23 @@ class Parameters {
     def public static String lengthsGroupName() { "lengths" }
     def public static String anglesGroupName()  { "angles" }
     ///@}
+
+    def public static ParameterLiteral asParameter(Var v) {
+        if( isParameter(v) ) {
+            return cast(v)
+        }
+
+        if(v instanceof FloatLiteral) {
+            throw new RuntimeException("Cannot cast the constant " +
+                (v as FloatLiteral).value + " to a ParameterLiteral")
+        }
+        if(v instanceof Expr) {
+            throw new RuntimeException("Cannot cast the expression " +
+                (v as Expr).identifier.varname + " to a ParameterLiteral")
+        }
+        throw new RuntimeException("Could not cast the given variable " +
+                "to a ParameterLiteral")
+    }
 
     /**
      * Returns a list of the ParameterLiteral instances referenced by the given
@@ -196,8 +216,118 @@ class Parameters {
     }
     ///@}
 
+
+    def public static boolean isParametric(InertiaParams inertia) {
+        return isParameter(inertia.mass) ||
+                isParametric(inertia.com) ||
+                isParameter(inertia.ix)||isParameter(inertia.iy)||
+                isParameter(inertia.iz)||isParameter(inertia.ixy)||
+                isParameter(inertia.ixz)||isParameter(inertia.iyz)
+    }
+
+    def public static ParametricInertiaFlags whoIsParametric(InertiaParams inertia)
+    {
+        val ret = new ParametricInertiaFlags
+        ret.mass = isParameter(inertia.mass)
+        ret.com  = isParametric(inertia.com)
+        ret.tensor = isParameter(inertia.ix) || isParameter(inertia.iy) ||
+                     isParameter(inertia.iz) || isParameter(inertia.ixy)||
+                     isParameter(inertia.ixz)|| isParameter(inertia.iyz)
+        return ret
+    }
+
+    def public static boolean massPropertiesAreParametric(Robot robot) {
+        for(l : common.abstractLinks(robot)) {
+            if( isParametric(l.inertiaParams) ) return true
+        }
+        return false
+    }
+
+
+    def public static  List<ParameterLiteral> getInertiaParameters(Robot robot)
+    {
+        val list = new ArrayList<ParameterLiteral>
+        val namesPool = new HashSet<String>
+        if(common.isFloating(robot.base)) {
+            getParameters(robot.base.inertiaParams, list, namesPool)
+        }
+        for(l : robot.links) {
+            getParameters(l.inertiaParams, list, namesPool)
+        }
+        return list
+    }
+
+    /**
+     * The list of parameters (ie non-constant values) referenced by the given
+     * inertia properties of a link.
+     *
+     * Note that parameters with the same name are considered to be the same
+     * thing, regardless the field (mass, COM or moments) in which they appear,
+     * and won't be added multiple times. A common parameter in the mass, COM
+     * or the inertia moments, conceptually does not make sense (because you
+     * would have the same parameter representing simultaneously different
+     * physical quantities, but syntactically is possible, in the documents.
+     */
+    def public static List<ParameterLiteral> getParameters(InertiaParams inertia)
+    {
+        val list = new ArrayList<ParameterLiteral>
+        val namesPool = new HashSet<String>
+
+        getParameters(inertia, list, namesPool)
+
+        return list
+    }
+
+    def private static getParameters(
+        InertiaParams inertia,
+        List<ParameterLiteral> list,
+        Set<String> namesPool)
+    {
+        addParameterIfAny(inertia.mass, list, namesPool)
+
+        addParameterIfAny(inertia.com.x, list, namesPool)
+        addParameterIfAny(inertia.com.y, list, namesPool)
+        addParameterIfAny(inertia.com.z, list, namesPool)
+
+        addParameterIfAny(inertia.ix,  list, namesPool)
+        addParameterIfAny(inertia.iy,  list, namesPool)
+        addParameterIfAny(inertia.iz,  list, namesPool)
+        addParameterIfAny(inertia.ixy, list, namesPool)
+        addParameterIfAny(inertia.ixz, list, namesPool)
+        addParameterIfAny(inertia.iyz, list, namesPool)
+    }
+
+    def private static boolean addParameterIfAny(
+        Var v,
+        List<ParameterLiteral> list,
+        Set<String> namesSet)
+    {
+        if( ! isParameter(v) ) return false
+        val param = cast(v)
+        if( namesSet.contains(param.varname) ) return false
+
+        namesSet.add(param.varname)
+        list.add(param)
+    }
+
+
     def public static dispatch boolean isParameter(Var x) { false }
     def public static dispatch boolean isParameter(Expr x) { isParameter(x.identifier) }
     def public static dispatch boolean isParameter(Identifier x) { false }
     def public static dispatch boolean isParameter(ParameterLiteral x) { true }
+
+    def private static ParameterLiteral cast(Var x) {
+        return ((x as Expr).identifier as ParameterLiteral)
+    }
+
+    private static Common common = new Common
+}
+
+class ParametricInertiaFlags {
+    public boolean mass;
+    public boolean com;
+    public boolean tensor;
+    def public boolean any() { return mass || com || tensor }
+    def public boolean none(){ return !any() }
+    def public boolean all() { return mass && com && tensor }
 }

@@ -3,6 +3,7 @@ package iit.dsl.generator.sl;
 import java.util.Arrays;
 import java.util.List;
 
+import iit.dsl.generator.common.Parameters;
 import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.KinDslFactory;
@@ -20,22 +21,23 @@ public abstract class Utilities {
 	private static KinDslPackage dslPackage = KinDslPackageImpl.init();
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
 
-	public static InertiaParams tuneForSL(InertiaParams inertia) {
-		float mass  = inertia.getMass();
+	public static InertiaParams tuneForSL(InertiaParams inertia)
+	{
+	    if(Parameters.isParametric(inertia)) {
+	        throw new RuntimeException("Cannot tune inertia properties for SL" +
+	                 " if they depend on runtime parameters");
+	    }
+	    iit.dsl.generator.Common helper = iit.dsl.generator.Common.getInstance();
+		float mass  = helper.asFloat(inertia.getMass());
 		Vector3 com = inertia.getCom();
 
 		InertiaParams tuned = (InertiaParams)factory.create(dslPackage.getInertiaParams());
 		tuned.setCom((Vector3)factory.create(dslPackage.getVector3()));
-		tuned.setMass(mass);
+		FloatLiteral sameMass = (FloatLiteral)factory.create(dslPackage.getFloatLiteral());
+		sameMass.setValue(mass);
+		tuned.setMass(sameMass);
 
 		// Multiply the com by the mass
-
-		if( ! (com.getX() instanceof FloatLiteral) ||
-			! (com.getY() instanceof FloatLiteral) ||
-			! (com.getZ() instanceof FloatLiteral))
-		{
-			throw new RuntimeException("Cannot tune inertia parameters for SL if the COM is defined with some variables");
-		}
 
 		Vector3 newCOM = tuned.getCom();
 		FloatLiteral newx = factory.createFloatLiteral();
@@ -49,13 +51,14 @@ public abstract class Utilities {
 		newCOM.setY(newy);
 		newCOM.setZ(newz);
 
-		// Add a minus sign in front of the centrifugal moments
-		tuned.setIx (inertia.getIx());
-		tuned.setIy (inertia.getIy());
-		tuned.setIz (inertia.getIz());
-		tuned.setIxy(-inertia.getIxy());
-		tuned.setIxz(-inertia.getIxz());
-		tuned.setIyz(-inertia.getIyz());
+        tuned.setIx (inertia.getIx());
+        tuned.setIy (inertia.getIy());
+        tuned.setIz (inertia.getIz());
+        // Invert the centrifugal moments because SL wants the elements of the inertia tensor
+        tuned.setIxy(helper.invert(inertia.getIxy()));
+        tuned.setIxz(helper.invert(inertia.getIxz()));
+        tuned.setIyz(helper.invert(inertia.getIyz()));
+
 		return tuned;
 	}
 

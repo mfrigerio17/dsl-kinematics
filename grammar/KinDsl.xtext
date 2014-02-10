@@ -49,9 +49,14 @@ Link:
 
 InertiaParams:
     'inertia_params' '{'
-        'mass' '=' mass=FLOAT
-        'CoM'  '=' com= Vector3
-        ('Ix''=' ix  = FLOAT & 'Iy''=' iy  = FLOAT & 'Iz''=' iz  = FLOAT & 'Ixy''=' ixy = FLOAT & 'Ixz''=' ixz = FLOAT & 'Iyz''=' iyz = FLOAT)
+        'mass' '=' mass=Var
+        'CoM'  '=' com=Vector3
+        ('Ix''=' ix = Var &
+         'Iy''=' iy = Var &
+         'Iz''=' iz = Var &
+         'Ixy''=' ixy = Var &
+         'Ixz''=' ixz = Var &
+         'Iyz''=' iyz = Var)
         ('ref_frame' '=' frame=[RefFrame])?
     '}'
 ;

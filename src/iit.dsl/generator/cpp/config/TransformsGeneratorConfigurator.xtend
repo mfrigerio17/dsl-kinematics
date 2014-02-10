@@ -41,7 +41,7 @@ class TransformsGeneratorConfigurator extends iit.dsl.coord.generator.cpp.Defaul
     override includeDirectives(Model model)
         '''
         #include <Eigen/Dense>
-        #include <iit/rbd/StateDependentMatrix.h>
+        #include <iit/rbd/TransformsBase.h>
         #include "«Names$Files::mainHeader(robot)».h"
         '''
 
