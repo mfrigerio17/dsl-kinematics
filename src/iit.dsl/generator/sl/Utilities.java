@@ -3,6 +3,8 @@ package iit.dsl.generator.sl;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.xtext.EcoreUtil2;
+
 import iit.dsl.generator.common.Parameters;
 import iit.dsl.kinDsl.FloatLiteral;
 import iit.dsl.kinDsl.InertiaParams;
@@ -50,9 +52,11 @@ public abstract class Utilities {
 		newCOM.setY(newy);
 		newCOM.setZ(newz);
 
-        tuned.setIx (inertia.getIx());
-        tuned.setIy (inertia.getIy());
-        tuned.setIz (inertia.getIz());
+        // Make a copy and not just a set(), because apparently the set() also
+        //  sets the original property to null...
+        tuned.setIx(EcoreUtil2.copy(inertia.getIx()));
+        tuned.setIy(EcoreUtil2.copy(inertia.getIy()));
+        tuned.setIz(EcoreUtil2.copy(inertia.getIz()));
         // Invert the centrifugal moments because SL wants the elements of the inertia tensor
         tuned.setIxy(helper.invert(inertia.getIxy()));
         tuned.setIxz(helper.invert(inertia.getIxz()));
