@@ -30,7 +30,7 @@ class Sources {
 
         #include <iit/rbd/utils.h>
 
-        #include "«Common::robogenGlobalsFileName(robot)».h"
+        #include "«Common::robcogenGlobalsFileName(robot)».h"
 
         #include <iostream>
 
@@ -190,7 +190,7 @@ class Sources {
         #include <iit/commons/SL/joint_status_conversion.h>
         #include <iit/commons/SL/generic_dynamics.h>
 
-        #include "«Common::robogenGlobalsFileName(robot)».h"
+        #include "«Common::robcogenGlobalsFileName(robot)».h"
 
         #include "SL_system_headers.h"
         #include "SL.h"

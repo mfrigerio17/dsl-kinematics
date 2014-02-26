@@ -30,8 +30,8 @@ class Generator implements IGenerator {
         fsa.generateFile(folder + "/include/SL_user.h",
             roboHeadGen.SL_user(robot))
 
-        fsa.generateFile(folder + "/include/" + Common::robogenGlobalsFileName(robot) + ".h",
-            roboHeadGen.robogenGlobals(robot)   )
+        fsa.generateFile(folder + "/include/" + Common::robcogenGlobalsFileName(robot) + ".h",
+            roboHeadGen.robcogenGlobals(robot)   )
 
         fsa.generateFile(folder + "/src/SL_user_common.cpp",
             roboSrcGen.SL_user_common(robot))

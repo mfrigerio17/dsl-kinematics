@@ -119,7 +119,7 @@ class Headers {
         #endif  /* _SL_USER_«robot.name.toUpperCase»_H_ */
     '''
 
-    def public robogenGlobals(Robot robot) '''
+    def public robcogenGlobals(Robot robot) '''
         «val robodir = Names$Files::folder(robot)»
         «val ns = iit::dsl::generator::cpp::Common::enclosingNamespacesQualifier(robot)»
         #ifndef _IIT_«robot.name.toUpperCase»_SL__ROBOGEN_GLOBALS_H_
