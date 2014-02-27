@@ -43,7 +43,7 @@ class RobotHeaders {
             {«FOR j : robot.joints SEPARATOR ','»«Common::jointIdentifier(j)»«ENDFOR»};
 
         static const LinkIdentifiers orderedLinkIDs[linksCount] =
-            {«FOR l : robot.links SEPARATOR ','»«Common::linkIdentifier(l)»«ENDFOR»};
+            {«Common::linkIdentifier(robot.base)»,«FOR l : robot.links SEPARATOR ','»«Common::linkIdentifier(l)»«ENDFOR»};
 
         «Common::enclosingNamespacesClose(robot)»
         #endif
