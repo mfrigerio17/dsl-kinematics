@@ -124,13 +124,15 @@ class MakefileGenerator {
                     ./«Names$Files$RBD::invDynHeader(rob)».h
                     ./«Names$Files$RBD::fwdDynHeader(rob)».h
                     ./«Names$Files$RBD::inertiaHeader(rob)».h
-                    ./«Names$Files$RBD::massParametersHeader(rob)».h)
+                    ./«Names$Files$RBD::massParametersHeader(rob)».h
+                    ./«Names$Files::miscHeader(rob)».h)
         set(SOURCES ./«Names$Files::transformsHeader(rob)».cpp
                     ./«Names$Files::jacobiansHeader(rob)».cpp
                     ./«Names$Files$RBD::jsimHeader(rob)».cpp
                     ./«Names$Files$RBD::invDynSource(rob)».cpp
                     ./«Names$Files$RBD::fwdDynHeader(rob)».cpp
-                    ./«Names$Files$RBD::inertiaSource(rob)».cpp)
+                    ./«Names$Files$RBD::inertiaSource(rob)».cpp
+                    ./«Names$Files::miscHeader(rob)».cpp)
         
         # Include directories
         include_directories(${EIGEN_ROOT})

@@ -17,7 +17,7 @@ import iit.dsl.generator.cpp.dynamics.ForwardDynamics
 import iit.dsl.generator.cpp.config.IConfiguratorsGetter
 import iit.dsl.generator.cpp.config.DefaultConfiguratorsGetter
 import iit.dsl.generator.cpp.dynamics.InertiaParameters
-import iit.dsl.generator.common.Parameters
+import iit.dsl.generator.cpp.Misc
 
 
 
@@ -49,6 +49,7 @@ class Generator implements IGenerator {
     private JointsSpaceInertia jsI= new JointsSpaceInertia()
     private LinkInertias inertias = new LinkInertias()
     private InertiaParameters inertiaPar = null
+    private Misc misc = new Misc()
     private MakefileGenerator mkg = new MakefileGenerator()
     private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
 
@@ -96,6 +97,14 @@ class Generator implements IGenerator {
         //System::out.println(rbd.LTLfactorization(robot))
         //System::out.println(rbd.Linverse(robot))
         //System::out.println(rbd.Minverse(robot))
+        //System::out.println(misc.source(robot))
+    }
+
+    def generateMiscellaneous(Robot robot, IFileSystemAccess fsa) {
+        fsa.generateFile(Names$Files::folder(robot) + "/" + Names$Files::miscHeader(robot) + ".h",
+            misc.header(robot))
+        fsa.generateFile(Names$Files::folder(robot) + "/" + Names$Files::miscHeader(robot) + ".cpp",
+            misc.source(robot))
     }
 
     def generateMakefiles(Robot robot, IFileSystemAccess fsa) {
@@ -120,6 +129,8 @@ class Generator implements IGenerator {
             Names$Files::folder(robot) + "/" + Names$Files::traitsHeader(robot) + ".h",
             headers.traits(robot)
         )
+
+        generateMiscellaneous(robot, fsa)
     }
 
 

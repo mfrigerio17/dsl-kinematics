@@ -78,6 +78,9 @@ public class Names {
         static public String traitsHeader(Robot robot) {
             return "traits";
         }
+        static public String miscHeader(Robot robot) {
+            return "miscellaneous";
+        }
 
         static public String transformsSource(Robot robot) {
             return files.src_transforms(robot);
