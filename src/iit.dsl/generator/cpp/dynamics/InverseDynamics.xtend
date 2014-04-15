@@ -1,19 +1,25 @@
 package iit.dsl.generator.cpp.dynamics
 
+import java.util.List
+import java.util.Map
+import java.util.HashMap
+
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.Link
+import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.RobotHeaders
 import iit.dsl.generator.cpp.Common
-import java.util.List
 import iit.dsl.generator.common.Transforms
-import java.util.Map
-import java.util.HashMap
+
 
 class InverseDynamics {
 
     def static className(Robot r) '''InverseDynamics'''
+    def static forceGetterName(AbstractLink l) '''getForce_«l.name»'''
+    def static velocityGetterName(AbstractLink l) '''getVelocity_«l.name»'''
+    def static accelGetterName(AbstractLink l) '''getAcceleration_«l.name»'''
 
     def mainHeader(
         Robot robot,
@@ -164,6 +170,18 @@ class InverseDynamics {
             /** Updates all the kinematics transforms used by the inverse dynamics routine. */
             void setJointStatus(«fParam_q») const;
 
+        public:
+            /** \name Getters */
+            ///@{
+            «IF floatingBase»
+                const Force& «forceGetterName(robot.base)»() const { return «robot.base.force»; }
+            «ENDIF»
+            «FOR l : robot.links»
+                const Velocity& «velocityGetterName(l)»() const { return «l.velocity»; }
+                const Acceleration& «accelGetterName(l)»() const { return «l.acceleration»; }
+                const Force& «forceGetterName(l)»() const { return «l.force»; }
+            «ENDFOR»
+            ///@}
         protected:
             «IF floatingBase»
                 void secondPass_fullyActuated(«fParam_tau»);
