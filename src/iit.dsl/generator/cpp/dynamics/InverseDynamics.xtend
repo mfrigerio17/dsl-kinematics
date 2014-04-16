@@ -47,14 +47,18 @@ class InverseDynamics {
          *
          * In addition to the full Newton-Euler algorithm, specialized versions to compute
          * only certain terms are provided.
-         * The parameters common to most of the methods are the joint status \c q, the
-         * joint velocities \c qd and the accelerations \c qdd. The \c «name_jointsForce» parameter
-         * will be filled with the computed values.
+         * The parameters common to most of the methods are the joint status vector \c q, the
+         * joint velocity vector \c qd and the acceleration vector \c qdd.
+         *
          * Additional overloaded methods are provided without the \c q parameter. These
          * methods use the current configuration of the robot; they are provided for the
-         * sake of efficiency, in case the kinematics transforms of the robot have already
+         * sake of efficiency, in case the motion transforms of the robot have already
          * been updated elsewhere with the most recent configuration (eg by a call to
          * setJointStatus()), so that it is useless to compute them again.
+         *
+         * Whenever present, the external forces parameter is a set of external
+         * wrenches acting on the robot links. Each wrench must be expressed in
+         * the reference frame of the link it is excerted on.
          */
         class «className(robot)» {
         public:
@@ -77,7 +81,21 @@ class InverseDynamics {
             «val params ='''«fParam_qd», «fParam_qdd», «fParam_fext» = zeroExtForces'''»
             «IF floatingBase»
                 /** \name Inverse dynamics
-                 * The full algorithm for inverse dynamics for this robot
+                 * The full algorithm for the inverse dynamics of this robot.
+                 *
+                 * All the spatial vectors in the parameters are expressed in base coordinates,
+                 * besides the external forces: each force must be expressed in the reference
+                 * frame of the link it is acting on.
+                 * \param[out] «name_jointsForce» the joint force vector required to achieve the desired accelerations
+                 * \param[out] «name_baseAccel» the spatial acceleration of the robot base
+                 * \param[in] g the gravity acceleration, as a spatial vector;
+                 *              gravity implicitly specifies the orientation of the base in space
+                 * \param[in] «robot.base.velocity» the spatial velocity of the base
+                 * \param[in] q the joint position vector
+                 * \param[in] qd the joint velocity vector
+                 * \param[in] qdd the desired joint acceleration vector
+                 * \param[in] fext the external forces acting on the links; this parameters
+                 *            defaults to zero
                  */ ///@{
                 void id(
                     «fParam_tau», «fParam_basea»,
@@ -92,7 +110,23 @@ class InverseDynamics {
                 ///@}
                 /** \name Inverse dynamics, fully actuated base
                  * The inverse dynamics algorithm for the floating base robot,
-                 * in the assumption of a fully actuated base
+                 * in the assumption of a fully actuated base.
+                 *
+                 * All the spatial vectors in the parameters are expressed in base coordinates,
+                 * besides the external forces: each force must be expressed in the reference
+                 * frame of the link it is acting on.
+                 * \param[out] «name_baseWrench» the spatial force to be applied to the robot base to achieve
+                 *             the desired accelerations
+                 * \param[out] «name_jointsForce» the joint force vector required to achieve the desired accelerations
+                 * \param[in] g the gravity acceleration, as a spatial vector;
+                 *              gravity implicitly specifies the orientation of the base in space
+                 * \param[in] «robot.base.velocity» the spatial velocity of the base
+                 * \param[in] «name_baseAccel» the desired spatial acceleration of the robot base
+                 * \param[in] q the joint position vector
+                 * \param[in] qd the joint velocity vector
+                 * \param[in] qdd the desired joint acceleration vector
+                 * \param[in] fext the external forces acting on the links; this parameters
+                 *            defaults to zero
                  */ ///@{
                 void id_fully_actuated(
                     «fParam_basef», «fParam_tau»,
@@ -133,10 +167,14 @@ class InverseDynamics {
                 ///@}
             «ELSE»
                 /** \name Inverse dynamics
-                 * The full Newton-Euler algorithm for inverse dynamics for this robot
-                 * \param fext the external forces acting on the links. Each external
-                 *        force must be expressed in the frame of the link it is
-                 *        exerted on.
+                 * The full Newton-Euler algorithm for the inverse dynamics of this robot.
+                 *
+                 * \param[out] «name_jointsForce» the joint force vector required to achieve the desired accelerations
+                 * \param[in] q the joint position vector
+                 * \param[in] qd the joint velocity vector
+                 * \param[in] qdd the desired joint acceleration vector
+                 * \param[in] fext the external forces acting on the links; this parameters
+                 *            defaults to zero
                  */
                 ///@{
                 void id(
@@ -171,7 +209,22 @@ class InverseDynamics {
             void setJointStatus(«fParam_q») const;
 
         public:
-            /** \name Getters */
+            /** \name Getters
+             * These functions return various spatial quantities used internally
+             * by the inverse dynamics routines, like the spatial acceleration
+             * of the links.
+             *
+             * The getters can be useful to retrieve the additional data that is not
+             * returned explicitly by the inverse dynamics routines even though it
+             * is computed. For example, after a call to the inverse dynamics,
+             * the spatial velocity of all the links has been determined and
+             * can be accessed.
+             *
+             * However, beware that certain routines might not use some of the
+             * spatial quantities, which therefore would retain their last value
+             * without being updated nor reset (for example, the spatial velocity
+             * of the links is unaffected by the computation of the gravity terms).
+             */
             ///@{
             «IF floatingBase»
                 const Force& «forceGetterName(robot.base)»() const { return «robot.base.force»; }
