@@ -118,9 +118,9 @@ class JointsSpaceInertia {
                 // The composite-inertia tensor for each link
                 «FOR l : links»
                     «IF l.childrenList.children.empty»
-                        const InertiaMatrix& «inertiaCompositeName(l)»;
+                        const InertiaMatrix& «l.inertiaC»;
                     «ELSE»
-                        InertiaMatrix «inertiaCompositeName(l)»;
+                        InertiaMatrix «l.inertiaC»;
                     «ENDIF»
                 «ENDFOR»
 
@@ -140,7 +140,7 @@ class JointsSpaceInertia {
 
         «IF floatingBase»
             inline const InertiaMatrix& «className»::getWholeBodyInertia() const {
-                return «inertiaCompositeName(robot.base)»;
+                return «robot.base.inertiaC»;
             }
 
             inline const «className»::«typename_blockF» «className»::getF() const {
@@ -173,7 +173,7 @@ class JointsSpaceInertia {
             linkInertias(inertiaProperties),
             «forceTransformsMember»( &forceTransforms ),
             «FOR l : robot.chainEndLinks SEPARATOR ','»
-                «inertiaCompositeName(l)»(linkInertias.«LinkInertias::tensorGetterName(l)»())
+                «l.inertiaC»(linkInertias.«LinkInertias::tensorGetterName(l)»())
             «ENDFOR»
         {
             //Initialize the matrix itself
@@ -201,7 +201,7 @@ class JointsSpaceInertia {
             // Initializes the composite inertia tensors
             «FOR l : links»
                 «IF ! l.childrenList.children.empty»
-                    «inertiaCompositeName(l)» = linkInertias.«LinkInertias::tensorGetterName(l)»();
+                    «l.inertiaC» = linkInertias.«LinkInertias::tensorGetterName(l)»();
                 «ENDIF»
             «ENDFOR»
 
@@ -212,13 +212,13 @@ class JointsSpaceInertia {
                 «val parent = l.parent»
                 «val parent_X_child = Transforms::getTransform(transformsModel, parent, l)»
                 «IF floatingBase || !(parent.equals(robot.base))»
-                    «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «Xforce(parent_X_child)» * «inertiaCompositeName(l)» * («Xforce(parent_X_child)»).transpose();
+                    «parent.inertiaC» = «parent.inertiaC» + «Xforce(parent_X_child)» * «l.inertiaC» * («Xforce(parent_X_child)»).transpose();
                 «ENDIF»
 
                 «val jt = getJoint(parent, l)»
                 «val F = getF(jt)»
                 «val jointIndex = jsimIndex(jt)»
-                «F» = «inertiaCompositeName(l)».col(«Common::spatialVectIndex(jt)»);
+                «F» = «l.inertiaC».col(«Common::spatialVectIndex(jt)»);
                 DATA(«jointIndex», «jointIndex») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
 
                 «val chain = TreeUtils::chainToBase(l)»
@@ -233,7 +233,7 @@ class JointsSpaceInertia {
                 // Copies the upper-right block into the lower-left block, after transposing
                 block<«jointDOFs», 6>(6,0) = (block<6, «jointDOFs»>(0,6)).transpose();
                 // The composite-inertia of the whole robot is the upper-left quadrant of the JSIM
-                block<6,6>(0,0) = «inertiaCompositeName(currRobot.base)»;
+                block<6,6>(0,0) = «currRobot.base.inertiaC»;
             «ENDIF»
             return *this;
         }
@@ -294,7 +294,6 @@ class JointsSpaceInertia {
         }
     }
 
-    def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
     def private forceTransformsMember() '''frcTransf'''
     def private Xforce(iit.dsl.coord.coordTransDsl.Transform t)
         '''«forceTransformsMember» -> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
@@ -431,6 +430,7 @@ class JointsSpaceInertia {
 
 
     private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    private extension VariableNames = new VariableNames
 
     private Robot currRobot
     private int dofs
