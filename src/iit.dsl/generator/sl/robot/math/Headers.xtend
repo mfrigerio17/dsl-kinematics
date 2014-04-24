@@ -111,19 +111,15 @@ class OpenGL_h {
             «ENDFOR»
         «ENDIF»
 
-        «IF robot.base.floating»
-            // The state of the floating base
-            glPushMatrix();
-            glTranslated((GLdouble)basec[0].x[1],(GLdouble)basec[0].x[2],(GLdouble)basec[0].x[3]);
-            glRotated((GLdouble)114.5916*ArcCos(baseo[0].q[1]),(GLdouble)baseo[0].q[2],(GLdouble)baseo[0].q[3],(GLdouble)baseo[0].q[4]);
-        «ENDIF»
+        // The state of the base
+        glPushMatrix();
+        glTranslated((GLdouble)basec[0].x[1],(GLdouble)basec[0].x[2],(GLdouble)basec[0].x[3]);
+        glRotated((GLdouble)114.5916*ArcCos(baseo[0].q[1]),(GLdouble)baseo[0].q[2],(GLdouble)baseo[0].q[3],(GLdouble)baseo[0].q[4]);
 
         «opengl_depthVisit(robot.base)»
 
-        «IF robot.base.floating»
-            // pops the first matrix related to the state of the base
-            glPopMatrix();
-        «ENDIF»
+        // pops the first matrix related to the state of the base
+        glPopMatrix();
         '''
 
 
