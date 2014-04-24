@@ -205,15 +205,15 @@ def Joint getJointFromVariableName(Robot robot, String varname) {
 def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
-def str(Float num) {
+
+def dispatch CharSequence str(Float num) {
     String::format(Locale::US,"% 06.5f", num)
 }
-
-def dispatch str(FloatLiteral id)'''«str(id.value)»'''
-def dispatch str(PlainExpr expr) '''«str(expr.identifier)»'''
-def dispatch str(MultExpr expr)  '''«str(expr.mult)» «str(expr.identifier)»'''
-def dispatch str(DivExpr expr)   '''«str(expr.identifier)»/«expr.div»'''
-def str(Identifier id)           '''«IF id.minus»-«ENDIF»«id.varname»'''
+def dispatch CharSequence str(FloatLiteral id)'''«str(id.value)»'''
+def dispatch CharSequence str(PlainExpr expr) '''«str(expr.identifier)»'''
+def dispatch CharSequence str(MultExpr expr)  '''«str(expr.mult)» «str(expr.identifier)»'''
+def dispatch CharSequence str(DivExpr expr)   '''«str(expr.identifier)»/«expr.div»'''
+def dispatch CharSequence str(Identifier id)  '''«IF id.minus»-«ENDIF»«id.varname»'''
 
 
 /**
