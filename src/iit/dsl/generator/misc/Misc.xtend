@@ -8,6 +8,7 @@ import iit.dsl.kinDsl.PrismaticJoint
 import iit.dsl.kinDsl.RevoluteJoint
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.InertiaParams
+import iit.dsl.kinDsl.FloatLiteral
 
 class Misc {
     static Misc singleton = null
@@ -26,23 +27,26 @@ class Misc {
     private new() { }
 
     /**
-     * Generates and xml URDF description of the robot, as specified in the ROS documentation.
+     * Generates and xml URDF description of the robot, as specified in the ROS
+     * documentation.
+     *
      * The URDF file format requires the inertia tensor to be expressed in a reference frame
      * with origin in the center of mass. Therefore this generator takes the inertia tensor
      * expressed in the link-default-frame and translates it to the COM before printing the values.
+     * In addition, the URDF format requires the elements of the inertia tensor,
+     * and not the inertia moments as in the Kinematics-DSL format; therefore
+     * the signs of the centrifugal moments are swapped.
      */
     def public URDF_ROS_model(Robot robot) '''
     <robot name="«robot.name»">
     «FOR link : robot.abstractLinks»
         «val inertia_lf = link.linkFrameInertiaParams /*inertia params expressed in the default link frame*/»
-        «val com = inertia_lf.com»
-        «val inertia = /*inertia params expressed in the frame centered in the COM*/
-             Utilities::rototranslate(inertia_lf, com.x.asFloat,com.y.asFloat,com.z.asFloat,0,0,0,false)»
+        «val inertia = getURDFInertiaParams(inertia_lf)»
         <link name="«link.name»">
             <inertial>
-                <origin xyz="«inertia_lf.com.x.str» «inertia_lf.com.y.str» «inertia_lf.com.z.str»"/>
-                <mass value="«inertia.mass»"/>
-                <inertia ixx="«inertia.ix»" iyy="«inertia.iy»" izz="«inertia.iz»" ixy="«inertia.ixy»" ixz="«inertia.ixz»" iyz="«inertia.iyz»"/>
+                <origin xyz="«inertia_lf.com.listCoordinates()»"/>
+                <mass value="«inertia.mass.str»"/>
+                <inertia ixx="«inertia.ix.str»" iyy="«inertia.iy.str»" izz="«inertia.iz.str»" ixy="«inertia.ixy.str»" ixz="«inertia.ixz.str»" iyz="«inertia.iyz.str»"/>
             </inertial>
         </link>
     «ENDFOR»
@@ -58,6 +62,18 @@ class Misc {
     «ENDFOR»
     </robot>
     '''
+    def private getURDFInertiaParams(InertiaParams inertia_lf) {
+        val com = inertia_lf.com
+        val inertia_com = // params expressed in the frame centered in the COM
+             Utilities::rototranslate(inertia_lf, com.x.asFloat,com.y.asFloat,com.z.asFloat,0,0,0,false)
+
+        // Invert the centrifugal moments, because URDF wants the elements of
+        //  the inertia tensor, not the moments
+        inertia_com.setIxy( (inertia_com.ixy as FloatLiteral).invert )
+        inertia_com.setIxz( (inertia_com.ixz as FloatLiteral).invert )
+        inertia_com.setIyz( (inertia_com.iyz as FloatLiteral).invert )
+        return inertia_com
+    }
 
     /**
      * Generates the content of an SD/FAST input file representing the given robot
