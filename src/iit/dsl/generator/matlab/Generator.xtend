@@ -145,9 +145,11 @@ class Generator implements IGenerator {
         jacGen = new Jacobians(new MaximaReplSpecs(robot, transformsModel))
         jacGen.setMaximaConverterConfigurator(maximaConverterConfig)
         val jacobians = new ArrayList<Jacobian>()
-        if(desired.jacobians != null) {
-            for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
-                jacobians.add(new Jacobian(robot, jSpec))
+        if(desired != null) {
+            if(desired.jacobians != null) {
+                for(iit.dsl.transspecs.transSpecs.FramePair jSpec : desired.jacobians.getSpecs()) {
+                    jacobians.add(new Jacobian(robot, jSpec))
+                }
             }
         }
         fsa.generateFile(robotFolderName(robot) + "/init_jacs.m",
