@@ -16,9 +16,24 @@ class Jacobians {
 
     def static fileName(Robot robot) '''«robot.name»_jacobians'''
 
+    /**
+     * This function returns the CharSequence with the Maxima code that
+     * should evaluate to the given Jacobian matrix.
+     *
+     * @param J the token representing the Jacobian of interest
+     * @param transforms the model of the Transforms-DSL containing the
+     *        coordinate transforms (ie the forward kinematics) required to
+     *        compute the Jacobian
+     */
     def jacobian(Jacobian J, iit.dsl.coord.coordTransDsl.Model transforms)
     {
         val baseFrameName = J.baseFrame.name;
+        if(baseFrameName.equals(J.movingFrame.name)) {
+            System::err.println("Skipping useless Jacobian " +
+                baseFrameName + "_J_" + baseFrameName)
+            //TODO log warning instead
+            return '''''';
+        }
 
         // The "longest" transform, between the base link and the moving link
         val base_X_ee = coordsUtils.getTransform(transforms, baseFrameName, J.movingFrame.name)
@@ -40,31 +55,52 @@ class Jacobians {
                 ''');
 
         for(Joint el : J.jointsChain) {
-            // Get the transform 'base_X_<current link>'
             val tmpFrameName = common.getFrameName(el).toString();
-            transform = coordsUtils.getTransform(transforms, baseFrameName, tmpFrameName)
-            if(transform == null) {
-                throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
-                    baseFrameName + "_X_" + tmpFrameName + " (robot " + J.robot.name + ")");
-            }
-            maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(transform)
-            if(el instanceof RevoluteJoint) {
-                strBuff.append(
-                '''    , GJacobianColumn(«eePosName», zaxis(«maximaTransformLiteral»), posVector(«maximaTransformLiteral»))
-                ''');
-            } else if (el instanceof PrismaticJoint) {
-                strBuff.append(
-                '''    , GJacobianColumn_prism(zaxis(«maximaTransformLiteral»))
-                ''');
+            var CharSequence maximaCodeLine
+
+            // Check for the special case in which the frame of the first joint
+            //  is also the base frame for the Jacobian. In this case the
+            //  parameters required by GJacobianColumn are trivial
+            if(baseFrameName.equals(tmpFrameName)) {
+
+                if(el instanceof RevoluteJoint) {
+                    maximaCodeLine = '''GJacobianColumn(«eePosName», matrix([0],[0],[1]), matrix([0],[0],[0]) )'''
+                } else if (el instanceof PrismaticJoint) {
+                    maximaCodeLine = '''GJacobianColumn_prism(matrix([0],[0],[1])'''
+                } else {
+                    throw new RuntimeException("Unknown joint type")
+                }
+
             } else {
-                throw new RuntimeException("Unknown joint type")
+
+                // Get the transform 'base_X_<current link>', which will be
+                //  referenced in the generated code to retrieve the joint
+                //  position and joint axis required to compute the Jacobian column
+                transform = coordsUtils.getTransform(transforms, baseFrameName, tmpFrameName)
+                if(transform == null) {
+                    throw new RuntimeException("Cannot generate the jacobian file: could not find the transform " +
+                        baseFrameName + "_X_" + tmpFrameName + " (robot " + J.robot.name + ")");
+                }
+                maximaTransformLiteral = coordsMaxima.getTransformFunctionLiteral(transform)
+
+                if(el instanceof RevoluteJoint) {
+                    maximaCodeLine = '''GJacobianColumn(«eePosName», zaxis(«maximaTransformLiteral»), posVector(«maximaTransformLiteral»))'''
+                } else if (el instanceof PrismaticJoint) {
+                    maximaCodeLine = '''GJacobianColumn_prism(zaxis(«maximaTransformLiteral»))'''
+                } else {
+                    throw new RuntimeException("Unknown joint type")
+                }
+
             }
+            strBuff.append("\t, ");
+            strBuff.append(maximaCodeLine);
+            strBuff.append("\n");
+
         }
-        strBuff.append(''');
-        ''');
+        strBuff.append(''');''');
+        strBuff.append("\n");
 
         return strBuff
-
     }
 
 
