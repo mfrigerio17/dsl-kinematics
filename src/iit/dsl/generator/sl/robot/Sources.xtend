@@ -307,8 +307,8 @@ class Sources {
             SL_Cstate *cbase, SL_quat *obase,
             SL_uext *ux, SL_endeff *leff)
         {
+            static «dyn_ns»::ForwardDynamics::ExtForces extForces(«rbd_ns»::ForceVector::Zero());
             «IF floating»
-                static «dyn_ns»::ForwardDynamics::ExtForces extForces(«rbd_ns»::ForceVector::Zero());
                 // TODO convert the external forces!
 
                 commons::SL::forward_dynamics<Traits>::
@@ -323,7 +323,7 @@ class Sources {
                 }
             «ELSE»
                 iit::commons::SL::forward_dynamics<Traits>::
-                    fixed_base(*SL::fwdDynEngine, lstate);
+                    fixed_base(*SL::fwdDynEngine, extForces, lstate);
             «ENDIF»
         }
 

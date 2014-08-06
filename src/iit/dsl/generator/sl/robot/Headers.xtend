@@ -128,6 +128,7 @@ class Headers {
         #include <iit/robots/«robodir»/«Names$Files::mainHeader(robot)».h>
         #include <iit/robots/«robodir»/«Names$Files::parametersHeader(robot)».h>
         #include <iit/robots/«robodir»/«Names$Files::transformsHeader(robot)».h>
+        #include <iit/robots/«robodir»/«Names$Files$RBD::inertiaHeader(robot)».h>
         #include <iit/robots/«robodir»/«Names$Files$RBD::fwdDynHeader(robot)».h>
         #include <iit/robots/«robodir»/«Names$Files$RBD::invDynHeader(robot)».h>
 
@@ -142,8 +143,9 @@ class Headers {
         extern «ns»::HomogeneousTransforms* homogeneousTransforms;
         extern «ns»::MotionTransforms* motionTransforms;
         extern «ns»::ForceTransforms* forceTransforms;
-        extern «ns»::«Names$Namespaces::dynamics»::ForwardDynamics* fwdDynEngine;
-        extern «ns»::«Names$Namespaces::dynamics»::InverseDynamics* invDynEngine;
+        extern «ns»::«Names$Namespaces::dynamics»::InertiaProperties* linksInertia;
+        extern «ns»::«Names$Namespaces::dynamics»::ForwardDynamics*   fwdDynEngine;
+        extern «ns»::«Names$Namespaces::dynamics»::InverseDynamics*   invDynEngine;
 
         «IF robot.base.floating»
             extern «ns»::HomogeneousTransforms::MatrixType world_X_base;
