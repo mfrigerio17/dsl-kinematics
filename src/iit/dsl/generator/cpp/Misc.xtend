@@ -72,7 +72,7 @@ class Misc {
                 «cumSum» += inertiaProps.«LinkInertias::comGetterName(robot.base)»() * inertiaProps.«LinkInertias::massGetterName(robot.base)»();
             «ENDIF»
 
-            static «Names$Types$Transforms::homogeneous»::MatrixType «tmpX»(«Names$Types$Transforms::homogeneous»::MatrixType::Identity());
+            «Names$Types$Transforms::homogeneous»::MatrixType «tmpX»(«Names$Types$Transforms::homogeneous»::MatrixType::Identity());
             «depthVisit(robot.base, tmpX, cumSum)»
 
             return «cumSum» / inertiaProps.getTotalMass();
