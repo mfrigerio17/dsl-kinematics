@@ -94,7 +94,7 @@ class Sources {
                 «kinematics_depthVisit(rob_ns, robot.base, world_X_base)»
             «ELSE»
                 «val tmpX = "tmpX"»
-                static «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType «tmpX» = «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType::Identity();
+                «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType «tmpX» = «rob_ns»::«Names$Types$Transforms::homogeneous»::MatrixType::Identity();
                 «kinematics_depthVisit(rob_ns, robot.base, tmpX)»
             «ENDIF»
         }
