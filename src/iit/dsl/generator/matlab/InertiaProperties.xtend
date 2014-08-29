@@ -29,6 +29,20 @@ class InertiaProperties {
         return Common::getInstance().asFloat(inertiaProperty)
     }
 
+    /**
+     * Matlab code that evaluates to the 3x3 tensor of the given inertia properties.
+     */
+    def public static CharSequence tensor(InertiaParams params) '''
+        [[  «value(params.ix)»,«TAB»-(«value(params.ixy)»),«TAB»-(«value(params.ixz)»)];
+         [-(«value(params.ixy)»),«TAB»  «value(params.iy)» ,«TAB»-(«value(params.iyz)»)];
+         [-(«value(params.ixz)»),«TAB»-(«value(params.iyz)»),«TAB»  «value(params.iz)»]]'''
+
+    /**
+     * Matlab code that evaluates to the 3x1 vector with the COM position, as
+     * contained in the given inertia properties.
+     */
+    def public static com(InertiaParams params) '''
+         [«value(params.com.x)»; «value(params.com.y)»; «value(params.com.z)»]'''
 
     def scriptContent(Robot robot) {
         if(Parameters::massPropertiesAreParametric(robot)) {
@@ -150,14 +164,6 @@ class InertiaProperties {
             comFrame.add(inComFrame)
         }
     }
-
-    def private tensor(InertiaParams params) '''
-     [[  «value(params.ix)»,«TAB»-(«value(params.ixy)»),«TAB»-(«value(params.ixz)»)];
-      [-(«value(params.ixy)»),«TAB»  «value(params.iy)» ,«TAB»-(«value(params.iyz)»)];
-      [-(«value(params.ixz)»),«TAB»-(«value(params.iyz)»),«TAB»  «value(params.iz)»]]'''
-
-    def private com(InertiaParams params) '''
-         [«value(params.com.x)»; «value(params.com.y)»; «value(params.com.z)»]'''
 
 
     private static String TAB = "\t"
