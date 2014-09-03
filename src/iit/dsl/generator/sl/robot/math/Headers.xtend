@@ -183,7 +183,7 @@ class OpenGL_h {
         val pos = j.refFrame.translation
         val str = new VectorString(pos, "_lengths", paramsHelper)
         if(  Parameters::isParameter(pos.z)) {
-            firstItem = '''(RAD2DEG*std::acos(«str.z»)'''
+            firstItem = '''(RAD2DEG*std::acos(«str.z»))'''
         } else {
             firstItem = '''(RAD2DEG*«java::lang::Math::acos(pos.z.asFloat)»)'''
         }
