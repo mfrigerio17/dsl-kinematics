@@ -181,12 +181,18 @@ class OpenGL_h {
     {
         var CharSequence firstItem
         val pos = j.refFrame.translation
-        val str = new VectorString(pos, "_lengths", paramsHelper)
-        if(  Parameters::isParameter(pos.z)) {
-            firstItem = '''(RAD2DEG*std::acos(«str.z»))'''
-        } else {
-            firstItem = '''(RAD2DEG*«java::lang::Math::acos(pos.z.asFloat)»)'''
+        // If there is no translation along x nor y, then the current OpenGL frame
+        //  has already the z axis aligned with the line connecting the two joints
+        if( !Parameters::isParameter(pos.x)  &&
+            !Parameters::isParameter(pos.y) )
+        {
+            if(pos.x.asFloat == 0.0  &&  pos.y.asFloat == 0.0) {
+                return '''// nothing to do'''
+            }
         }
+
+        val str = new VectorString(pos, "_lengths", paramsHelper)
+        firstItem = '''(RAD2DEG*std::acos( «str.z»/(«str.norm()») ))'''
 
         return
         '''glRotated((GLdouble)«firstItem», (GLdouble)-(«str.y»), (GLdouble)«str.x», (GLdouble)0.0);'''
