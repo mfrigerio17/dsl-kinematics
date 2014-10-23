@@ -19,7 +19,7 @@ class Headers {
         // This is a set of flags used by SL to determine which joint (column
         //  index of this matrix) contributes to the velocity of which
         //  end-effector (row index)
-        int Jlist[1 + «robot.chainEndLinks.size»][1 + «robot.joints.size»];
+        int Jlist[N_ROBOT_ENDEFFECTORS][N_ROBOT_DOFS];
     '''
     def public gjac_math(Robot robot) {
         val code = new StringBuffer
@@ -42,7 +42,7 @@ class Headers {
         // This is a set of flags used by SL to determine which joint (column
         //  index of this matrix) contributes to the velocity of which
         //  link (row index)
-        int Jlist[1 + «robot.links.size»][1 + «robot.joints.size»];
+        int Jlist[N_ROBOT_LINKS][N_ROBOT_DOFS];
     '''
     def public contact_gjac_math(Robot robot) {
         val code = new StringBuffer
