@@ -105,6 +105,7 @@ class Headers {
         #define   D2A_CT      2
         #define   D2A_CV      3
         #define   D2A_CR      4
+        #define   D2A_CS      5
 
         #ifdef __cplusplus
         extern "C" {
