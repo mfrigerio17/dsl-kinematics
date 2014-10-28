@@ -123,7 +123,7 @@ class OpenGL_h {
         '''
 
 
-    def private opengl_depthVisit(AbstractLink link) '''
+    def private CharSequence opengl_depthVisit(AbstractLink link) '''
         «IF link.childrenList.children.size == 0»
             // Draw the end effector
             glPushMatrix();

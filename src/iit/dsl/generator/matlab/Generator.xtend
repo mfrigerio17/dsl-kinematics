@@ -5,15 +5,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.generator.Common
-import iit.dsl.kinDsl.Joint
-import iit.dsl.kinDsl.RevoluteJoint
-import iit.dsl.kinDsl.PrismaticJoint
-import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.InertiaParams
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
-import iit.dsl.generator.Utilities
+
 
 import java.io.File
 import java.util.ArrayList
@@ -22,8 +16,6 @@ class Generator implements IGenerator {
     def static String robotFolderName(Robot robot) {
         return robot.name.toLowerCase()
     }
-
-    extension Common common = new Common()
 
     private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
     private Jacobians  jacGen   = null

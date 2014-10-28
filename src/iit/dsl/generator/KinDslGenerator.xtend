@@ -4,7 +4,7 @@
 package iit.dsl.generator
 
 import iit.dsl.generator.common.TransformsDSLsUtils
-import iit.dsl.generator.misc.Misc
+//import iit.dsl.generator.misc.Misc
 import iit.dsl.kinDsl.Robot
 
 
@@ -20,7 +20,7 @@ import iit.dsl.generator.common.Jacobians
 
 class KinDslGenerator implements IGenerator {
     extension Common common = new Common()
-    Misc miscGen = Misc::getInstance()
+    //Misc miscGen = Misc::getInstance()
     MotionDSLDocGenerator motiongen = new MotionDSLDocGenerator()
     TransformsDSLsUtils transformsDSLsUtils = new TransformsDSLsUtils()
 

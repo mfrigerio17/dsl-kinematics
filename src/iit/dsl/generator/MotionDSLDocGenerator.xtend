@@ -187,15 +187,15 @@ class MotionDSLDocGenerator {
     def private dispatch motionStepsToSuccessor(RevoluteJoint joint)
     '''rotz(«joint.variableName»)'''
 
-    def private dispatch value(FloatLiteral fl)
+    def private dispatch CharSequence value(FloatLiteral fl)
         '''«IF fl.value != 0.0»«fl.value»«ENDIF»'''
-    def private dispatch value(Expr expr)
+    def private dispatch CharSequence value(Expr expr)
         '''«NodeModelUtils::findActualNodeFor(expr).getText()»'''
-    def private dispatch value(PlainExpr expr)
+    def private dispatch CharSequence value(PlainExpr expr)
         '''«value(expr.identifier)»'''
-    def private dispatch value(PILiteral p)
+    def private dispatch CharSequence value(PILiteral p)
         '''«p.varname»'''
-    def private dispatch value(ParameterLiteral p)
+    def private dispatch CharSequence value(ParameterLiteral p)
         '''«IF p.minus»-«ENDIF»«currentParameterGroup».«p.varname»'''
 
     private String currentParameterGroup = null

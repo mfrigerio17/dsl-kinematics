@@ -268,12 +268,12 @@ class Mathematica {
     def private jointRotParams(Joint j)
     '''«val rot=j.refFrame.rotation»«string(rot.x)», «string(rot.y)», «string(rot.z)»'''
 
-    def private dispatch string(FloatLiteral id)'''«id.value.str»'''
-    def private dispatch string(PlainExpr expr) '''«string(expr.identifier)»'''
-    def private dispatch string(MultExpr expr)  '''«expr.mult.str» «string(expr.identifier)»'''
-    def private dispatch string(DivExpr expr)   '''«string(expr.identifier)»/«expr.div»'''
-    def private dispatch string(ParameterLiteral id)  '''«id.str»'''
-    def private dispatch string(PILiteral pi)   '''«IF pi.minus»-«ENDIF»Pi'''
+    def private dispatch CharSequence string(FloatLiteral id)'''«id.value.str»'''
+    def private dispatch CharSequence string(PlainExpr expr) '''«string(expr.identifier)»'''
+    def private dispatch CharSequence string(MultExpr expr)  '''«expr.mult.str» «string(expr.identifier)»'''
+    def private dispatch CharSequence string(DivExpr expr)   '''«string(expr.identifier)»/«expr.div»'''
+    def private dispatch CharSequence string(ParameterLiteral id)  '''«id.str»'''
+    def private dispatch CharSequence string(PILiteral pi)   '''«IF pi.minus»-«ENDIF»Pi'''
 
 
     private extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
