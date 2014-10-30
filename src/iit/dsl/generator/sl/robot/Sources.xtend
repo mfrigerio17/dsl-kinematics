@@ -376,11 +376,13 @@ class Sources {
             «ENDFOR»
         };
 
+        // TODO names for the end-effectors
         char cart_names[][20]= {
             {"dummy"},
             {"ENDEFF"}
         };
 
+        // TODO names for the dummy links for the end-effectors
         char link_names[][20]= {
             {"BASE"},
             «FOR link : robot.links»
@@ -406,7 +408,7 @@ class Sources {
             «ENDFOR»
         };
 
-        int link2endeffmap[] = {0,«Common::DUMMY_EE_LINK_ID»};
+        int link2endeffmap[] = {0,«Common::DUMMY_EE_LINK_ID»}; // TODO fix
         double test_goal[N_CART+1];
         int    no_user_interaction_flag=FALSE;
         int    real_time_flag=FALSE;
