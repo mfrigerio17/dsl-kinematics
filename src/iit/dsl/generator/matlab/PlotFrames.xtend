@@ -36,12 +36,14 @@ class PlotFrames {
 
         % Now plot the reference frames of the other links
         % Scaling factor of 33% of the estimate of the link length
+
+        H = eye(4);
         «val count = robot.links.size + 1»
         «FOR l : robot.links»
             %%% Link «l.name» %%%
-            «val T    = coordTransCommon.getTransform(transforms, robot.base.frameName.toString(), l.frameName.toString())»
+            «val T = coordTransCommon.getTransform(transforms, l.parent.frameName.toString(), l.frameName.toString())»
             «IF T == null»
-                % I could not find the transform from base to link «l.name»; are you generating it?
+                % I could not find the transform from link «l.name» to its parent; are you generating it?
             «ELSE»
                 «val tname = iit::dsl::coord::generator::matlab::Generator::identifier(T,
                     iit::dsl::coord::generator::Utilities$MatrixType::HOMOGENEOUS)»
@@ -49,13 +51,14 @@ class PlotFrames {
                 «IF l.childrenList.children.size > 0»
                     scaling = 0.33 * «jointDist»;
                 «ENDIF»
-                x = scaling * «tname»(1:3,1);
-                y = scaling * «tname»(1:3,2);
-                pos = «tname»(1:3,4);  % no scaling
+                H = H * «tname»;
+                x = scaling * H(1:3,1);
+                y = scaling * H(1:3,2);
+                pos = H(1:3,4);  % no scaling
 
                 plotRefFrame(x, y, pos, baseColor * («count»-«l.ID»)/«count»);
 
-                [X,Y,Z] = inertia_ellipsoid(inertia_lf_«l.name», «tname», «jointDist»);
+                [X,Y,Z] = inertia_ellipsoid(inertia_lf_«l.name», H, «jointDist»);
                 h_ell = surf(X,Y,Z);
                 set(h_ell, 'FaceAlpha', ellips.faceAlpha, 'EdgeAlpha', ellips.edgeAlpha);
                 set(h_ell, 'FaceColor', ellips.faceColor, 'EdgeColor', ellips.edgeColor);
