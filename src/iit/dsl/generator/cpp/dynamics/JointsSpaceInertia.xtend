@@ -18,8 +18,8 @@ import iit.dsl.generator.common.Transforms
 class JointsSpaceInertia {
     def inertiaMatrixHeader(Robot robot)'''
         «loadInfo(robot)»
-        #ifndef IIT_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
-        #define IIT_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
+        #ifndef IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
+        #define IIT_«robot.name.toUpperCase()»_«Names$Files$RBD::jsimHeader(robot).toUpperCase()»_H_
 
         #include <iit/rbd/rbd.h>
         #include <iit/rbd/StateDependentMatrix.h>
