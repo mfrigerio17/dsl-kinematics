@@ -188,7 +188,7 @@ class MotionDSLDocGenerator {
     '''rotz(«joint.variableName»)'''
 
     def private dispatch CharSequence value(FloatLiteral fl)
-        '''«IF fl.value != 0.0»«fl.value»«ENDIF»'''
+        '''«IF fl.value != 0.0»«fl.str»«ENDIF»'''
     def private dispatch CharSequence value(Expr expr)
         '''«NodeModelUtils::findActualNodeFor(expr).getText()»'''
     def private dispatch CharSequence value(PlainExpr expr)
