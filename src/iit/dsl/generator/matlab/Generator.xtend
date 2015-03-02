@@ -205,7 +205,7 @@ class Generator implements IGenerator {
 
 
     def generateCommonDynamicsFiles(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(robotFolderName(robot) + "/inertia_properties.m",
+        fsa.generateFile(robotFolderName(robot) + "/" + InertiaProperties::functionName + ".m",
             inertiaGen.scriptContent(robot)  )
     }
 
