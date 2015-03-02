@@ -7,10 +7,17 @@ import org.eclipse.xtext.generator.IGenerator
 import iit.dsl.kinDsl.Robot
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.Jacobian
+import iit.dsl.generator.matlab.config.IConfigurator
+import iit.dsl.generator.matlab.config.DefaultConfigurator
+import iit.dsl.generator.maxima.DefaultConverterConfigurator
 
+import static iit.dsl.coord.generator.matlab.Generator.initFunctionName
+import static iit.dsl.coord.generator.matlab.Generator.updateFunctionName
 
 import java.io.File
 import java.util.ArrayList
+import iit.dsl.coord.generator.Utilities
+
 
 class Generator implements IGenerator {
     def static String robotFolderName(Robot robot) {
@@ -19,36 +26,30 @@ class Generator implements IGenerator {
 
     private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
     private Jacobians  jacGen   = null
-    private Jsim       jsimGen  = null
+    private Jsim       jsimGen  = new Jsim()
     private Transforms transGen = null
     private InertiaProperties inertiaGen = new InertiaProperties()
     private RoysModel roy = new RoysModel()
 
-    private iit.dsl.generator.maxima.IConverterConfigurator maximaConverterConfig = null
+    private IConfigurator configurator = null
 
 
-    public new() {
-        jsimGen = new Jsim()
-    }
-
-    public new(iit.dsl.generator.maxima.IConverterConfigurator maximaConverterCfg)
+    public new()
     {
-        this()
-        setMaximaConverterConfigurator(maximaConverterConfig)
     }
 
-    /**
-     * Sets the iit.dsl.generator.maxima.IConverterConfigurator instance
-     * that will be used by this generator whenever a conversion from Maxima
-     * code has to be performed.
-     */
-    def public void setMaximaConverterConfigurator(
-        iit.dsl.generator.maxima.IConverterConfigurator config)
+    public new(IConfigurator config)
     {
-        maximaConverterConfig = config
+        setConfigurator(config)
     }
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    def public void setConfigurator(IConfigurator config)
+    {
+        configurator = config
+    }
+
+    override void doGenerate(Resource resource, IFileSystemAccess fsa)
+    {
         val robot = resource.contents.head as Robot;
         fsa.generateFile(robotFolderName(robot) + "/" +
             RoysModel::functionName(robot) + ".m", featherstoneMatlabModel(robot))
@@ -85,13 +86,38 @@ class Generator implements IGenerator {
         IFileSystemAccess fsa,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
-        transGen = new Transforms(robot, transformsModel, maximaConverterConfig)
-        fsa.generateFile(robotFolderName(robot) + "/init_homogeneous.m"  , transGen.homogeneous_init_fileContent(robot))
-        fsa.generateFile(robotFolderName(robot) + "/update_homogeneous.m", transGen.homogeneous_update_fileContent(robot))
-        fsa.generateFile(robotFolderName(robot) + "/init_6Dmotion.m"  , transGen.motion6D_init_fileContent(robot))
-        fsa.generateFile(robotFolderName(robot) + "/update_6Dmotion.m", transGen.motion6D_update_fileContent(robot))
-        fsa.generateFile(robotFolderName(robot) + "/init_6Dforce.m"  , transGen.force6D_init_fileContent(robot))
-        fsa.generateFile(robotFolderName(robot) + "/update_6Dforce.m", transGen.force6D_update_fileContent(robot))
+        if(configurator == null) {
+            // should never really get here, the user should pass a configurator
+            configurator = new DefaultConfigurator(robot, transformsModel, new DefaultConverterConfigurator())
+        }
+
+        transGen = new Transforms(robot, transformsModel, configurator);
+
+        var iit.dsl.coord.generator.Utilities$MatrixType mxType
+        var String fileName
+
+        mxType   = iit.dsl.coord.generator.Utilities$MatrixType::HOMOGENEOUS;
+
+        fileName = robotFolderName(robot) + "/" + initFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName  , transGen.homogeneous_init_fileContent(robot))
+        fileName = robotFolderName(robot) + "/" + updateFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName, transGen.homogeneous_update_fileContent(robot))
+
+
+        mxType   = iit.dsl.coord.generator.Utilities$MatrixType::_6D;
+
+        fileName = robotFolderName(robot) + "/" + initFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName, transGen.motion6D_init_fileContent(robot))
+        fileName = robotFolderName(robot) + "/" + updateFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName, transGen.motion6D_update_fileContent(robot))
+
+
+        mxType   = iit.dsl.coord.generator.Utilities$MatrixType::_6D_FORCE;
+
+        fileName = robotFolderName(robot) + "/" + initFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName, transGen.force6D_init_fileContent(robot))
+        fileName = robotFolderName(robot) + "/" + updateFunctionName(mxType) + ".m"
+        fsa.generateFile(fileName, transGen.force6D_update_fileContent(robot))
     }
 
 
@@ -136,8 +162,12 @@ class Generator implements IGenerator {
         iit.dsl.transspecs.transSpecs.DesiredTransforms desired,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
+        if(configurator == null) {
+            // should never really get here, the user should pass a configurator
+            configurator = new DefaultConfigurator(robot, transformsModel, new DefaultConverterConfigurator())
+        }
         jacGen = new Jacobians(new MaximaReplSpecs(robot, transformsModel))
-        jacGen.setMaximaConverterConfigurator(maximaConverterConfig)
+        jacGen.setMaximaConverterConfigurator(configurator.getKindslMaximaConverterConfigurator())
         val jacobians = new ArrayList<Jacobian>()
         if(desired != null) {
             if(desired.jacobians != null) {

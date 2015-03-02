@@ -2,19 +2,19 @@ package iit.dsl.generator.matlab
 
 
 import iit.dsl.kinDsl.Robot
+import iit.dsl.generator.matlab.config.IConfigurator
 
-class Transforms {
+class Transforms
+{
     private iit.dsl.coord.generator.matlab.Generator matlabGen = null
-    private iit.dsl.coord.coordTransDsl.Model transModel = null
+    private iit.dsl.coord.coordTransDsl.Model       transModel = null
 
     new(Robot robot,
         iit.dsl.coord.coordTransDsl.Model transformsModel,
-        iit.dsl.coord.generator.MaximaConverter$IConfigurator maximaCfg)
+        IConfigurator configurator)
     {
         transModel = transformsModel
-        matlabGen =  new iit.dsl.coord.generator.matlab.Generator()
-        matlabGen.setMaximaReplSpecs(new MaximaReplSpecs(robot,transModel))
-        matlabGen.setMaximaConverterConfigurator(maximaCfg)
+        matlabGen  =  new iit.dsl.coord.generator.matlab.Generator(configurator)
     }
 
 	def public homogeneous_init_fileContent(Robot robot) {
