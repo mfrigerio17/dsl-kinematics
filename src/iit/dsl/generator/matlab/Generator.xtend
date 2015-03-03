@@ -197,9 +197,8 @@ class Generator implements IGenerator {
         iit.dsl.coord.coordTransDsl.Model transformsModel,
         IFileSystemAccess fsa)
     {
-        fsa.generateFile(robotFolderName(robot) + "/init_jsim.m"  , jsimGen.jsim_init_code(robot))
-        fsa.generateFile(robotFolderName(robot) + "/update_jsim.m", jsimGen.jsim_update_code(robot, transformsModel))
-        fsa.generateFile(robotFolderName(robot) + "/jsim_inverse.m", jsimGen.jsim_inverse_code(robot))
+        fsa.generateFile(robotFolderName(robot) + "/" + Jsim::updateFunctionName + ".m", jsimGen.jsim_update_code(robot, transformsModel))
+        fsa.generateFile(robotFolderName(robot) + "/" + Jsim::invertFunctionName + ".m", jsimGen.jsim_inverse_code(robot))
     }
 
 

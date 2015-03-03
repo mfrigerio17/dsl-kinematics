@@ -8,30 +8,34 @@ import iit.dsl.kinDsl.Joint
 import org.eclipse.xtend2.lib.StringConcatenation
 import iit.dsl.generator.common.TreeUtils
 
-class Jsim {
+class Jsim
+{
+    public static CharSequence updateFunctionName = '''updateJSIM'''
+    public static CharSequence invertFunctionName = '''invertJSIM'''
+
     extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
-    def private inertiaName(AbstractLink l) '''inertia_lf_«l.name».tensor6D'''
+    def private inertiaName(AbstractLink l) '''lf_«l.name».tensor6D'''
 
     private static String jsim_varName = "H"
     private static String jsim_inv_varName = "Hinv"
 
-    def jsim_init_code(Robot robot) '''
-        «jsim_varName» = zeros(«robot.joints.size»,«robot.joints.size»);
-        «jsim_inv_varName» = «jsim_varName»;
-        L = «jsim_varName»;
-        Linv = «jsim_varName»;
-        «val endLinks = chainEndLinks(robot)»
-        «FOR l : endLinks»
-            «inertiaCompositeName(l)» = «inertiaName(l)»;
-        «ENDFOR»
-    '''
+    private static CharSequence xfVarName = '''force_transforms'''
+    private static CharSequence ipVarName = '''inertia_props'''
 
     def jsim_update_code(
         Robot robot,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
+        function H = «updateFunctionName»(«ipVarName», «xfVarName»)
+
+        % Initialization of the constant composite-inertia matrices
+        «val endLinks = chainEndLinks(robot)»
+        «FOR l : endLinks»
+            «inertiaCompositeName(l)» = «ipVarName».«inertiaName(l)»;
+        «ENDFOR»
+
         % "Bottom-up" loop to update the inertia-composite property of each link,
         %  for the current configuration
         «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
@@ -42,10 +46,7 @@ class Jsim {
                 «val parent_XFrc_child = iit::dsl::coord::generator::matlab::Generator::identifier(
                     iit::dsl::generator::common::Transforms::getTransform(transformsModel, parent, l),
                     iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE)»
-                «val child_X_parent = iit::dsl::coord::generator::matlab::Generator::identifier(
-                    iit::dsl::generator::common::Transforms::getTransform(transformsModel, l, parent),
-                    iit::dsl::coord::generator::Utilities$MatrixType::_6D)»
-                «inertiaCompositeName(parent)» = «inertiaName(parent)» + «parent_XFrc_child» * «inertiaCompositeName(l)» * «child_X_parent»;
+                «inertiaCompositeName(parent)» = «ipVarName».«inertiaName(parent)» + «xfVarName».«parent_XFrc_child» * «inertiaCompositeName(l)» * «xfVarName».«parent_XFrc_child»';
             «ENDIF»
 
             % Assuming 1 DoF joints, the multiplication with the motion subspace matrix boils down to the selection of a column/row
@@ -73,9 +74,9 @@ class Jsim {
         for( link : chainToBase ) {
             parent = link.parent
             if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
-                parentJ = getConnectingJoint(parent);
+                parentJ = parent.connectingJoint
                 strBuff.append('''
-                F = «iit::dsl::coord::generator::matlab::Generator::identifier(
+                F = «xfVarName».«iit::dsl::coord::generator::matlab::Generator::identifier(
                     iit::dsl::generator::common::Transforms::getTransform(transModel, parent, link),
                     iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE)» * F;
                 tmp = F';
@@ -88,6 +89,8 @@ class Jsim {
     }
 
     def jsim_inverse_code(Robot robot) '''
+        function [«jsim_inv_varName» L Linv] = «invertFunctionName»(«jsim_varName»)
+
         % The following code computes the lower triangular matrix L such that
         %  «jsim_varName» = L' L  (LTL factorization)
         % Then it computes the inverse of L and the inverse of «jsim_varName»
@@ -104,6 +107,7 @@ class Jsim {
 
     def LTLfactorization(Robot robot) '''
         L = tril(«jsim_varName»); % lower triangular
+
         «FOR Joint joint : robot.joints.reverseView»
             «val row = joint.getID()»
             % Joint «joint.name», index «row» :
