@@ -50,7 +50,8 @@ class Generator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val robot = resource.contents.head as Robot;
-        fsa.generateFile(robotFolderName(robot) + "/feath_model.m", featherstoneMatlabModel(robot))
+        fsa.generateFile(robotFolderName(robot) + "/" +
+            RoysModel::functionName(robot) + ".m", featherstoneMatlabModel(robot))
 
         generateJacobiansFiles(robot, fsa)
         generateTransformsFiles(robot, fsa)
