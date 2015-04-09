@@ -95,11 +95,11 @@ class Misc {
             body = «robot.base.name»
               inb = $ground
               joint = weld
-              mass = «iparams.mass»
+              mass = «iparams.mass.str»
               inertia =
-                «iparams.ix» «iparams.ixy» «iparams.ixz»
-                «iparams.ixy» «iparams.iy» «iparams.iyz»
-                «iparams.ixz» «iparams.iyz» «iparams.iz»
+                «iparams.ix.str» «iparams.ixy.str» «iparams.ixz.str»
+                «iparams.ixy.str» «iparams.iy.str» «iparams.iyz.str»
+                «iparams.ixz.str» «iparams.iyz.str» «iparams.iz.str»
               bodytojoint = 0 0 0
         «ENDIF»
 
@@ -109,11 +109,11 @@ class Misc {
               inb = «link.parent.name»
               joint = «sdfast_jointType(link.connectingJoint)»
               pin = 0 0 1
-              mass = «iparams.mass»
+              mass = «iparams.mass.str»
               inertia =
-                «iparams.ix» «iparams.ixy» «iparams.ixz»
-                «iparams.ixy» «iparams.iy» «iparams.iyz»
-                «iparams.ixz» «iparams.iyz» «iparams.iz»
+                «iparams.ix.str» «iparams.ixy.str» «iparams.ixz.str»
+                «iparams.ixy.str» «iparams.iy.str» «iparams.iyz.str»
+                «iparams.ixz.str» «iparams.iyz.str» «iparams.iz.str»
               bodytojoint = «sdfast_bodyCOMToJointVector(link)»
               inbtojoint = «sdfast_parentBodyToJointVector(link)»
 
