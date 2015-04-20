@@ -70,7 +70,7 @@ class Generator implements IGenerator {
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     {
         val PlotFrames gen = new PlotFrames(robot, transformsModel)
-        fsa.generateFile(robotFolderName(robot) + "/plot_frames.m"  , gen.plotFramesCode())
+        fsa.generateFile(robotFolderName(robot) + "/" + PlotFrames::functionName + ".m"  , gen.plotFramesCode())
     }
 
     def generateTransformsFiles(
