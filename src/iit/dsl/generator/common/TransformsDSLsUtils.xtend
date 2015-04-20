@@ -36,8 +36,8 @@ class TransformsDSLsUtils {
         Transforms {
             «FOR link : robot.links»
                 «val parent = common.getFrameName(common.getParent(link))»
-                base=«common.getFrameName(link)», target=«parent»
-                base=«parent», target=«common.getFrameName(link)»
+                left=«common.getFrameName(link)»  right=«parent»
+                left=«parent»   right=«common.getFrameName(link)»
             «ENDFOR»
         }
     '''
