@@ -30,6 +30,7 @@ class Generator implements IGenerator {
     private Transforms transGen = null
     private InertiaProperties inertiaGen = new InertiaProperties()
     private CompositeInertia ciGen = new CompositeInertia()
+    private InverseDynamics idGen = new InverseDynamics();
     private RoysModel roy = new RoysModel()
 
     private IConfigurator configurator = null
@@ -202,7 +203,11 @@ class Generator implements IGenerator {
         fsa.generateFile(robotFolderName(robot) + "/" + Jsim::invertFunctionName + ".m", jsimGen.jsim_inverse_code(robot))
     }
 
-
+    def generateIDFiles(Robot robot, IFileSystemAccess fsa)
+    {
+        fsa.generateFile(robotFolderName(robot) + "/" + InverseDynamics::functionName + ".m",
+            idGen.body(robot) )
+    }
 
     def generateCommonDynamicsFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(robotFolderName(robot) + "/" + InertiaProperties::functionName + ".m",
