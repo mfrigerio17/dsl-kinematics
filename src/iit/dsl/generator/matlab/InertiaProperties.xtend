@@ -4,7 +4,6 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Var
 import iit.dsl.kinDsl.InertiaParams
 
-import iit.dsl.generator.common.Parameters
 import iit.dsl.generator.Common
 import iit.dsl.generator.Utilities
 
@@ -22,11 +21,7 @@ class InertiaProperties {
      * field of the struct with the inertia parameters
      */
     def public static value(Var inertiaProperty) {
-        if(Parameters::isParameter(inertiaProperty)) {
-            return inertiaParamsStruct + "." +
-                (Parameters::asParameter(inertiaProperty)).varname
-        }
-        return Common::getInstance().asFloat(inertiaProperty)
+        return Parameters::value(inertiaProperty, inertiaParamsStruct)
     }
 
     /**
@@ -45,7 +40,7 @@ class InertiaProperties {
          [«value(params.com.x)»; «value(params.com.y)»; «value(params.com.z)»]'''
 
     def scriptContent(Robot robot) {
-        if(Parameters::massPropertiesAreParametric(robot)) {
+        if(iit::dsl::generator::common::Parameters::massPropertiesAreParametric(robot)) {
             return scriptContent_withParams(robot)
         } else {
             return scriptContent_onlyConstants(robot)
