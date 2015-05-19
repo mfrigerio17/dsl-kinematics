@@ -29,6 +29,7 @@ class Generator implements IGenerator {
     private Jsim       jsimGen  = new Jsim()
     private Transforms transGen = null
     private InertiaProperties inertiaGen = new InertiaProperties()
+    private CompositeInertia ciGen = new CompositeInertia()
     private RoysModel roy = new RoysModel()
 
     private IConfigurator configurator = null
@@ -206,6 +207,9 @@ class Generator implements IGenerator {
     def generateCommonDynamicsFiles(Robot robot, IFileSystemAccess fsa) {
         fsa.generateFile(robotFolderName(robot) + "/" + InertiaProperties::functionName + ".m",
             inertiaGen.scriptContent(robot)  )
+
+        fsa.generateFile(robotFolderName(robot) + "/" + CompositeInertia::functionName + ".m",
+            ciGen.functionBody(robot)  )
     }
 
 
