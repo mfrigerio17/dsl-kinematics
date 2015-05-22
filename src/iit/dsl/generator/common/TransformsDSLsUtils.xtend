@@ -4,6 +4,7 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.generator.Common
 import iit.dsl.TransSpecsAccessor
 import iit.dsl.generator.MotionDSLDocGenerator
+import iit.dsl.TransformsAccessor
 
 /**
  * Miscellaneous utilities related to the Domain Specific Language for the
@@ -41,6 +42,68 @@ class TransformsDSLsUtils {
             «ENDFOR»
         }
     '''
+
+
+    def public CharSequence parentToChildDesiredTransformsDSLDoc(Robot robot) '''
+        Robot «robot.name»
+
+        Frames {
+            «common.getFrameName(robot.base)»
+            «FOR link : robot.links BEFORE ", " SEPARATOR ", "»«common.getFrameName(link)»«ENDFOR»
+        }
+
+        Transforms {
+            «FOR link : robot.links»
+                left=«common.getFrameName(link)»  right=«common.getFrameName(common.getParent(link))»
+            «ENDFOR»
+        }
+    '''
+
+
+    def public iit.dsl.transspecs.transSpecs.DesiredTransforms
+        getDesiredTransformsModel(CharSequence document)
+    {
+        return desiredTrasformsAccessor.getModel( document.toString() );
+    }
+
+    def public iit.dsl.coord.coordTransDsl.Model
+        getCoordinateTransformsModel(CharSequence document)
+    {
+        return transformsAccessor.getModel( document.toString() );
+    }
+
+    /**
+     * Adds the default coordinate transforms for the given robot to the given
+     * model.
+     *
+     * @param robot the robot of interest
+     * @userTransforms the user-desired coordinate transforms (and Jacobians)
+     *                 for the robot
+     * @return an object of the same type of the second argument, that contains
+     *         also the default coordinate transforms for the same robot.
+     *         This method also makes sure that the transforms required to
+     *         compute the user-desired Jacobians are also added. Duplicates are
+     *         removed.
+     */
+    def public iit.dsl.transspecs.transSpecs.DesiredTransforms
+        addDefaultTransforms(
+            Robot robot,
+            iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
+    {
+        val defaultTransforms =
+                desiredTrasformsAccessor.getModel( defaultDesiredTransformsDSLDoc(robot).toString() );
+
+        var iit.dsl.transspecs.transSpecs.DesiredTransforms allDesiredTransforms = null
+
+        if(userTransforms != null) {
+            val allUserTransforms = addTransformsForJacobians(robot, userTransforms)
+
+            allDesiredTransforms= iit::dsl::transspecs::utils::Utils::merge(allUserTransforms, defaultTransforms)
+        } else {
+            allDesiredTransforms = defaultTransforms
+        }
+        return allDesiredTransforms
+    }
 
 
     def public iit.dsl.transspecs.transSpecs.DesiredTransforms
@@ -100,6 +163,7 @@ class TransformsDSLsUtils {
 
     private  Common common = new Common()
     private TransSpecsAccessor desiredTrasformsAccessor = new TransSpecsAccessor()
+    private TransformsAccessor transformsAccessor       = new TransformsAccessor()
     private MotionDSLDocGenerator generatorOfMotionDSLDocs =
                                                     new MotionDSLDocGenerator()
 
