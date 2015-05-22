@@ -37,7 +37,7 @@ class Generator implements IGenerator {
         iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
     {
         val transformsModel =
-           iit::dsl::generator::common::Transforms::getTransformsModel(robot, userTransforms)
+           iit::dsl::generator::common::Transforms::getAllTransformsModel(robot, userTransforms)
         generateTransformsSources(robot, fsa, transformsModel);
     }
     def generateTransformsSources(
@@ -65,7 +65,7 @@ class Generator implements IGenerator {
         iit.dsl.transspecs.transSpecs.DesiredTransforms desiredJacobians)
     {
         val transformsModel =
-           iit::dsl::generator::common::Transforms::getTransformsModel(robot, desiredJacobians)
+           iit::dsl::generator::common::Transforms::getAllTransformsModel(robot, desiredJacobians)
         generateJacobiansSources(
             robot,
             fsa,

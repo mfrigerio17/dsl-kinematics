@@ -124,31 +124,18 @@ class TransformsDSLsUtils {
         return user
     }
 
+
+
     /**
      * Content of a document of the Transforms-DSL, with the specification of
      * the coordinate transforms for the given robot.
-     * The returned document contains both the default transforms for the robot
-     * and those possibly specified by the second parameter
+     *
      * @param robot the robot of interest
-     * @userTransforms the transforms to be included in the returned document,
-     *   in addition to the default ones. Optional argument, can be null
+     * @allDesiredTransforms the transforms to be included in the returned document
      */
     def public CharSequence coordinateTransformsDSLDoc(Robot robot,
-        iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
+        iit.dsl.transspecs.transSpecs.DesiredTransforms allDesiredTransforms)
     {
-        val defaultTransforms =
-                desiredTrasformsAccessor.getModel( defaultDesiredTransformsDSLDoc(robot).toString() );
-
-        var iit.dsl.transspecs.transSpecs.DesiredTransforms allDesiredTransforms = null
-
-        if(userTransforms != null) {
-            val allUserTransforms = addTransformsForJacobians(robot, userTransforms)
-
-            allDesiredTransforms= iit::dsl::transspecs::utils::Utils::merge(allUserTransforms, defaultTransforms)
-        } else {
-            allDesiredTransforms = defaultTransforms
-        }
-
         // The model of the rigid motions describing the pose of the robot frames
         val motionsModel = motionDSLAccessor.getModel(generatorOfMotionDSLDocs.documentContent(robot).toString())
 

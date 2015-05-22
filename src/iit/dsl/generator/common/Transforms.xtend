@@ -12,18 +12,46 @@ class Transforms {
     private static iit.dsl.coord.generator.Common coordTransCommon = new iit.dsl.coord.generator.Common()
     private static Common common = new Common()
 
+    /**
+     * Creates and returns the model of the Coordinate-Transforms DSL
+     * for the given robot.
+     * @return the model containing the specifications of all the coordinate
+     *         transforms for the robot, including the default ones and those
+     *         specified by the second argument.
+     */
+    def static iit.dsl.coord.coordTransDsl.Model getAllTransformsModel(
+        Robot robot,
+        iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
+    {
+        val allTransf = transformsDSLsUtils.addDefaultTransforms(robot, userTransforms)
+        val modelDoc  = transformsDSLsUtils.coordinateTransformsDSLDoc(robot, allTransf)
+        return  transformsAccessor.getModel( modelDoc.toString() )
+    }
 
+    /**
+     * Creates and returns the default model of the Coordinate-Transforms DSL
+     * for the given robot.
+     * @return the model containing the specifications of all the default
+     *         coordinate transforms for the robot
+     */
+    def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot)
+    {
+        // As we are passing null, this basically gives us only the default transforms:
+        return getAllTransformsModel(robot, null)
+    }
+
+    /**
+     * Creates and returns the model of the Coordinate-Transforms DSL for the
+     * given robot.
+     * @return the model containing the specifications of all and only the
+     *         transforms referenced by the second argument.
+     */
     def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(
         Robot robot,
         iit.dsl.transspecs.transSpecs.DesiredTransforms userTransforms)
     {
-        return  transformsAccessor.getModel(
-            transformsDSLsUtils.coordinateTransformsDSLDoc(robot, userTransforms).toString() )
-    }
-
-    def static iit.dsl.coord.coordTransDsl.Model getTransformsModel(Robot robot) {
-        val modelDoc = transformsDSLsUtils.coordinateTransformsDSLDoc(robot, null)
-        return  transformsAccessor.getModel(modelDoc.toString());
+        val modelDoc = transformsDSLsUtils.coordinateTransformsDSLDoc(robot, userTransforms)
+        return transformsAccessor.getModel( modelDoc.toString() )
     }
 
     def static iit.dsl.coord.coordTransDsl.Transform getTransform(
