@@ -7,7 +7,7 @@ public class Vector3D {
     public double y;
     public double z;
 
-    Vector3D (double xx, double yy, double zz) {
+    public Vector3D (double xx, double yy, double zz) {
         x = xx;
         y = yy;
         z = zz;
