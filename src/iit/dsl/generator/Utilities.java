@@ -1,7 +1,9 @@
 package iit.dsl.generator;
 
 import iit.dsl.generator.common.Parameters;
+import iit.dsl.generator.common.Vector3D;
 import iit.dsl.kinDsl.InertiaParams;
+import iit.dsl.kinDsl.Joint;
 import iit.dsl.kinDsl.KinDslFactory;
 import iit.dsl.kinDsl.Vector3;
 import iit.dsl.kinDsl.FloatLiteral;
@@ -10,7 +12,7 @@ import iit.dsl.kinDsl.impl.KinDslFactoryImpl;
 public class Utilities {
 
 	private static KinDslFactory factory    = KinDslFactoryImpl.init();
-	private static Common utils = new Common();
+	private static Common utils = Common.getInstance();
 
 	/**
      * Computes the inertia parameters of a rigid body in a different frame.
@@ -214,6 +216,73 @@ public class Utilities {
         return translated;
     }
 
+    /**
+     * Returns the inertia tensor as a 3x3 double array
+     */
+    public static double[][] getInertiaTensor(InertiaParams properties)
+    {
+        double[][] ret = new double[3][3];
+        ret[0][0] = utils.asFloat(properties.getIx());
+        ret[1][1] = utils.asFloat(properties.getIy());
+        ret[2][2] = utils.asFloat(properties.getIz());
+
+        ret[0][1] = ret[1][0] = - utils.asFloat(properties.getIxy());
+        ret[0][2] = ret[2][0] = - utils.asFloat(properties.getIxz());
+        ret[1][2] = ret[2][1] = - utils.asFloat(properties.getIyz());
+
+        return ret;
+    }
+
+    /**
+     * Roto-translates the given 3x3 inertia tensor
+     * @param Iin the input tensor
+     * @param mass the total mass of the rigid body
+     * @param t the translation vector between the two reference frames
+     * @param out_R_in the 3x3 rotation matrix that transforms coordinates of
+     *         the original reference frame into the rotated (desired) frame
+     * @return a 3x3 double array with the inertia tensor resulting from the
+     *    translation and rotation of the given tensor
+     */
+    public static double[][] rototranslateITensor(double[][] Iin, double mass, Vector3D t, double[][] out_R_in)
+    {
+        // Translation; paralles axis theorem
+        double[][] translated = new double[3][3];
+
+        translated[0][0] = Iin[0][0] - mass * (t.z*t.z + t.y*t.y);
+        translated[1][1] = Iin[1][1] - mass * (t.z*t.z + t.x*t.x);
+        translated[2][2] = Iin[2][2] - mass * (t.y*t.y + t.x*t.x);
+
+        translated[0][1] = translated[1][0] = Iin[0][1] + mass * t.x*t.y;
+        translated[0][2] = translated[2][0] = Iin[0][2] + mass * t.x*t.z;
+        translated[1][2] = translated[2][1] = Iin[1][2] + mass * t.y*t.z;
+
+        // Rotation: I2 = 2_R_1 * I1 * (2_R_1)^T
+        if(out_R_in == null) return translated;
+
+        double[][] in_R_out = transpose3x3(out_R_in);
+        double[][] tmp = matrix3x3Mult(out_R_in, translated);
+
+        return matrix3x3Mult(tmp, in_R_out);
+    }
+
+    /**
+     * Rounds each element of the given matrix according to the factor.
+     *
+     * Basically:
+     *     mx[.][.] = round(mx[.][.] * factor) / factor
+     *
+     * @param mx
+     * @param factor
+     */
+    public static void round(double[][] mx, int factor)
+    {
+        for(int r=0; r<mx.length; r++) {
+            for(int c=0; c<mx[0].length; c++) {
+                mx[r][c] = Math.round(mx[r][c]*factor)/ (double)(factor);
+            }
+        }
+    }
+
 	public static float invert(float num) {
 	    return -num;
 	}
@@ -275,13 +344,14 @@ public class Utilities {
                 };
         return M;
 	}
+
 	/**
 	 * Computes the 3 rotation parameters (ie Euler angles) given a 3x3 rotation matrix.
 	 * This is basically the inverse operation of rotated_X_original(double, double, double)
-	 * See the documentation of such function for the semantics of the angles and the matrix.
-	 * @param mx a 3x3 rotation matrix
+	 * See the documentation of such a function for the semantics of the angles and the matrix.
+	 * @param mx a 3x3 rotation matrix in the form 'rotated_X_original'
 	 * @return a vector of three elements, representing the consecutive rotations about the
-	 *          x, y, and z axis the correspond to the given matrix
+	 *          x, y, and z axis that correspond to the given matrix
 	 */
 	public static double[] get_rxryrz(double mx[][]) {
 	    double rotx = Math.atan2(-mx[2][1], mx[2][2]); // atan( sx cy , cx cy ) = atan( sx,cx )
@@ -291,5 +361,95 @@ public class Utilities {
 
 	    double[] ret = {rotx, roty, rotz};
 	    return ret;
+	}
+    /**
+     * See rotated_X_original()
+     */
+    public static double[][] original_X_rotated(double rx, double ry, double rz) {
+        double sx = Math.sin(rx);
+        double sy = Math.sin(ry);
+        double sz = Math.sin(rz);
+        double cx = Math.cos(rx);
+        double cy = Math.cos(ry);
+        double cz = Math.cos(rz);
+
+        double[][] M = {
+                {     cy*cz      ,       -cy*sz      ,      sy   },
+                {cx*sz + sx*sy*cz,   cx*cz - sx*sy*sz,   - sx*cy },
+                {sx*sz - cx*sy*cz,   cx*sy*sz + sx*cz,     cx*cy }
+                };
+        return M;
+    }
+
+    /**
+     * Multiplies a 3x3 matrix with a 3x1 column vector.
+     * @param mx
+     * @param v
+     * @return
+     */
+    public static Vector3D matrix3x3Mult(double[][] mx, Vector3D v)
+    {
+        Vector3D ret = new Vector3D(.0,.0,.0);
+
+        ret.x = mx[0][0] * v.x + mx[0][1] * v.y + mx[0][2] * v.z;
+        ret.y = mx[1][0] * v.x + mx[1][1] * v.y + mx[1][2] * v.z;
+        ret.z = mx[2][0] * v.x + mx[2][1] * v.y + mx[2][2] * v.z;
+
+        return ret;
+    }
+    /**
+     * Multiplies two 3x3 matrices
+     * @param mx1
+     * @param mx2
+     * @return
+     */
+    public static double[][] matrix3x3Mult(double[][] mx1, double[][] mx2)
+    {
+        double[][] ret = new double[3][3];
+
+        double tmp = 0;
+        for(int r=0; r<ret.length; r++) {
+            for(int c=0; c<ret[0].length; c++) {
+                for(int k=0; k<mx2.length; k++) {
+                    tmp += mx1[r][k] * mx2[k][c];
+                }
+                ret[r][c] = tmp;
+                tmp = 0;
+            }
+        }
+        return ret;
+    }
+
+    public static double[][] transpose3x3(double[][] mx)
+    {
+        double[][] ret = new double[3][3];
+
+        for(int r=0; r<3; r++) {
+            for(int c=0; c<3; c++) {
+                ret[r][c] = mx[c][r];
+            }
+        }
+        return ret;
+    }
+
+	/**
+	 * Calculates the joint axis unit vector, in the coordinate frame of the
+	 * supporting link (i.e. the predecessor of the joint)
+	 * @param joint
+	 * @return
+	 */
+	public static Vector3D jointAxis(Joint joint)
+	{
+	    Vector3 rot = joint.getRefFrame().getRotation();
+        float rx = utils.asFloat(rot.getX());
+        float ry = utils.asFloat(rot.getY());
+        float rz = utils.asFloat(rot.getZ());
+
+        // The joint axis would be the third column of the rotation matrix
+        //  'link_R_joint'. Since we can only get the transpose of such a matrix,
+        //  we return the third row
+
+        double[][] joint_R_link = rotated_X_original(rx, ry, rz);
+        return new Vector3D(joint_R_link[2][0],joint_R_link[2][1],joint_R_link[2][2]);
 	}
 }

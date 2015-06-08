@@ -1,18 +1,23 @@
 package iit.dsl.generator.common
 
 import java.util.List
+import java.util.ArrayList
+import java.util.Map
+import java.util.HashMap
 
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.ChildSpec
-import java.util.ArrayList
+import iit.dsl.kinDsl.RobotBase
+import iit.dsl.kinDsl.Link
+import iit.dsl.generator.Utilities
 
 /**
  * Utility functions for the visit of the kinematic tree structure and
  * the creation of subtrees (e.g. chains)
  */
 class TreeUtils {
-    private static iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+    private static extension iit.dsl.generator.Common common = iit.dsl.generator.Common.getInstance()
 
     /**
      * Tells whether a link belongs to a kinematic subtree rooted in another
@@ -130,5 +135,38 @@ class TreeUtils {
         val chain = buildChain(l, (l.eContainer() as Robot).base)
         chain.remove(chain.size() - 1) // removes the last element, which is the base
         return chain
+    }
+
+    /**
+     * Calculate the rotation matrix from the default link frame to the base,
+     * for each link of the robot.
+     * @param base the robot base link
+     * @return a map that associate every link of the robot (but the base) to
+     *    the 3x3 rotation matrix that transforms coordinates of the link frame
+     *    into coordinates of the robot base frame.
+     */
+    def static Map<Link, double[][]> getLinkToBaseRotationMatrices(RobotBase base)
+    {
+        val ret = new HashMap<Link, double[][]>()
+        addChildrenTransforms(base, null, ret)
+        return ret
+    }
+    def private static void addChildrenTransforms(
+        AbstractLink currentLink, double[][] base_R_current, Map<Link, double[][]> map  )
+    {
+        if(currentLink.childrenList.children.empty) return;
+        for(c : currentLink.childrenList.children) {
+            val rot = c.joint.refFrame.rotation
+            val R   = Utilities::original_X_rotated(rot.x.asFloat, rot.y.asFloat, rot.z.asFloat)
+            var double[][] RR
+            if(base_R_current != null) {
+                RR  = Utilities::matrix3x3Mult(base_R_current, R)
+            } else {
+                RR = R
+            }
+
+            map.put(c.link, RR)
+            addChildrenTransforms(c.link, RR, map)
+        }
     }
 }
