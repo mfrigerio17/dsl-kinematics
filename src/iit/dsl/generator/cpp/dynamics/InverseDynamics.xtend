@@ -247,7 +247,7 @@ class InverseDynamics {
             «LinkInertias::className(robot)»* «linkInertiasMember»;
             «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
         private:
-            «rbd_ns»::Matrix66d spareMx; // support variable
+            «rbd_ns»::Matrix66d vcross; // support variable
             «FOR l : robot.links»
                 // Link '«l.name»' :
                 const InertiaMatrix& «l.inertia»;
@@ -350,6 +350,8 @@ class InverseDynamics {
         Robot robot,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
+            #include <iit/rbd/robcogen_commons.h>
+
             #include "«Names$Files$RBD::invDynHeader(robot)».h"
             #include "«Names$Files$RBD::inertiaHeader(robot)».h"
             #ifndef EIGEN_NO_DEBUG
@@ -384,6 +386,8 @@ class InverseDynamics {
                 «FOR l : robot.links»
                     «l.velocity».setZero();
                 «ENDFOR»
+
+                vcross.setZero();
             }
 
             «IF floatingBase»
@@ -499,8 +503,7 @@ class InverseDynamics {
         {
             «fixedBase_pass1_Cterms()»
 
-            Utils::fillAsForceCrossProductMx(«robot.base.velocity», spareMx);
-            «robot.base.force» = spareMx * «robot.base.inertia» * «robot.base.velocity»;
+            «robot.base.force» = vxIv(«robot.base.velocity», «robot.base.inertia»);
 
             secondPass_fullyActuated(«name_jointsForce»);
 
@@ -517,9 +520,7 @@ class InverseDynamics {
             «fixedBase_pass1()»
 
             // The base
-            Utils::fillAsForceCrossProductMx(«robot.base.velocity», spareMx);
-            «robot.base.force» = «robot.base.inertia» * «robot.base.acceleration» + spareMx * «robot.base.inertia» * «robot.base.velocity»;
-
+            «robot.base.force» = «robot.base.inertia» * «robot.base.acceleration» + vxIv(«robot.base.velocity», «robot.base.inertia»);
 
             secondPass_fullyActuated(«name_jointsForce»);
 
@@ -562,33 +563,36 @@ class InverseDynamics {
             «IF floatingBase»
                 «velocity» = ((«child_X_parent») * «parent.velocity»);
                 «velocity»(«subspaceIdx») += qd(«jid»);
-                Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
+                motionCrossProductMx(«velocity», vcross);
                 «IF parent.equals(robot.base)»
-                    «acceler» = (spareMx.col(«subspaceIdx») * qd(«jid»));
+                    «acceler» = (vcross.col(«subspaceIdx») * qd(«jid»));
                 «ELSE»
-                    «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+                    «acceler» = («child_X_parent») * «parent.acceleration» + vcross.col(«subspaceIdx») * qd(«jid»);
                 «ENDIF»
-                «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
+                «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia»);
             «ELSE»
                 «IF parent.equals(robot.base)»
                     «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
 
-                    Utils::fillAsForceCrossProductMx(«velocity», spareMx);
-
-                    «l.force» = ((spareMx * «l.inertia»).col(«subspaceIdx») * qd(«jid»));
+                    «IF joint.prismatic»
+                        // The first joint is prismatic, no centripetal terms.
+                        «l.force».setZero();
+                    «ELSE»
+                        «l.force» = vxIv(qd(«jid»), «l.inertia»);
+                    «ENDIF»
                 «ELSE»
                     «velocity» = ((«child_X_parent») * «parent.velocity»);
                     «velocity»(«subspaceIdx») += qd(«jid»);
 
-                    Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
+                    motionCrossProductMx(«velocity», vcross);
 
                     «IF parent.parent.equals(robot.base)»
-                        «acceler» = (spareMx.col(«subspaceIdx») * qd(«jid»));
+                        «acceler» = (vcross.col(«subspaceIdx») * qd(«jid»));
                     «ELSE»
-                        «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+                        «acceler» = («child_X_parent») * «parent.acceleration» + vcross.col(«subspaceIdx») * qd(«jid»);
                     «ENDIF»
 
-                    «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
+                    «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia»);
                 «ENDIF»
             «ENDIF»
 
@@ -609,19 +613,23 @@ class InverseDynamics {
                 «acceler» = («child_X_parent»).col(«rbd_ns»::LZ) * «rbd_ns»::g;
                 «acceler»(«subspaceIdx») += qdd(«jid»);
                 «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
-                Utils::fillAsForceCrossProductMx(«velocity», spareMx);
 
-                «l.force» = «l.inertia» * «acceler» + ((spareMx * «l.inertia»).col(«subspaceIdx») * qd(«jid»));
+                «IF myJoint.prismatic»
+                    // The first joint is prismatic, no centripetal terms.
+                    «l.force» = «l.inertia» * «acceler»;
+                «ELSE»
+                    «l.force» = «l.inertia» * «acceler» + vxIv(qd(«jid»), «l.inertia»);
+                «ENDIF»
             «ELSE»
                 «velocity» = ((«child_X_parent») * «parent.velocity»);
                 «velocity»(«subspaceIdx») += qd(«jid»);
 
-                Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
+                motionCrossProductMx(«velocity», vcross);
 
-                «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+                «acceler» = («child_X_parent») * «parent.acceleration» + vcross.col(«subspaceIdx») * qd(«jid»);
                 «acceler»(«subspaceIdx») += qdd(«jid»);
 
-                «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
+                «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia»);
             «ENDIF»
 
         «ENDFOR»
@@ -637,7 +645,7 @@ class InverseDynamics {
             «name_jointsForce»(«Common::jointIdentifier(joint)») = «l.force»(«iit::dsl::generator::cpp::Common::spatialVectIndex(joint)»);
             «IF ( ! parent.equals(robot.base)) || floatingBase»
                 «val child_X_parent = transformsMap.get(l)»
-                «parent.force» = «parent.force» + («child_X_parent»).transpose() * «l.force»;
+                «parent.force» += «child_X_parent».transpose() * «l.force»;
             «ENDIF»
         «ENDFOR»
     '''
@@ -655,22 +663,21 @@ class InverseDynamics {
             «velocity» = ((«child_X_parent») * «parent.velocity»);
             «velocity»(«subspaceIdx») += qd(«jid»);
 
-            Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
+            motionCrossProductMx(«velocity», vcross);
 
             «IF parent.equals(robot.base)/* parent is the floating base */»
-                «acceler» = (spareMx.col(«subspaceIdx») * qd(«jid»));
+                «acceler» = (vcross.col(«subspaceIdx») * qd(«jid»));
             «ELSE»
-                «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
+                «acceler» = («child_X_parent») * «parent.acceleration» + vcross.col(«subspaceIdx») * qd(«jid»);
             «ENDIF»
             «acceler»(«subspaceIdx») += qdd(«jid»);
 
-            «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
+            «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia»);
 
         «ENDFOR»
         // The force exerted on the floating base by the links
         «val base = robot.base»
-        Utils::fillAsMotionCrossProductMx(«base.velocity», spareMx);
-        «base.force» = -spareMx.transpose() * «base.inertia» * «base.velocity»;
+        «base.force» = vxIv(«base.velocity», «base.inertia»);
 
     '''
 
