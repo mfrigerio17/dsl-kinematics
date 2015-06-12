@@ -568,7 +568,7 @@ class InverseDynamics {
                 «ELSE»
                     «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
                 «ENDIF»
-                «l.force» = «l.inertia» * «acceler» + (-spareMx.transpose() * «l.inertia» * «velocity»);
+                «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
             «ELSE»
                 «IF parent.equals(robot.base)»
                     «velocity»(«subspaceIdx») = qd(«jid»);   // «velocity» = vJ, for the first link of a fixed base robot
@@ -588,7 +588,7 @@ class InverseDynamics {
                         «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
                     «ENDIF»
 
-                    «l.force» = «l.inertia» * «acceler» + (-spareMx.transpose() * «l.inertia» * «velocity»);
+                    «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
                 «ENDIF»
             «ENDIF»
 
@@ -621,7 +621,7 @@ class InverseDynamics {
                 «acceler» = ((«child_X_parent») * «parent.acceleration») + (spareMx.col(«subspaceIdx») * qd(«jid»));
                 «acceler»(«subspaceIdx») += qdd(«jid»);
 
-                «l.force» = «l.inertia» * «acceler» + (-spareMx.transpose() * «l.inertia» * «velocity»);
+                «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
             «ENDIF»
 
         «ENDFOR»
@@ -664,7 +664,7 @@ class InverseDynamics {
             «ENDIF»
             «acceler»(«subspaceIdx») += qdd(«jid»);
 
-            «l.force» = «l.inertia» * «acceler» + (-spareMx.transpose() * «l.inertia» * «velocity»);
+            «l.force» = «l.inertia» * «acceler» - spareMx.transpose() * «l.inertia» * «velocity»;
 
         «ENDFOR»
         // The force exerted on the floating base by the links
