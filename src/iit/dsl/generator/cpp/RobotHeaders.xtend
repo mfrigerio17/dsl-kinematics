@@ -4,7 +4,7 @@ import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Joint
 import iit.dsl.generator.cpp.dynamics.InverseDynamics
 import iit.dsl.generator.cpp.dynamics.ForwardDynamics
-
+import iit.dsl.generator.cpp.dynamics.LinkInertias
 
 class RobotHeaders {
     private iit.dsl.generator.Common common = new iit.dsl.generator.Common()
@@ -250,6 +250,7 @@ class RobotHeaders {
         #include "«Names$Files$RBD::invDynHeader(robot)».h"
         #include "«Names$Files$RBD::fwdDynHeader(robot)».h"
         #include "«Names$Files$RBD::jsimHeader(robot)».h"
+        #include "«Names$Files$RBD::inertiaHeader(robot)».h"
 
         «Common::enclosingNamespacesOpen(robot)»
 
@@ -265,6 +266,7 @@ class RobotHeaders {
             typedef typename «ns»::«Names$Types$Transforms::spatial_motion» «Names$Types$Transforms::spatial_motion»;
             typedef typename «ns»::«Names$Types$Transforms::spatial_force» «Names$Types$Transforms::spatial_force»;
 
+            typedef typename «ns»::«dyn»::«LinkInertias::className(robot)» InertiaProperties;
             typedef typename «ns»::«dyn»::«ForwardDynamics::className(robot)» FwdDynEngine;
             typedef typename «ns»::«dyn»::«InverseDynamics::className(robot)» InvDynEngine;
             typedef typename «ns»::«dyn»::«Names$Types::jspaceMLocal» JSIM;
