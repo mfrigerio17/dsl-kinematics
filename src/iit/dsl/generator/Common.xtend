@@ -198,6 +198,22 @@ def listCoordinates(Vector3 vector) {
 def dispatch getTypeString(RevoluteJoint joint) '''revolute'''
 def dispatch getTypeString(PrismaticJoint joint)'''prismatic'''
 
+def dispatch boolean isPrismatic(RevoluteJoint joint) { return false }
+def dispatch boolean isPrismatic(PrismaticJoint joint){ return true }
+
+def boolean anyPrismaticJoint(Robot robot) {
+    for(Joint j : robot.joints) {
+        if(j.isPrismatic) return true;
+    }
+    return false;
+}
+def boolean anyRevoluteJoint(Robot robot) {
+    for(Joint j : robot.joints) {
+        if(j instanceof RevoluteJoint) return true;
+    }
+    return false;
+}
+
 def getVariableName(Joint joint) '''q_«joint.name»'''
 def Joint getJointFromVariableName(Robot robot, String varname) {
     return getJointByName(robot, varname.replaceAll("q_", ""))
