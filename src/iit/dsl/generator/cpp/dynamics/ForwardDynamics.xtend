@@ -35,8 +35,6 @@ class ForwardDynamics {
         «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
 
-        typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
-
         /**
          * The Forward Dynamics routine for the robot «robot.name».
          *
@@ -114,13 +112,13 @@ class ForwardDynamics {
             «rbd_ns»::Matrix66d spareMx; // support variable
             «IF floatingBase»
                 // Link '«robot.base.name»'
-                InertiaMatrix «artInertiaName(robot.base)»;
+                «rbd_ns»::Matrix66d «artInertiaName(robot.base)»;
                 Force «biasForceName(robot.base)»;
             «ENDIF»
 
             «FOR l : robot.links»
                 // Link '«l.name»' :
-                InertiaMatrix «artInertiaName(l)»;
+                «rbd_ns»::Matrix66d «artInertiaName(l)»;
                 Velocity «l.acceleration»;
                 Velocity «l.velocity»;
                 Velocity «cTermName(l)»;
@@ -268,7 +266,7 @@ class ForwardDynamics {
         «ENDIF»
 
         // ---------------------- SECOND PASS ---------------------- //
-        InertiaMatrix Ia;
+        «rbd_ns»::Matrix66d Ia;
         Force pa;
         «FOR l : sortedLinks.reverseView»
             «val joint = l.connectingJoint»
