@@ -31,6 +31,10 @@ class Common {
         '''«Names$Namespaces$Qualifiers::iit_rbd»::AZ'''
     def public static dispatch spatialVectIndex(PrismaticJoint joint)
         '''«Names$Namespaces$Qualifiers::iit_rbd»::LZ'''
+    def public static dispatch spatialVectIndex_no_ns(RevoluteJoint joint)
+        '''AZ'''
+    def public static dispatch spatialVectIndex_no_ns(PrismaticJoint joint)
+        '''LZ'''
     ///@}
 
     def public static enclosingNamespacesOpen() '''
