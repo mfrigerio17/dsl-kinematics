@@ -44,29 +44,49 @@ class Misc {
      */
     def public URDF_ROS_model(Robot robot) '''
     <robot name="«robot.name»">
-    «FOR link : robot.abstractLinks»
-        «val inertia_lf = link.linkFrameInertiaParams /*inertia params expressed in the default link frame*/»
-        «val inertia = getURDFInertiaParams(inertia_lf)»
-        <link name="«link.name»">
-            <inertial>
-                <origin xyz="«inertia_lf.com.listCoordinates()»"/>
-                <mass value="«inertia.mass.str»"/>
-                <inertia ixx="«inertia.ix.str»" iyy="«inertia.iy.str»" izz="«inertia.iz.str»" ixy="«inertia.ixy.str»" ixz="«inertia.ixz.str»" iyz="«inertia.iyz.str»"/>
-            </inertial>
+        «IF robot.base.floating»
+            <link name="world" />
+        «ENDIF»
+        <link name="«robot.base.name»">
+            «IF robot.base.floating»
+                «URDF_inertialSection(robot.base)»
+            «ENDIF»
         </link>
-    «ENDFOR»
-    «FOR joint : robot.joints»
-        «val frame = joint.refFrame»
-        <joint name="«joint.name»" type="«joint.typeString»">
-            <origin xyz="«frame.translation.listCoordinates()»" rpy="«frame.rotation.x.asFloat» «frame.rotation.y.asFloat» «frame.rotation.z.asFloat»"/>
-            <parent link="«joint.predecessorLink.name»"/>
-            <child  link="«joint.successorLink.name»"/>
-            <limit effort="30" velocity="1.0"/>
-            <axis xyz="0 0 1"/>
-        </joint>
-    «ENDFOR»
+        «FOR link : robot.links»
+            <link name="«link.name»">
+                «URDF_inertialSection(link)»
+            </link>
+        «ENDFOR»
+        «IF robot.base.floating»
+            <joint name="fbj" type="floating">
+                <parent link="world"/>
+                <child  link="«robot.base.name»"/>
+            </joint>
+        «ENDIF»
+        «FOR joint : robot.joints»
+            «val frame = joint.refFrame»
+            «val rpy = Utilities::intrinsicToExtrinsic_xyz(frame.rotation.x.asFloat,frame.rotation.y.asFloat,frame.rotation.z.asFloat)»
+            <joint name="«joint.name»" type="«joint.typeString»">
+                <origin xyz="«frame.translation.listCoordinates()»" rpy="«rpy.get(0)» «rpy.get(1)» «rpy.get(2)»"/>
+                <parent link="«joint.predecessorLink.name»"/>
+                <child  link="«joint.successorLink.name»"/>
+                <limit effort="30" velocity="1.0"/>
+                <axis xyz="0 0 1"/>
+            </joint>
+        «ENDFOR»
     </robot>
     '''
+    def private URDF_inertialSection(AbstractLink link)
+        '''
+        <inertial>
+            «val inertia_lf = link.linkFrameInertiaParams /*inertia params expressed in the default link frame*/»
+            «val inertia = getURDFInertiaParams(inertia_lf)»
+            <origin xyz="«inertia_lf.com.listCoordinates()»"/>
+            <mass value="«inertia.mass.str»"/>
+            <inertia ixx="«inertia.ix.str»" iyy="«inertia.iy.str»" izz="«inertia.iz.str»" ixy="«inertia.ixy.str»" ixz="«inertia.ixz.str»" iyz="«inertia.iyz.str»"/>
+        </inertial>
+        '''
+
     def private getURDFInertiaParams(InertiaParams inertia_lf) {
         val com = inertia_lf.com
         val inertia_com = // params expressed in the frame centered in the COM
