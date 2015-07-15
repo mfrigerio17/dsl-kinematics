@@ -183,6 +183,7 @@ class ForwardDynamics {
         «loadInfo(robot)»
         #include "«Names$Files$RBD::fwdDynHeader(robot)».h"
 
+        #include <Eigen/Cholesky>
         #include <iit/rbd/robcogen_commons.h>
 
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
@@ -327,7 +328,8 @@ class ForwardDynamics {
 
         «IF floatingBase»
             // + The acceleration of the floating base «robot.base.name», without gravity
-            «robot.base.acceleration» = - «artInertiaName(robot.base)».inverse() * «biasForceName(robot.base)»;
+            Eigen::LLT<Matrix66d> llt(«artInertiaName(robot.base)»);
+            «robot.base.acceleration» = - llt.solve(«biasForceName(robot.base)»);  // «robot.base.acceleration» = - IA^-1 * «biasForceName(robot.base)»
         «ENDIF»
 
         // ---------------------- THIRD PASS ---------------------- //
