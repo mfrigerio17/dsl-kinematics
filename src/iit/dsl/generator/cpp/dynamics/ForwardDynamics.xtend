@@ -9,6 +9,9 @@ import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Common
 import iit.dsl.generator.cpp.RobotHeaders
 import iit.dsl.generator.common.Transforms
+import iit.dsl.kinDsl.RevoluteJoint
+import iit.dsl.kinDsl.PrismaticJoint
+import iit.dsl.kinDsl.Joint
 
 class ForwardDynamics {
     def static className(Robot r) '''ForwardDynamics'''
@@ -34,8 +37,6 @@ class ForwardDynamics {
 
         «Common::enclosingNamespacesOpen(robot)»
         namespace «Names$Namespaces::dynamics» {
-
-        typedef «rbd_ns»::InertiaMatrixDense InertiaMatrix;
 
         /**
          * The Forward Dynamics routine for the robot «robot.name».
@@ -111,16 +112,22 @@ class ForwardDynamics {
             «LinkInertias::className(robot)»* «linkInertiasMember»;
             «Names$Types$Transforms::spatial_motion»* «motionTransformsMember»;
 
-            «rbd_ns»::Matrix66d spareMx; // support variable
+            «rbd_ns»::Matrix66d vcross; // support variable
+            «IF robot.anyPrismaticJoint»
+                «rbd_ns»::Matrix66d Ia_p;   // support variable, articulated inertia in the case of a prismatic joint
+            «ENDIF»
+            «IF robot.anyRevoluteJoint»
+                «rbd_ns»::Matrix66d Ia_r;   // support variable, articulated inertia in the case of a revolute joint
+            «ENDIF»
             «IF floatingBase»
                 // Link '«robot.base.name»'
-                InertiaMatrix «artInertiaName(robot.base)»;
+                «rbd_ns»::Matrix66d «artInertiaName(robot.base)»;
                 Force «biasForceName(robot.base)»;
             «ENDIF»
 
             «FOR l : robot.links»
                 // Link '«l.name»' :
-                InertiaMatrix «artInertiaName(l)»;
+                «rbd_ns»::Matrix66d «artInertiaName(l)»;
                 Velocity «l.acceleration»;
                 Velocity «l.velocity»;
                 Velocity «cTermName(l)»;
@@ -176,6 +183,9 @@ class ForwardDynamics {
         «loadInfo(robot)»
         #include "«Names$Files$RBD::fwdDynHeader(robot)».h"
 
+        #include <Eigen/Cholesky>
+        #include <iit/rbd/robcogen_commons.h>
+
         «val nsqualifier = Names$Namespaces$Qualifiers::robot(robot) + "::" + Names$Namespaces::dynamics»
         using namespace «rbd_ns»;
 
@@ -191,6 +201,14 @@ class ForwardDynamics {
                 «l.velocity».setZero();
                 «cTermName(l)».setZero();
             «ENDFOR»
+
+            vcross.setZero();
+            «IF robot.anyPrismaticJoint»
+                Ia_p.setZero();
+            «ENDIF»
+            «IF robot.anyRevoluteJoint»
+                Ia_r.setZero();
+            «ENDIF»
 
         }
 
@@ -212,7 +230,7 @@ class ForwardDynamics {
     def private linkInertiasMember() '''inertiaProps'''
     def private motionTransformsMember() '''motionTransforms'''
     def private Xmotion(iit.dsl.coord.coordTransDsl.Transform t)
-        '''«motionTransformsMember» -> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
+        '''«motionTransformsMember»-> «iit::dsl::coord::generator::cpp::EigenFiles::memberName(t)»'''
 
 
     def private ABABody(Robot robot, iit.dsl.coord.coordTransDsl.Model transformsModel)
@@ -229,6 +247,10 @@ class ForwardDynamics {
             «biasForceName(l)» = - fext[«Common::linkIdentifier(l)»];
         «ENDFOR»
         // ---------------------- FIRST PASS ---------------------- //
+        // Note that, during the first pass, the articulated inertias are really
+        //  just the spatial inertia of the links (see assignments above).
+        //  Afterwards things change, and articulated inertias shall not be used
+        //  in functions which work specifically with spatial inertias.
         «FOR l : sortedLinks»
             «val parent   = l.parent»
             «val joint    = l.connectingJoint»
@@ -238,41 +260,43 @@ class ForwardDynamics {
             «val jid      = Common::jointIdentifier(joint)»
             «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
 
-            «val subspaceIdx = Common::spatialVectIndex(joint)»
+            «val subspaceIdx = Common::spatialVectIndex_no_ns(joint)»
             // + Link «l.name»
             «IF parent.equals(robot.base) && (!floatingBase)»
                 //  - The spatial velocity:
                 «velocity»(«subspaceIdx») = qd(«jid»);
 
                 //  - The bias force term:
-                Utils::fillAsForceCrossProductMx(«velocity», spareMx);
-                «biasF» += spareMx * «artInertiaName(l)».col(«subspaceIdx») * qd(«jid»);
+                «IF joint.prismatic»
+                    // The first joint is prismatic, no bias force term
+                «ELSE»
+                    «biasF» += vxIv(qd(«jid»), «l.artInertiaName»);
+                «ENDIF»
             «ELSE»
                 //  - The spatial velocity:
-                «velocity» = ((«child_X_parent») * «parent.velocity»);
+                «velocity» = («child_X_parent») * «parent.velocity»;
                 «velocity»(«subspaceIdx») += qd(«jid»);
 
                 //  - The velocity-product acceleration term:
-                Utils::fillAsMotionCrossProductMx(«velocity», spareMx);
-                «cterm» = (spareMx.col(«subspaceIdx») * qd(«jid»));
+                motionCrossProductMx(«velocity», vcross);
+                «cterm» = vcross.col(«subspaceIdx») * qd(«jid»);
 
                 //  - The bias force term:
-                «biasF» += -spareMx.transpose() * «artInertiaName(l)» * «velocity»;
+                «biasF» += vxIv(«velocity», «l.artInertiaName»);
             «ENDIF»
         «ENDFOR»
 
         «IF floatingBase»
-            // + The floating base
-            Utils::fillAsForceCrossProductMx(«robot.base.velocity», spareMx);
-            «biasForceName(robot.base)» += spareMx * («artInertiaName(robot.base)» * «robot.base.velocity»);
+            // + The floating base body
+            «biasForceName(robot.base)» += vxIv(«robot.base.velocity», «robot.base.artInertiaName»);
         «ENDIF»
 
         // ---------------------- SECOND PASS ---------------------- //
-        InertiaMatrix Ia;
+        Matrix66d IaB;
         Force pa;
         «FOR l : sortedLinks.reverseView»
             «val joint = l.connectingJoint»
-            «val subspaceIdx = Common::spatialVectIndex(joint)»
+            «val subspaceIdx = Common::spatialVectIndex_no_ns(joint)»
             «val U = UTermName(l)»
             «val D = DTermName(l)»
             «val u = uTermName(l)»
@@ -280,41 +304,47 @@ class ForwardDynamics {
             «val I = artInertiaName(l)»
             «val parent = l.parent»
             «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
+            «check_joint(joint)»
 
             // + Link «l.name»
+            «u» = tau(«Common::jointIdentifier(joint)») - «p»(«subspaceIdx»);
             «U» = «I».col(«subspaceIdx»);
-            «D» = «U».row(«subspaceIdx»)(0,0);
-            «u» = tau(«Common::jointIdentifier(joint)») - «p».row(«subspaceIdx»)(0,0);
+            «D» = «U»(«subspaceIdx»);
 
             «IF !parent.equals(robot.base) || floatingBase»
-                Ia = «I» - «U»/«D» * «U».transpose();
-                pa = «p» + Ia * «cTermName(l)» + «U» * «u»/«D»;
-
-                «artInertiaName(parent)» += («child_X_parent»).transpose() * Ia * («child_X_parent»);
+                «IF joint instanceof PrismaticJoint»
+                    compute_Ia_prismatic(«I», «U», «D», Ia_p);  // same as: Ia_p = «I» - «U»/«D» * «U».transpose();
+                    pa = «p» + Ia_p * «cTermName(l)» + «U» * «u»/«D»;
+                    ctransform_Ia_prismatic(Ia_p, «child_X_parent», IaB);
+                «ELSE»
+                    compute_Ia_revolute(«I», «U», «D», Ia_r);  // same as: Ia_r = «I» - «U»/«D» * «U».transpose();
+                    pa = «p» + Ia_r * «cTermName(l)» + «U» * «u»/«D»;
+                    ctransform_Ia_revolute(Ia_r, «child_X_parent», IaB);
+                «ENDIF»
+                «artInertiaName(parent)» += IaB;
                 «biasForceName(parent)» += («child_X_parent»).transpose() * pa;
             «ENDIF»
         «ENDFOR»
 
         «IF floatingBase»
             // + The acceleration of the floating base «robot.base.name», without gravity
-            «robot.base.acceleration» = - «artInertiaName(robot.base)».inverse() * «biasForceName(robot.base)»;
+            Eigen::LLT<Matrix66d> llt(«artInertiaName(robot.base)»);
+            «robot.base.acceleration» = - llt.solve(«biasForceName(robot.base)»);  // «robot.base.acceleration» = - IA^-1 * «biasForceName(robot.base)»
         «ENDIF»
 
         // ---------------------- THIRD PASS ---------------------- //
-        Velocity atmp;
         «FOR l : sortedLinks»
             «val parent = l.parent»
             «val joint  = l.connectingJoint»
             «val jid    = Common::jointIdentifier(joint)»
             «val child_X_parent = Xmotion(Transforms::getTransform(transformsModel, l, parent))»
             «IF parent.equals(robot.base) && (!floatingBase)»
-                atmp = («child_X_parent»).col(«Names$Namespaces$Qualifiers::iit_rbd»::LZ) * («rbd_ns»::g);
+                «l.acceleration» = («child_X_parent»).col(LZ) * («rbd_ns»::g);
             «ELSE»
-                atmp = («child_X_parent») * «acceleration(parent)» + «cTermName(l)»;
+                «l.acceleration» = («child_X_parent») * «acceleration(parent)» + «cTermName(l)»;
             «ENDIF»
-            qdd(«jid») = («uTermName(l)» - «UTermName(l)».transpose() * atmp) / «DTermName(l)»;
-            «l.acceleration» = atmp;
-            «l.acceleration».row(«Common::spatialVectIndex(joint)»)(0,0) += qdd(«jid»);
+            qdd(«jid») = («uTermName(l)» - «UTermName(l)».dot(«l.acceleration»)) / «DTermName(l)»;
+            «l.acceleration»(«Common::spatialVectIndex_no_ns(joint)») += qdd(«jid»);
 
         «ENDFOR»
 
@@ -332,6 +362,17 @@ class ForwardDynamics {
         «ENDFOR»
     '''
 
+    /* This one is just to make sure we don't keep using this code generator
+     * should a new joint type was introduced in RobCoGen
+     */
+    def private check_joint(Joint j) {
+        if( ! (j instanceof PrismaticJoint ||
+               j instanceof RevoluteJoint) )
+        {
+            throw new RuntimeException("during forward dynamics code generation: unknown joint type")
+        }
+    }
+
     def private cTermName(AbstractLink l) '''«l.name»_c'''
     def private artInertiaName(AbstractLink l) '''«l.name»_AI'''
     def private biasForceName(AbstractLink l) '''«l.name»_p'''
@@ -339,7 +380,7 @@ class ForwardDynamics {
     def private DTermName(AbstractLink l) '''«l.name»_D'''
     def private uTermName(AbstractLink l) '''«l.name»_u'''
 
-        /*
+    /*
      * Saves in the members of this instance the relevant information about
      * the given robot
      */

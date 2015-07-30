@@ -452,4 +452,41 @@ public class Utilities {
         double[][] joint_R_link = rotated_X_original(rx, ry, rz);
         return new Vector3D(joint_R_link[2][0],joint_R_link[2][1],joint_R_link[2][2]);
 	}
+
+	/**
+	 * Converts the Euler angles representing rotations about moving axes into
+	 * the equivalent rotation angles about fixed axis. This function only works
+	 * for X-Y-Z rotations.
+	 *
+	 * The rotation parameters of a reference frame in the Kinematics DSL are
+	 * in fact successive X-Y-Z rotation angles. With this function, the
+	 * rotation specification can be converted to be used whenever the other
+	 * convention is used.
+	 *
+	 * All values in radians.
+	 *
+	 * @param rx rotation about the X axis
+	 * @param ry rotation about the rotated Y axis
+	 * @param rz rotation about the final Z axis
+	 * @return an array of three values, with the rotation angles about fixed
+	 *         axes that would lead to the same orientation specified in the
+	 *         arguments.
+	 */
+	public static double[] intrinsicToExtrinsic_xyz(double rx, double ry, double rz)
+	{
+	    double[] ret = new double[3];
+	    double sx = Math.sin(rx);
+	    double cx = Math.cos(rx);
+
+	    double sy = Math.sin(ry);
+	    double cy = Math.cos(ry);
+
+	    double sz = Math.sin(rz);
+	    double cz = Math.cos(rz);
+
+	    ret[0] = Math.atan2(cx*sy*sz + sx*cz, cx*cy); // rx2
+	    ret[1] = Math.asin(cx*sy*cz - sx*sz); // ry2
+	    ret[2] = Math.atan2(cx*sz+sx*sy*cz, cy*cz); // rz2
+	    return ret;
+	}
 }

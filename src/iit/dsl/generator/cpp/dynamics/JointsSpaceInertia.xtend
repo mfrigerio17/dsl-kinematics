@@ -8,12 +8,13 @@ import org.eclipse.xtend2.lib.StringConcatenation
 import iit.dsl.generator.cpp.Names
 import iit.dsl.generator.cpp.Common
 import iit.dsl.generator.common.TreeUtils
+import iit.dsl.generator.common.Transforms
 
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Joint
 import iit.dsl.kinDsl.Robot
-import iit.dsl.generator.common.Transforms
-
+import iit.dsl.kinDsl.PrismaticJoint
+import iit.dsl.kinDsl.RevoluteJoint
 
 class JointsSpaceInertia {
     def inertiaMatrixHeader(Robot robot)'''
@@ -123,6 +124,7 @@ class JointsSpaceInertia {
                         InertiaMatrix «l.inertiaC»;
                     «ENDIF»
                 «ENDFOR»
+                InertiaMatrix Ic_spare;
 
                 MatrixType L;
                 MatrixType Linv;
@@ -164,9 +166,13 @@ class JointsSpaceInertia {
         #include "«Names$Files::transformsHeader(robot)».h"
         #include "«Names$Files$RBD::jsimHeader(robot)».h"
 
+        #include <iit/rbd/robcogen_commons.h>
+
         «val robo_ns_qualifier = Names$Namespaces$Qualifiers::robot(robot)»
         «val robodyn_ns_qualifier = robo_ns_qualifier + "::" + Names$Namespaces::dynamics»
         «val class_qualifier = robodyn_ns_qualifier + "::" + className»
+        «val rbd_ns_qualifier = Names$Namespaces$Qualifiers::iit_rbd»
+        using namespace «rbd_ns_qualifier»;
 
         //Implementation of default constructor
         «class_qualifier»::«className»(«LinkInertias::className(robot)»& inertiaProperties, «Names$Types$Transforms::spatial_force»& forceTransforms) :
@@ -181,12 +187,14 @@ class JointsSpaceInertia {
         }
 
         #define DATA operator()
-        #define F(j) (block<6,1>(0,(j)+6))
-
+        «IF floatingBase»
+            #define Fcol(j) (block<6,1>(0,(j)+6))
+            #define F(i,j) DATA((i),(j)+6)
+        «ENDIF»
         const «class_qualifier»& «class_qualifier»::update(const «Names$Types::jointState»& state) {
             «val sortedLinks = robot.links.sortBy(link | link.ID).reverse /* do not consider the robot base */»
             «IF !floatingBase»
-                static «Names$Namespaces$Qualifiers::iit_rbd»::ForceVector F;
+                static «rbd_ns_qualifier»::ForceVector F;
             «ENDIF»
 
             // Precomputes only once the coordinate transforms:
@@ -212,14 +220,15 @@ class JointsSpaceInertia {
                 «val parent = l.parent»
                 «val parent_X_child = Transforms::getTransform(transformsModel, parent, l)»
                 «IF floatingBase || !(parent.equals(robot.base))»
-                    «parent.inertiaC» = «parent.inertiaC» + «Xforce(parent_X_child)» * «l.inertiaC» * («Xforce(parent_X_child)»).transpose();
+                    «rbd_ns_qualifier»::transformInertia(«l.inertiaC», «Xforce(parent_X_child)», Ic_spare);
+                    «parent.inertiaC» += Ic_spare;
                 «ENDIF»
 
                 «val jt = getJoint(parent, l)»
                 «val F = getF(jt)»
                 «val jointIndex = jsimIndex(jt)»
-                «F» = «l.inertiaC».col(«Common::spatialVectIndex(jt)»);
-                DATA(«jointIndex», «jointIndex») = «F».row(«Common::spatialVectIndex(jt)»)(0,0);
+                «F» = «l.inertiaC».col(«Common::spatialVectIndex_no_ns(jt)»);
+                DATA(«jointIndex», «jointIndex») = «F»(«Common::spatialVectIndex_no_ns(jt)»);
 
                 «val chain = TreeUtils::chainToBase(l)»
                 «inertiaMatrix_lastStep(chain, jt, transformsModel)»
@@ -282,7 +291,14 @@ class JointsSpaceInertia {
         if( !floatingBase) {
             return '''F'''
         } else {
-            return '''F(«Common::jointIdentifier(j)»)'''
+            return '''Fcol(«Common::jointIdentifier(j)»)'''
+        }
+    }
+    def private getF(Joint current, Joint ancestor) {
+        if( !floatingBase) {
+            return '''F(«Common::spatialVectIndex_no_ns(ancestor)»)'''
+        } else {
+            return '''F(«Common::spatialVectIndex_no_ns(ancestor)»,«Common::jointIdentifier(current)»)'''
         }
     }
 
@@ -316,11 +332,16 @@ class JointsSpaceInertia {
             F      = getF(rowJoint)
             if( ! parent.equals( currRobot.base ) ) {
                 parentJ = parent.connectingJoint;
+                if( ! (parentJ instanceof PrismaticJoint ||
+                       parentJ instanceof RevoluteJoint) )
+                {
+                    throw new RuntimeException("during JSIM code generation: unknown joint type")
+                }
                 col     = jsimIndex(parentJ)
                 parent_X_child = Transforms::getTransform(transformsModel, parent, link)
                 strBuff.append('''
                 «F» = «Xforce(parent_X_child)» * «F»;
-                DATA(«row», «col») = «F».transpose().col(«Common::spatialVectIndex(parentJ)»)(0,0);
+                DATA(«row», «col») = «getF(rowJoint, parentJ)»;
                 DATA(«col», «row») = DATA(«row», «col»);
                 ''');
             }
