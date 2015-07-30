@@ -223,7 +223,7 @@ def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
 
 def dispatch CharSequence str(Float num) {
-    String::format(Locale::US,"% 06.5f", num)
+    String::format(Locale::US,"%06.5f", num)
 }
 def dispatch CharSequence str(FloatLiteral id)'''«str(id.value)»'''
 def dispatch CharSequence str(PlainExpr expr) '''«str(expr.identifier)»'''
