@@ -239,7 +239,7 @@ class InverseDynamics {
             «IF floatingBase»
                 void secondPass_fullyActuated(«fParam_tau»);
             «ELSE»
-                void firstPass(«fParam_qd», «fParam_qdd»);
+                void firstPass(«fParam_qd», «fParam_qdd», «fParam_fext»);
                 void secondPass(«fParam_tau»);
             «ENDIF»
 
@@ -420,9 +420,7 @@ class InverseDynamics {
             «fParam_qd», «fParam_qdd»,
             «fParam_fext»)
         {
-            firstPass(qd, qdd);
-            // Add the external forces:
-            «addFextCode()»
+            firstPass(qd, qdd, fext);
             secondPass(«name_jointsForce»);
         }
 
@@ -441,7 +439,7 @@ class InverseDynamics {
         }
 
 
-        void «nsqualifier»::«className(robot)»::firstPass(«fParam_qd», «fParam_qdd»)
+        void «nsqualifier»::«className(robot)»::firstPass(«fParam_qd», «fParam_qdd», «fParam_fext»)
         {
             «fixedBase_pass1()»
         }
@@ -520,7 +518,7 @@ class InverseDynamics {
             «fixedBase_pass1()»
 
             // The base
-            «robot.base.force» = «robot.base.inertia» * «robot.base.acceleration» + vxIv(«robot.base.velocity», «robot.base.inertia»);
+            «robot.base.force» = «robot.base.inertia» * «robot.base.acceleration» + vxIv(«robot.base.velocity», «robot.base.inertia») - fext[«Common::linkIdentifier(robot.base)»];
 
             secondPass_fullyActuated(«name_jointsForce»);
 
@@ -616,9 +614,9 @@ class InverseDynamics {
 
                 «IF myJoint.prismatic»
                     // The first joint is prismatic, no centripetal terms.
-                    «l.force» = «l.inertia» * «acceler»;
+                    «l.force» = «l.inertia» * «acceler» - fext[«Common::linkIdentifier(l)»];
                 «ELSE»
-                    «l.force» = «l.inertia» * «acceler» + vxIv(qd(«jid»), «l.inertia»);
+                    «l.force» = «l.inertia» * «acceler» + vxIv(qd(«jid»), «l.inertia»)  - fext[«Common::linkIdentifier(l)»];
                 «ENDIF»
             «ELSE»
                 «velocity» = ((«child_X_parent») * «parent.velocity»);
@@ -629,7 +627,7 @@ class InverseDynamics {
                 «acceler» = («child_X_parent») * «parent.acceleration» + vcross.col(«subspaceIdx») * qd(«jid»);
                 «acceler»(«subspaceIdx») += qdd(«jid»);
 
-                «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia»);
+                «l.force» = «l.inertia» * «acceler» + vxIv(«velocity», «l.inertia») - fext[«Common::linkIdentifier(l)»];
             «ENDIF»
 
         «ENDFOR»
