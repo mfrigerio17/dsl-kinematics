@@ -96,9 +96,10 @@ class TransformsDSLsUtils {
         var iit.dsl.transspecs.transSpecs.DesiredTransforms allDesiredTransforms = null
 
         if(userTransforms != null) {
-            val allUserTransforms = addTransformsForJacobians(robot, userTransforms)
+            addTransformsForJacobians(robot, userTransforms)
 
-            allDesiredTransforms= iit::dsl::transspecs::utils::Utils::merge(allUserTransforms, defaultTransforms)
+            allDesiredTransforms = iit::dsl::transspecs::utils::Utils::merge(
+                userTransforms, defaultTransforms)
         } else {
             allDesiredTransforms = defaultTransforms
         }
@@ -119,7 +120,8 @@ class TransformsDSLsUtils {
                 allTransforms,
                 Jacobians::getRequiredTransformsSpecs(J) )
         }
-        return iit::dsl::transspecs::utils::Utils::createModel(allTransforms)
+        user.transforms = allTransforms
+        return user
     }
 
     /**
