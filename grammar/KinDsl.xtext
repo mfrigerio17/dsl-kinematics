@@ -48,7 +48,7 @@ Link:
     '}';
 
 InertiaParams:
-    'inertia_params' '{'
+    ('inertia_params'|'inertia_properties') '{'
         'mass' '=' mass=Var
         'CoM'  '=' com=Vector3
         ('Ix''=' ix = Var &
