@@ -3,16 +3,23 @@ package iit.dsl.generator.matlab
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.Var
 import iit.dsl.kinDsl.InertiaParams
+import iit.dsl.kinDsl.AbstractLink
 
-import iit.dsl.generator.common.Parameters
 import iit.dsl.generator.Common
 import iit.dsl.generator.Utilities
 
 import java.util.List
 import java.util.ArrayList
 
+
 class InertiaProperties {
-    def public static inertiaParamsStruct() '''massParams'''
+    public static CharSequence inertiaParamsStruct = '''massParams'''
+    public static CharSequence functionName = '''inertiaProperties'''
+    public static CharSequence fieldName_spatialInertia = '''tensor6D'''
+
+    def public static fieldName(AbstractLink l) {
+        return "lf_" + l.name
+    }
 
     /**
      * The expression that should evaluate to the runtime value of the given
@@ -22,11 +29,7 @@ class InertiaProperties {
      * field of the struct with the inertia parameters
      */
     def public static value(Var inertiaProperty) {
-        if(Parameters::isParameter(inertiaProperty)) {
-            return inertiaParamsStruct + "." +
-                (Parameters::asParameter(inertiaProperty)).varname
-        }
-        return Common::getInstance().asFloat(inertiaProperty)
+        return Parameters::value(inertiaProperty, inertiaParamsStruct)
     }
 
     /**
@@ -45,7 +48,7 @@ class InertiaProperties {
          [«value(params.com.x)»; «value(params.com.y)»; «value(params.com.z)»]'''
 
     def scriptContent(Robot robot) {
-        if(Parameters::massPropertiesAreParametric(robot)) {
+        if(iit::dsl::generator::common::Parameters::massPropertiesAreParametric(robot)) {
             return scriptContent_withParams(robot)
         } else {
             return scriptContent_onlyConstants(robot)
@@ -54,12 +57,15 @@ class InertiaProperties {
 
 
     def private scriptContent_withParams(Robot robot) '''
+        function out = «functionName»(«inertiaParamsStruct»)
+
         % Inertia properties as written in the .kindsl model file. These
         %  values are assumed to be expressed in the default frame of the
         %  corresponding link.
+        % 'lf' stands for 'link frame'
         «FOR l : Common::getInstance().abstractLinks(robot)»
             «val in = l.inertiaParams»
-            «val struct = "inertia_" + l.name»
+            «val struct = "out." + fieldName(l)»
             «struct».mass = «value(in.mass)»;
             «struct».tensor = ...
                 «tensor(in)»;
@@ -68,7 +74,7 @@ class InertiaProperties {
             block = [  0,    -com(3),  com(2);
                      com(3),  0,      -com(1);
                     -com(2),  com(1),  0 ] * «struct».mass;
-            «struct».tensor6D = [«struct».tensor, block; block', «struct».mass*eye(3)];
+            «struct».«fieldName_spatialInertia» = [«struct».tensor, block; block', «struct».mass*eye(3)];
 
 
         «ENDFOR»
@@ -92,13 +98,15 @@ class InertiaProperties {
         val linkFrameIt = linkFrame.iterator()
         val comFrameIt  = comFrame.iterator()
         val allLinks = robot.abstractLinks
+        val outVar = "out"
 
         return'''
+        function «outVar» = «functionName»()
 
         % Inertia parameters as written in the .kindsl model file
         «FOR l : allLinks»
             «val tmp = userFrameIt.next»
-            «val struct = "inertia_" + l.name»
+            «val struct = outVar + "." + l.name»
             «struct».mass = «value(tmp.mass)»;
             «struct».tensor = ...
                 «tensor(tmp)»;
@@ -110,7 +118,7 @@ class InertiaProperties {
         %  the previous ones, depending on the model file)
         «FOR l : allLinks»
             «val tmp = linkFrameIt.next»
-            «val struct = "inertia_lf_" + l.name»
+            «val struct = outVar + "." + fieldName(l)»
             «struct».mass = «value(tmp.mass)»;
             «struct».tensor = ...
                 «tensor(tmp)»;
@@ -119,7 +127,7 @@ class InertiaProperties {
             block = [  0,    -com(3),  com(2);
                      com(3),  0,      -com(1);
                     -com(2),  com(1),  0 ] * «struct».mass;
-            «struct».tensor6D = [«struct».tensor, block; block', «struct».mass*eye(3)];
+            «struct».«fieldName_spatialInertia» = [«struct».tensor, block; block', «struct».mass*eye(3)];
 
         «ENDFOR»
 
@@ -128,7 +136,7 @@ class InertiaProperties {
         %  always be [0,0,0] ).
         «FOR l : allLinks»
             «val tmp = comFrameIt.next»
-            «val struct = "inertia_com_" + l.name»
+            «val struct = outVar + ".com_" + l.name»
             «struct».mass = «value(tmp.mass)»;
             «struct».tensor = ...
                 «tensor(tmp)»;

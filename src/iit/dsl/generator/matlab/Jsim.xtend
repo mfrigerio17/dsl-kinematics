@@ -1,93 +1,134 @@
 package iit.dsl.generator.matlab
 
 import iit.dsl.kinDsl.Robot
-import iit.dsl.kinDsl.AbstractLink
-import iit.dsl.kinDsl.PrismaticJoint
-import java.util.List
 import iit.dsl.kinDsl.Joint
-import org.eclipse.xtend2.lib.StringConcatenation
+import iit.dsl.kinDsl.AbstractLink
+
 import iit.dsl.generator.common.TreeUtils
 
-class Jsim {
-    extension iit.dsl.generator.Common common = new iit.dsl.generator.Common()
+import java.util.List
+
+import org.eclipse.xtend2.lib.StringConcatenation
+
+
+class Jsim
+{
+    public static CharSequence updateFunctionName = '''updateJSIM'''
+    public static CharSequence invertFunctionName = '''invertJSIM'''
+
+    extension iit.dsl.generator.Common common = iit.dsl.generator.Common::getInstance()
 
     def private inertiaCompositeName(AbstractLink l) '''Ic_«l.name»'''
-    def private inertiaName(AbstractLink l) '''inertia_lf_«l.name».tensor6D'''
+    def private inertiaName(AbstractLink l) '''lf_«l.name».tensor6D'''
 
     private static String jsim_varName = "H"
     private static String jsim_inv_varName = "Hinv"
 
-    def jsim_init_code(Robot robot) '''
-        «jsim_varName» = zeros(«robot.joints.size»,«robot.joints.size»);
-        «jsim_inv_varName» = «jsim_varName»;
-        L = «jsim_varName»;
-        Linv = «jsim_varName»;
-        «val endLinks = chainEndLinks(robot)»
-        «FOR l : endLinks»
-            «inertiaCompositeName(l)» = «inertiaName(l)»;
-        «ENDFOR»
-    '''
+    private static CharSequence xfVarName = '''force_transforms'''
+    private static CharSequence ipVarName = '''inertia_props'''
 
     def jsim_update_code(
         Robot robot,
         iit.dsl.coord.coordTransDsl.Model transformsModel)
     '''
+        «loadInfo(robot)»
+        function «returnValues()» = «updateFunctionName»(«ipVarName», «xfVarName»)
+
+        % Initialization of the composite-inertia matrices
+        «FOR l : robot.links»
+            «inertiaCompositeName(l)» = «ipVarName».«inertiaName(l)»;
+        «ENDFOR»
+        «IF floatingBase»
+            «inertiaCompositeName(robot.base)» = «ipVarName».«inertiaName(robot.base)»;
+        «ENDIF»
+
         % "Bottom-up" loop to update the inertia-composite property of each link,
         %  for the current configuration
         «val sortedLinks = robot.links.sortBy(link | getID(link)).reverse»
         «FOR l : sortedLinks»
+
             % Link «l.name»
             «val parent = l.parent»
-            «IF !(parent.equals(robot.base))»
+            «IF floatingBase || !(parent.equals(currRobot.base))»
                 «val parent_XFrc_child = iit::dsl::coord::generator::matlab::Generator::identifier(
                     iit::dsl::generator::common::Transforms::getTransform(transformsModel, parent, l),
                     iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE)»
-                «val child_X_parent = iit::dsl::coord::generator::matlab::Generator::identifier(
-                    iit::dsl::generator::common::Transforms::getTransform(transformsModel, l, parent),
-                    iit::dsl::coord::generator::Utilities$MatrixType::_6D)»
-                «inertiaCompositeName(parent)» = «inertiaName(parent)» + «parent_XFrc_child» * «inertiaCompositeName(l)» * «child_X_parent»;
+                «inertiaCompositeName(parent)» = «inertiaCompositeName(parent)» + «xfVarName».«parent_XFrc_child» * «inertiaCompositeName(l)» * «xfVarName».«parent_XFrc_child»';
             «ENDIF»
 
-            % Assuming 1 DoF joints, the multiplication with the motion subspace matrix boils down to the selection of a column/row
             «val linkJoint = getJoint(parent, l)»
-            «IF linkJoint instanceof PrismaticJoint»
-                F = «inertiaCompositeName(l)»(:,6);
-                «jsim_varName»(«linkJoint.ID», «linkJoint.ID») = F(6);
-            «ELSE»
-                F = «inertiaCompositeName(l)»(:,3);
-                «jsim_varName»(«linkJoint.ID», «linkJoint.ID») = F(3);
-            «ENDIF»
+            «val idx = Common::spatialVectorIndex(linkJoint)»
+            «getF(linkJoint)» = «inertiaCompositeName(l)»(:,«idx»);
+            «jsim_varName»(«linkJoint.ID», «linkJoint.ID») = «getF(linkJoint, idx)»;
 
             «val chain = iit::dsl::generator::common::TreeUtils::chainToBase(l)»
-            «jsim_lastStep(chain, linkJoint.ID, transformsModel)»
+            «jsim_lastStep(chain, linkJoint, transformsModel)»
         «ENDFOR»
 	'''
 
-    def private jsim_lastStep(List<AbstractLink> chainToBase, int rowIndex,
+    def private jsim_lastStep(List<AbstractLink> chainToBase, Joint currentJ,
         iit.dsl.coord.coordTransDsl.Model transModel)
     {
         val strBuff = new StringConcatenation()
 
         var AbstractLink parent
         var Joint parentJ
-        for( link : chainToBase ) {
+        val F = getF(currentJ)
+        for( link : chainToBase )
+        {
             parent = link.parent
-            if( ! parent.equals( (parent.eContainer() as Robot).base ) ) {
-                parentJ = getConnectingJoint(parent);
-                strBuff.append('''
-                F = «iit::dsl::coord::generator::matlab::Generator::identifier(
+            val parent_X_link = xfVarName + "." +
+                iit::dsl::coord::generator::matlab::Generator::identifier(
                     iit::dsl::generator::common::Transforms::getTransform(transModel, parent, link),
-                    iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE)» * F;
-                tmp = F';
-                «jsim_varName»(«rowIndex», «parentJ.ID») = tmp«IF parentJ instanceof PrismaticJoint»(:,6)«ELSE»(:,3)«ENDIF»;
-                «jsim_varName»(«parentJ.ID», «rowIndex») = «jsim_varName»(«rowIndex», «parentJ.ID»); % the matrix is symmetric
+                    iit::dsl::coord::generator::Utilities$MatrixType::_6D_FORCE)
+
+            if( ! parent.equals(currRobot.base) )
+            {
+                parentJ = parent.connectingJoint
+                val Jidx = Common::spatialVectorIndex(parentJ)
+                strBuff.append('''
+                «F» = «parent_X_link» * «F»;
+                «jsim_varName»(«parentJ.ID», «currentJ.ID») = «jsim_varName»(«currentJ.ID», «parentJ.ID») = «getF(currentJ, Jidx)»;
+
+                ''');
+            }
+            else if(floatingBase)
+            {
+                strBuff.append('''
+                «F» = «parent_X_link» * «F»;
                 ''');
             }
         }
         return strBuff;
     }
 
+    def private getF(Joint j)
+    {
+        if( ! floatingBase) {
+            return '''F'''
+        } else {
+            return '''F(:,«j.ID»)'''
+        }
+    }
+    def private getF(Joint j, int el)
+    {
+        if( ! floatingBase) {
+            return '''F(«el»)'''
+        } else {
+            return '''F(«el»,«j.ID»)'''
+        }
+    }
+
+    def private returnValues() {
+        if(floatingBase) {
+            return '''[H «inertiaCompositeName(currRobot.base)» F]'''
+        }
+        return '''H'''
+    }
+
     def jsim_inverse_code(Robot robot) '''
+        function [«jsim_inv_varName» L Linv] = «invertFunctionName»(«jsim_varName»)
+
         % The following code computes the lower triangular matrix L such that
         %  «jsim_varName» = L' L  (LTL factorization)
         % Then it computes the inverse of L and the inverse of «jsim_varName»
@@ -104,6 +145,7 @@ class Jsim {
 
     def LTLfactorization(Robot robot) '''
         L = tril(«jsim_varName»); % lower triangular
+
         «FOR Joint joint : robot.joints.reverseView»
             «val row = joint.getID()»
             % Joint «joint.name», index «row» :
@@ -169,4 +211,17 @@ class Jsim {
         return strBuff
     }
 
+
+    /*
+     * Saves in the members of this instance the relevant information about
+     * the given robot
+     */
+    def private void loadInfo(Robot robot)
+    {
+        currRobot = robot
+        floatingBase = robot.base.floating
+    }
+
+    private Robot currRobot
+    private boolean floatingBase
 }

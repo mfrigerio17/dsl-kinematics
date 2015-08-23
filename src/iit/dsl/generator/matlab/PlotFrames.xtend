@@ -8,6 +8,8 @@ import iit.dsl.generator.Utilities
 
 class PlotFrames {
 
+    public static CharSequence functionName = '''plotFrames'''
+
     extension Common common = new Common()
     private Robot robot
     private iit.dsl.coord.coordTransDsl.Model transforms
@@ -20,6 +22,8 @@ class PlotFrames {
     }
 
 	def plotFramesCode() '''
+        function «functionName»(xh)
+
         baseColor = [0,0,1];
         ellips.faceColor = [0.94, 0.94, 0.94];
         ellips.edgeColor = [0.7 , 0.9, 1];
@@ -51,17 +55,17 @@ class PlotFrames {
                 «IF l.childrenList.children.size > 0»
                     scaling = 0.33 * «jointDist»;
                 «ENDIF»
-                H = H * «tname»;
+                H = H * xh.«tname»;
                 x = scaling * H(1:3,1);
                 y = scaling * H(1:3,2);
                 pos = H(1:3,4);  % no scaling
 
                 plotRefFrame(x, y, pos, baseColor * («count»-«l.ID»)/«count»);
 
-                [X,Y,Z] = inertia_ellipsoid(inertia_lf_«l.name», H, «jointDist»);
-                h_ell = surf(X,Y,Z);
-                set(h_ell, 'FaceAlpha', ellips.faceAlpha, 'EdgeAlpha', ellips.edgeAlpha);
-                set(h_ell, 'FaceColor', ellips.faceColor, 'EdgeColor', ellips.edgeColor);
+                %% [X,Y,Z] = inertia_ellipsoid(inertia_lf_«l.name», H, «jointDist»);
+                %% h_ell = surf(X,Y,Z);
+                %% set(h_ell, 'FaceAlpha', ellips.faceAlpha, 'EdgeAlpha', ellips.edgeAlpha);
+                %% set(h_ell, 'FaceColor', ellips.faceColor, 'EdgeColor', ellips.edgeColor);
             «ENDIF»
 
 
