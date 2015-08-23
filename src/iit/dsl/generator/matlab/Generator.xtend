@@ -168,8 +168,8 @@ class Generator implements IGenerator {
             // should never really get here, the user should pass a configurator
             configurator = new DefaultConfigurator(robot, transformsModel, new DefaultConverterConfigurator())
         }
-        jacGen = new Jacobians(new MaximaReplSpecs(robot, transformsModel))
-        jacGen.setMaximaConverterConfigurator(configurator.getKindslMaximaConverterConfigurator())
+        jacGen = new Jacobians( configurator )
+
         val jacobians = new ArrayList<Jacobian>()
         if(desired != null) {
             if(desired.jacobians != null) {
@@ -178,9 +178,11 @@ class Generator implements IGenerator {
                 }
             }
         }
-        fsa.generateFile(robotFolderName(robot) + "/init_jacs.m",
+        fsa.generateFile(
+            robotFolderName(robot) + "/" + Jacobians::initFunctionName + ".m",
             jacGen.init_jacobians_file(robot, jacobians, transformsModel))
-        fsa.generateFile(robotFolderName(robot) + "/update_jacs.m",
+        fsa.generateFile(
+            robotFolderName(robot) + "/" + Jacobians::updateFunctionName + ".m",
             jacGen.update_jacobians_file(robot, jacobians, transformsModel))
     }
 
