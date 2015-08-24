@@ -9,7 +9,6 @@ import iit.dsl.kinDsl.Robot
 class Generator implements IGenerator {
     extension iit.dsl.generator.sl.Common slCommon = new iit.dsl.generator.sl.Common()
     RobotUserFiles roboUserFiles = new RobotUserFiles()
-    iit.dsl.generator.sl.robot.math.Mathematica mathematica = new iit.dsl.generator.sl.robot.math.Mathematica()
     iit.dsl.generator.sl.robot.math.Headers mathFilesGen = new iit.dsl.generator.sl.robot.math.Headers()
     iit.dsl.generator.sl.robot.Headers roboHeadGen = new iit.dsl.generator.sl.robot.Headers()
     iit.dsl.generator.sl.robot.Sources roboSrcGen = new iit.dsl.generator.sl.robot.Sources()
@@ -45,12 +44,6 @@ class Generator implements IGenerator {
 
         val math_dir = folder + "/" + Common::mathFolderName
 
-        fsa.generateFile(
-            math_dir + "/" + robot.name + ".dyn",
-            mathematica.dynModel(robot))
-        fsa.generateFile(
-            math_dir + "/" + robot.name + ".nb",
-            mathematica.notebook(robot, "/home/phd/sl_root"))
         fsa.generateFile(
             math_dir + "/Prismatic_Joints.h",
             mathFilesGen.prismatic_joints(robot))
