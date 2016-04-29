@@ -76,9 +76,15 @@ class Generator implements IGenerator {
             "/config/WhichDOFs.cf", userConfigGen.whichDOFs(robot))
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/SensorOffset.cf", userConfigGen.sensorOffset(robot))
+
+        try {
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/LinkParameters.cf",
             userConfigGen.linkParameters(robot))
+        } catch(RuntimeException exc) {
+            System.err.println("ERROR while trying to generate LinkParameters.cf: " + exc.getMessage());
+        }
+
         fsa.generateFile(slCommon.robotUserFolderName(robot) +
             "/config/SensorFilter.cf",
             userConfigGen.sensorFilters(robot))
