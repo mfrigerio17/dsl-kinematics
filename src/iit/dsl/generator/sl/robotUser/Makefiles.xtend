@@ -22,14 +22,11 @@ class Makefiles {
 
         # Include directories
         include_directories(${SL_ROOT}/utilities/include)
-        include_directories(${SL_ROOT}/lwpr/include)
         include_directories(${SL_ROOT}/SL/include)
-        include_directories(${SL_ROOT}/SLRemote/include)
         include_directories(${SL_ROOT}/${ROBOT}/math)
         include_directories(${SL_ROOT}/${ROBOT}/include)
         include_directories(include)
 
-        include_directories(${IIT_RBD_ROOT})
         include_directories(${EIGEN_ROOT})
 
         set(TASK_SOURCES

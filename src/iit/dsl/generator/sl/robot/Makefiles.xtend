@@ -17,7 +17,6 @@ class Makefiles {
 
         # Include directories
         include_directories(${SL_ROOT}/utilities/include)
-        include_directories(${SL_ROOT}/lwpr/include)
         include_directories(${SL_ROOT}/SL/include)
         include_directories(math)
         include_directories(include)
