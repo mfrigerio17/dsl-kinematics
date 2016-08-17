@@ -15,10 +15,12 @@ class ConfigFiles {
     put that minus in front of the values
     */
     def linkParameters(Robot robot)'''
-        «val bparams = Utilities::tuneForSL(robot.base.inertiaParams)»
+        «val auxparb = getLinkFrameInertiaParams(robot.base)»
+        «val bparams = Utilities::tuneForSL(auxparb)»
         BASE «'\t'»«bparams.mass.str»   «bparams.com.x.str» «bparams.com.y.str» «bparams.com.z.str»   «bparams.ix.str» «bparams.ixy.str» «bparams.ixz.str» «bparams.iy.str» «bparams.iyz.str» «bparams.iz.str»   0.1 0 0 0
         «FOR link : robot.links»
-            «val params = Utilities::tuneForSL(link.inertiaParams)»
+            «val auxpar = getLinkFrameInertiaParams(link)»
+            «val params = Utilities::tuneForSL(auxpar)»
             «link.connectingJoint.name» «'\t'»«params.mass.str»   «params.com.x.str» «params.com.y.str» «params.com.z.str»   «params.ix.str» «params.ixy.str» «params.ixz.str» «params.iy.str» «params.iyz.str» «params.iz.str»   0.1 0 0 0
         «ENDFOR»
         '''
