@@ -132,9 +132,9 @@ class LinkInertias {
                 «val params = getLinkFrameInertiaParams(l)»
                 «memberName_com(l)» = «comRHS(params)»;
                 «memberName_tensor(l)».fill(
-                    «value(l.inertiaParams.mass)»,
+                    «value(params.mass)»,
                     «memberName_com(l)»,
-                    «buildTensorExpr(l.inertiaParams)» );
+                    «buildTensorExpr(params)» );
 
             «ENDFOR»
         }
