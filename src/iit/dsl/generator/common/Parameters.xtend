@@ -42,11 +42,11 @@ class Parameters {
 
         if(v instanceof FloatLiteral) {
             throw new RuntimeException("Cannot cast the constant " +
-                (v as FloatLiteral).value + " to a ParameterLiteral")
+                v.value + " to a ParameterLiteral")
         }
         if(v instanceof Expr) {
             throw new RuntimeException("Cannot cast the expression " +
-                (v as Expr).identifier.varname + " to a ParameterLiteral")
+                v.identifier.varname + " to a ParameterLiteral")
         }
         throw new RuntimeException("Could not cast the given variable " +
                 "to a ParameterLiteral")
