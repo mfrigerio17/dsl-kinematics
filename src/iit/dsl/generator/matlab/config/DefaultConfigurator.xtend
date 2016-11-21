@@ -23,7 +23,8 @@ class DefaultConfigurator implements IConfigurator
         return this.maximaConverterConfig
     }
 
-    override getMaximaReplacementStrategy() {
+    override getMaximaReplacementStrategy(iit.dsl.coord.coordTransDsl.Model transformsModel)
+    {
         return this.maximaReplacementStrategy
     }
 

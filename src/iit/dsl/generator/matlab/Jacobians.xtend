@@ -18,7 +18,6 @@ class Jacobians {
     public new(IConfigurator config)
     {
         configurator    = config
-        replaceSpecs    = configurator.maximaReplacementStrategy
         maximaConverter = new iit.dsl.generator.maxima.Converter(
             configurator.kindslMaximaConverterConfigurator )
         maxdslAccess    = new iit.dsl.maxdsl.utils.DSLAccessor()
@@ -105,6 +104,8 @@ class Jacobians {
             }
             exprModels.add( expressionsModel )
         }
+
+        replaceSpecs = configurator.getMaximaReplacementStrategy(transformsModel)
 
         // Append the code with the initialization of the variables for the
         // trigonometric functions:
