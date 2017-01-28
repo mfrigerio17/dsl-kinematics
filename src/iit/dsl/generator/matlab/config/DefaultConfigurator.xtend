@@ -32,15 +32,6 @@ class DefaultConfigurator implements IConfigurator
         return updateFArgs
     }
 
-
-    override getJointStatusVectorName() {
-        return jointStatusName
-    }
-
-    override getParamsStructName() {
-        return paramsStructName
-    }
-
     private MaximaReplacementStrategy maximaReplacementStrategy
     private iit.dsl.generator.maxima.IConverterConfigurator maximaConverterConfig
 
