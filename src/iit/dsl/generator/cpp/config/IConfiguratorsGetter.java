@@ -11,7 +11,8 @@ import iit.dsl.kinDsl.Robot;
  * @author Marco Frigerio
  *
  */
-public interface IConfiguratorsGetter {
+public interface IConfiguratorsGetter
+{
     /**
      * The configurator for paths
      */
@@ -42,10 +43,5 @@ public interface IConfiguratorsGetter {
      */
     public iit.dsl.coord.generator.cpp.IConfigurator
         getTransformsDSLGeneratorConfigurator(Robot robot);
-    /**
-     * The configurator for hte Maxima conversion, required by generators of
-     * the Transforms DSL infrastructure.
-     */
-    public iit.dsl.coord.generator.MaximaConverter.IConfigurator
-        getTransformsDSLMaximaConfigurator();
+
 }

@@ -40,10 +40,6 @@ class DefaultConfiguratorsGetter implements IConfiguratorsGetter {
         new TransformsGeneratorConfigurator(robot, namesConfigurator)
     }
 
-    override getTransformsDSLMaximaConfigurator() {
-        new MaximaConverterConfigurator(namesConfigurator)
-    }
-
 
     private DefaultConfigurator namesConfigurator = null
 
