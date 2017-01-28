@@ -9,7 +9,7 @@ package iit.dsl.generator.cpp.config
  * iit.dsl.coord.generator.maxima.DefaultConfigurator
  * and only overrides the functions returning paths.
  */
-class MaximaConverterConfigurator extends iit.dsl.coord.generator.maxima.DefaultConfigurator
+class MaximaConverterConfigurator extends iit.dsl.coord.generator.maxima.converter.DefaultConfigurator
 {
     new(IConfigurator$Paths pathsConfig) {
         if(pathsConfig == null) {

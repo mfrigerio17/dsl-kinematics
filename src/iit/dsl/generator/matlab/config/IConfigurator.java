@@ -14,7 +14,7 @@ package iit.dsl.generator.matlab.config;
 public interface IConfigurator extends iit.dsl.coord.generator.matlab.IConfigurator
 {
     @Override
-    public iit.dsl.coord.generator.MaximaConverter.IConfigurator
+    public iit.dsl.coord.generator.maxima.converter.IConfigurator
       getMaximaConverterConfigurator();
 
     /**

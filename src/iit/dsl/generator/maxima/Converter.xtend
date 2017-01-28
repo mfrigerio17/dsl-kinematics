@@ -30,7 +30,7 @@ class Converter {
         maximaJacobiansPath  = config.generatedCodeLocation
         maximaTransformsPath = config.generatedCodeLocation
         maximaCfg = config.maximaEngineConfigurator
-        mode = iit::dsl::coord::generator::MaximaConverter::parseStringMode(config.conversionMode)
+        mode = iit::dsl::coord::generator::maxima::converter::MaximaConverter::parseStringMode(config.conversionMode)
     }
 
     /**
@@ -62,16 +62,16 @@ class Converter {
         val jacName = '''«J.getName()»(«J.getArgsList()»)'''
         var String code
         switch mode {
-            case iit::dsl::coord::generator::MaximaConverter$Mode::PLAIN:
+            case iit::dsl::coord::generator::maxima::converter::MaximaConverter$Mode::PLAIN:
                 code = '''J : «jacName»;'''
 
-            case iit::dsl::coord::generator::MaximaConverter$Mode::TRIGREDUCE:
+            case iit::dsl::coord::generator::maxima::converter::MaximaConverter$Mode::TRIGREDUCE:
                 code = '''J : float(ratexpand(ratsimp(trigreduce(«jacName»))));'''
 
-            case iit::dsl::coord::generator::MaximaConverter$Mode::TRIGSIMP:
+            case iit::dsl::coord::generator::maxima::converter::MaximaConverter$Mode::TRIGSIMP:
                 code = '''J : float(trigsimp(«jacName»));'''
 
-            case iit::dsl::coord::generator::MaximaConverter$Mode::__UNKNOWN:
+            case iit::dsl::coord::generator::maxima::converter::MaximaConverter$Mode::__UNKNOWN:
                 throw new RuntimeException("Unknown Maxima conversion mode.")
 
             default:
@@ -92,13 +92,13 @@ class Converter {
     private String maximaJacobiansPath  = null
     private String maximaTransformsPath = null
     private iit.dsl.maxdsl.utils.MaximaRunner$IConfigurator maximaCfg = null
-    private iit.dsl.coord.generator.MaximaConverter$Mode  mode =
-        iit::dsl::coord::generator::MaximaConverter$Mode::PLAIN;
+    private iit.dsl.coord.generator.maxima.converter.MaximaConverter$Mode  mode =
+        iit::dsl::coord::generator::maxima::converter::MaximaConverter$Mode::PLAIN;
 
 }
 
 class DefaultConfigurator
-    extends iit.dsl.coord.generator.maxima.DefaultConfigurator
+    extends iit.dsl.coord.generator.maxima.converter.DefaultConfigurator
     implements IConverterConfigurator
 {
     override getUtilsLibName() {
