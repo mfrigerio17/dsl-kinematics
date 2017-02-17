@@ -108,7 +108,6 @@ class Generator implements IGenerator {
     }
 
     def generateMakefiles(Robot robot, IFileSystemAccess fsa) {
-        fsa.generateFile(Names$Files::folder(robot) + "/" + "Makefile", mkg.makefileBody(robot))
         fsa.generateFile(Names$Files::folder(robot) + "/" + "CMakeLists.txt", mkg.CMakeFileBody(robot))
     }
 
