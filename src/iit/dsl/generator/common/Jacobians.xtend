@@ -36,8 +36,10 @@ class Jacobians {
                 + robot.name + ").")
         }
         val ret = new ArrayList<Jacobian>()
-        for(jSpec : desiredJacobians.jacobians.specs) {
-            ret.add(new Jacobian(robot, jSpec))
+        if( desiredJacobians.jacobians !== null ) {
+            for(jSpec : desiredJacobians.jacobians.specs) {
+                ret.add(new Jacobian(robot, jSpec))
+            }
         }
 
         return ret
