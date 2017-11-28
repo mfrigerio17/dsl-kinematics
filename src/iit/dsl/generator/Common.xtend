@@ -56,6 +56,13 @@ def List<AbstractLink> abstractLinks(Robot robot) {
     list.addAll(robot.links)
     return list
 }
+// an alias of the above, as I don't like the name that much
+def List<AbstractLink> linksAndBase(Robot robot) {
+    val list = new ArrayList<AbstractLink>()
+    list.add(robot.base)
+    list.addAll(robot.links)
+    return list
+}
 
 /** Returns whether the ChildrenList contains the specified link */
 def boolean contains(ChildrenList list, AbstractLink link) {
