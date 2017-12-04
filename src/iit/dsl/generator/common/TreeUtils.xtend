@@ -5,18 +5,168 @@ import java.util.ArrayList
 import java.util.Map
 import java.util.HashMap
 
+import org.jgrapht.graph.SimpleDirectedGraph
+
 import iit.dsl.kinDsl.AbstractLink
 import iit.dsl.kinDsl.Robot
 import iit.dsl.kinDsl.ChildSpec
 import iit.dsl.kinDsl.RobotBase
 import iit.dsl.kinDsl.Link
+import iit.dsl.kinDsl.Joint
 import iit.dsl.generator.Utilities
 
+
 /**
- * Utility functions for the visit of the kinematic tree structure and
- * the creation of subtrees (e.g. chains)
+ * Utility functions for the inspection of the kinematic tree structure.
+ *
+ * Currently, the class has some static methods as well as instance methods,
+ * static methods are going to be deprecated.
+ *
+ * Instances of this class use an additional, alternative graph representation
+ * of the given robot, hopefully more effective for traversal than the
+ * grammar-generated EMF data structure (used by the static methods).
  */
-class TreeUtils {
+class TreeUtils
+{
+    public new(Robot robot)
+    {
+        childToParent = new SimpleDirectedGraph(GraphEdge)
+        parentToChild = new SimpleDirectedGraph(GraphEdge)
+        val allLinks = robot.linksAndBase.sortBy(link | getID(link))
+
+        for( l : allLinks )
+        {
+            childToParent.addVertex( l )
+            parentToChild.addVertex( l )
+
+            for(childSpec : l.childrenList.children)
+            {
+                val child = childSpec.link
+                childToParent.addVertex( child )
+                parentToChild.addVertex( child )
+                childToParent.addEdge( child, l, new GraphEdge(childSpec.joint, l, child ) )
+                parentToChild.addEdge( l, child, new GraphEdge(childSpec.joint, l, child ) )
+            }
+        }
+    }
+
+    /**
+     * The joint joining the two given links, null if there is no such a joint.
+     */
+    def public Joint connectingJoint(AbstractLink l1, AbstractLink l2)
+    {
+        var GraphEdge edge = null
+        edge = childToParent.getEdge(l1, l2)
+        if(edge !== null) {
+            return edge.joint
+        }
+        edge = parentToChild.getEdge(l1, l2)
+        if(edge !== null) {
+            return edge.joint
+        }
+        return null
+    }
+
+    /**
+     * The parent link of the given link
+     */
+    def public dispatch AbstractLink parent(RobotBase base) { return null }
+    def public dispatch AbstractLink parent(Link l) {
+        return toParent(l).parent()
+
+    }
+    /**
+     * The joint moving the given link
+     */
+    def public dispatch supportingJoint(RobotBase base) { return null }
+    def public dispatch supportingJoint(Link l) {
+        return toParent(l).joint()
+    }
+
+    def public supportingLink(Joint j) {
+        for( e : parentToChild.edgeSet ) {
+            if( e.joint().equals(j) ) {
+                return e.parent()
+            }
+        }
+        return null // should never get here, it means the joint was not found in the graph
+    }
+
+    /**
+     * Tells whether a link is an ancestor of another link.
+     * Any link is an ancestor/descendant of itself.
+     * \params possibleAncestor
+     * \params target
+     * \return true if target belongs to a kinematic subtree rooted at the
+     *         possibleAncestor, false otherwise
+     */
+    def public boolean ancestorOf(AbstractLink possibleAncestor, AbstractLink target)
+    {
+        if(possibleAncestor===null || target===null) return false
+        if(possibleAncestor.ID > target.ID) return false
+        return possibleAncestor.equals(target) || ancestorOf(possibleAncestor, target.parent())
+        // note that the equals() deals with parent being null
+    }
+
+    /**
+     * The Lowest Common Ancestor of the two given links.
+     *
+     * The lowest common ancestor is the deepest (i.e. farthest from the base)
+     * link which is an ancestor of both the arguments.
+     */
+    def public AbstractLink lowestCommonAncestor(AbstractLink l1, AbstractLink l2)
+    {
+        if( l1===null  || l2===null) return null
+
+        var AbstractLink lca = null
+        var AbstractLink current1 = l1
+        var AbstractLink current2 = l2
+
+        while( lca === null )
+        {
+            if( current1.ancestorOf(l2) ) {
+                lca = current1
+            } else {
+                current1 = current1.parent() // cant be null, as that implies current1 is the base, and the base is always an ancestor
+                if( current2.ancestorOf(l1) ) {
+                    lca = current2
+                } else {
+                    current2 = current2.parent()
+                }
+            }
+        }
+        return lca
+    }
+
+    def private GraphEdge toParent(AbstractLink l) {
+        // is there a simpler function call for graph where one knows that the outgoing
+        // edge is exactly one?
+        return childToParent.outgoingEdgesOf(l).iterator().next()
+    }
+
+    private SimpleDirectedGraph<AbstractLink, GraphEdge> childToParent
+    private SimpleDirectedGraph<AbstractLink, GraphEdge> parentToChild
+
+
+
+    private static class GraphEdge
+    {
+        public new (Joint j, AbstractLink par, AbstractLink chi)
+        {
+            joint = j
+            parent = par
+            child  = chi
+        }
+        def public joint() { return joint }
+        def public parent(){ return parent}
+        def public child() { return child }
+
+        private final Joint joint
+        private final AbstractLink parent
+        private final AbstractLink child
+    }
+
+
     private static extension iit.dsl.generator.Common common = iit.dsl.generator.Common.getInstance()
 
     /**
@@ -49,6 +199,9 @@ class TreeUtils {
      * \params l2 the second link
      * \return the root of the smallest kinematic tree that contains both
      *         l1 and l2.
+     *
+     * Note: I think this is flawed, it does not work with branching at multiple
+     * layers (e.g. hand fingers in humanoid)
      */
     def static AbstractLink commonAncestor(AbstractLink l1, AbstractLink l2) {
         if(l1.equals(l2)) return l1;
@@ -58,7 +211,7 @@ class TreeUtils {
         var AbstractLink child2  = l2
         var AbstractLink parent1 = common.getParent(l1)
         var AbstractLink parent2 = common.getParent(l2)
-        while(parent1 != null && parent2 != null) {
+        while(parent1 !== null && parent2 !== null) {
             if(parent1.equals(parent2)) return parent1;
             // follow the branches up in the hierarchy
             child1  = parent1
@@ -66,13 +219,13 @@ class TreeUtils {
             parent1 = common.getParent(parent1)
             parent2 = common.getParent(parent2)
         }
-        while(parent1 != null) {
+        while(parent1 !== null) {
             if(parent1.equals(child2)) return parent1;
             // follow the branch 1 up in the hierarchy
             child1  = parent1
             parent1 = common.getParent(parent1)
         }
-        while(parent2 != null) {
+        while(parent2 !== null) {
             if(parent2.equals(child1)) return parent2;
             // follow the branch 2 up in the hierarchy
             child2  = parent2
@@ -159,7 +312,7 @@ class TreeUtils {
             val rot = c.joint.refFrame.rotation
             val R   = Utilities::original_X_rotated(rot.x.asFloat, rot.y.asFloat, rot.z.asFloat)
             var double[][] RR
-            if(base_R_current != null) {
+            if(base_R_current !== null) {
                 RR  = Utilities::matrix3x3Mult(base_R_current, R)
             } else {
                 RR = R
