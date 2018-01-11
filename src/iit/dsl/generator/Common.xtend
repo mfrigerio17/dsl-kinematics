@@ -30,7 +30,6 @@ import iit.dsl.kinDsl.RotoTrasl
 import iit.dsl.kinDsl.KinDslFactory
 import iit.dsl.kinDsl.PILiteral
 import iit.dsl.kinDsl.InertiaParams
-import iit.dsl.generator.common.Parameters
 
 
 class Common {
@@ -451,14 +450,7 @@ def List<AbstractLink> chainEndLinks(Robot robot) {
  */
 def InertiaParams getLinkFrameInertiaParams(AbstractLink link) {
     // If no frame is specified, then the parameters are already expressed in the link frame
-    if(link.inertiaParams.frame == null) return link.inertiaParams;
-
-    if(Parameters::isParametric(link.inertiaParams)) {
-        throw new RuntimeException(
-            "Using both a custom reference-frame and runtime-parameters in " +
-            "the inertia properties is currently not supported (link " +
-            link.name + ")")
-    }
+    if(link.inertiaParams.frame === null) return link.inertiaParams;
 
     val Vector3 trasl = link.inertiaParams.frame.transform.translation;
     val Vector3 rotat = link.inertiaParams.frame.transform.rotation;

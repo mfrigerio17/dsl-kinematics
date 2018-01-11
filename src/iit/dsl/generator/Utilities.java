@@ -1,6 +1,5 @@
 package iit.dsl.generator;
 
-import iit.dsl.generator.common.Parameters;
 import iit.dsl.generator.common.Vector3D;
 import iit.dsl.kinDsl.InertiaParams;
 import iit.dsl.kinDsl.Joint;
@@ -47,10 +46,7 @@ public class Utilities {
     public static InertiaParams rototranslate(InertiaParams inertia,
             float tx, float ty, float tz, float rx, float ry, float rz, boolean inverse)
     {
-        if(Parameters.isParametric(inertia)) {
-            throw new RuntimeException("Cannot roto-translate the inertia " +
-                                       "properties if they are parametric");
-        }
+
         float mass  = utils.asFloat(inertia.getMass());
 
         Vector3 com = inertia.getCom();
