@@ -17,6 +17,9 @@ public class Vector3D {
         return java.lang.Math.sqrt(x*x + y*y + z*z);
     }
 
+    public String toString() {
+        return String.format("%.6f", x) + ", " + String.format("%.6f", y) + ", " + String.format("%.6f", z);
+    }
 
     public static Vector3D convert(Vector3 vec) {
         double x = helper.asFloat(vec.getX());
