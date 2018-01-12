@@ -228,6 +228,10 @@ def Joint getJointFromVariableName(Robot robot, String varname) {
 def getFrameName(Joint joint) '''fr_«joint.name»'''
 def getFrameName(AbstractLink link) '''fr_«link.name»'''
 
+def getItemNameByFrameName(String frameName) {
+    if(! frameName.startsWith("fr_")) return null
+    return frameName.replaceFirst("fr_", "")
+}
 
 def dispatch CharSequence str(Float num) {
     String::format(Locale::US,"%06.5f", num)
@@ -340,7 +344,14 @@ def Joint getJointByName(Robot robot, String jointName) {
     }
     return null
 }
-
+def Joint getJointByName(AbstractLink link, String jointName) {
+    for(ChildSpec ch : link.childrenList.children) {
+        if( ch.joint.name.equals(jointName) ) {
+            return ch.joint
+        }
+    }
+    return null
+}
 /**
  * The default frame of a link is simply a named frame whose transform should be
  * the identity
