@@ -156,18 +156,31 @@ class RobotPoseUtils
         val chain = TreeUtils.buildChain(target.carrier, reference.carrier)
 
         // Find out whether one end of the chain is involved only because of
-        // a joint frame and not because of the link frame. Note that ancestorOf()
-        // is true only for proper ancestors, so it implies a chain which is
-        // at least two link long.
-        //
+        // a joint frame and not because of its link frame. For example, for the
+        // pose of the elbow-frame wrt to the hand, the kinematic chain goes
+        // from the upper-arm to the hand, but the link-frame of the upper-arm
+        // (which is at the shoulder) is _not_ involved. Therefore, the links
+        // whose link-frame is involved in the path are just the forearm and the
+        // hand.
         var int start = 0
         var int end   = chain.length
-        if( (target.role == FrameRole::joint) &&
-                tree.ancestorOf(target.carrier, reference.carrier)) {
-            start = 1
-        } else if( (reference.role == FrameRole::joint) &&
-                tree.ancestorOf(reference.carrier, target.carrier)) {
-            end = chain.length-1
+        if( end > 1 ) {
+            if( (target.role == FrameRole::joint) &&
+                    tree.ancestorOf(target.carrier, reference.carrier) )
+            {
+                start = 1
+                // This is the case of the upper-arm/elbow in the comments
+                // above. The target frame is a joint-frame, and its carrier
+                // (the upper-arm) is an ancestor of the reference carrier (the
+                // hand). Thus the upper-arm is not part of the chain
+            } else if( (reference.role == FrameRole::joint) &&
+                    tree.ancestorOf(reference.carrier, target.carrier) )
+            {
+                end = chain.length-1
+                // This is the symmetric case, where the elbow-frame is the
+                // reference rather than the target (i.e. pose of the hand wrt
+                // to the elbow)
+            }
         }
         val subchain = chain.subList(start, end)
 
