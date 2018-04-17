@@ -28,8 +28,9 @@ import iit.dsl.generator.Utilities
  */
 class TreeUtils
 {
-    public new(Robot robot)
+    public new(Robot rob)
     {
+        robot = rob
         childToParent = new SimpleDirectedGraph(GraphEdge)
         parentToChild = new SimpleDirectedGraph(GraphEdge)
         val allLinks = robot.linksAndBase.sortBy(link | getID(link))
@@ -49,6 +50,8 @@ class TreeUtils
             }
         }
     }
+
+    def public robot() { return this.robot }
 
     /**
      * The joint joining the two given links, null if there is no such a joint.
@@ -144,9 +147,9 @@ class TreeUtils
         return childToParent.outgoingEdgesOf(l).iterator().next()
     }
 
+    private Robot robot
     private SimpleDirectedGraph<AbstractLink, GraphEdge> childToParent
     private SimpleDirectedGraph<AbstractLink, GraphEdge> parentToChild
-
 
 
     private static class GraphEdge
