@@ -62,6 +62,10 @@ class PoseCompose
     def public arg2() { return arg2 }
     def public result() { return res }
 
+    override public toString() {
+        return res.toString + "= ("+arg1.toString+")("+arg2.toString()+")"
+    }
+
     private RelativePose arg1
     private RelativePose arg2
     private RelativePose res

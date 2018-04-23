@@ -32,6 +32,7 @@ public class Frame
     def override public hashCode() {
         return 17*name.hashCode
     }
+    def override public toString() { return name }
 
     private final String name
 }
@@ -76,6 +77,9 @@ public class AttachedFrame
     }
     override public hashCode() {
         return frame.hashCode + 31*carrier.hashCode
+    }
+    override public toString() {
+        return carrier.name + "::" + frame.name
     }
 
     private final Frame frame
