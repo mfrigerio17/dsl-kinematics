@@ -26,6 +26,9 @@ import iit.dsl.kinDsl.Joint
 class RelativePose
 {
     public new(AttachedFrame tgt, AttachedFrame ref) {
+        if(tgt===null || ref===null) {
+            throw new RuntimeException("Cannot construct a RelativePose with a null frame")
+        }
         target    = tgt
         reference = ref
     }
@@ -41,6 +44,9 @@ class RelativePose
     }
     override public hashCode() {
         return target.hashCode() + 31*reference.hashCode()
+    }
+    override public toString() {
+        return target.toString() + " wrt " + reference.toString()
     }
 
     private final AttachedFrame target
@@ -217,10 +223,17 @@ class RobotPoseUtils
         }
 
         def public pose()    { return pose }
+        /**
+         * The kinematic chain induced by this relative pose.
+         * The first link of the returned list is the carrier of the target
+         * frame, the last is the carrier of the reference frame.
+         */
         def public inducedLinkChain() { return inducedLinkChain }
         /**
          * The longest kinematic chain whose both first and last link must be
-         * traversed completely to travel between the target and the reference
+         * traversed completely to travel between the target and the reference.
+         * The list is sorted following the direction target-->reference, as in
+         * {@code inducedLinkChain()}
          */
         def public longestLinkToLink(){ return longestLinkToLink }
         /**
