@@ -86,10 +86,18 @@ class TreeUtils
         return toParent(l).joint()
     }
 
-    def public supportingLink(Joint j) {
+    def public predecessor(Joint j) {
         for( e : parentToChild.edgeSet ) {
             if( e.joint().equals(j) ) {
                 return e.parent()
+            }
+        }
+        return null // should never get here, it means the joint was not found in the graph
+    }
+    def public successor(Joint j) {
+        for( e : parentToChild.edgeSet ) {
+            if( e.joint().equals(j) ) {
+                return e.child()
             }
         }
         return null // should never get here, it means the joint was not found in the graph
