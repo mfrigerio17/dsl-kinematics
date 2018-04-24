@@ -55,7 +55,7 @@ class FrameNamePair
 }
 
 
-class Generator
+class QueryProcessor
 {
     public new(Robot rob) {
         robot     = rob
