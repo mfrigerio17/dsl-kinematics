@@ -277,7 +277,11 @@ class QueryProcessor
 
     def public getConstantPoses() { return this.constPoses }
     def public getJointPoses()    { return this.jointPoses }
+    def public getComposes()      { return this.composes   }
     def public getOutputs()       { return this.outputs    }
+
+    def public treeUtils() { return this.treeUtils }
+    def public poseUtils() { return this.poseUtils }
 
 
     def cpp_header_robot_defs() '''
@@ -290,34 +294,6 @@ class QueryProcessor
 
     #endif
     '''
-
-    def lua_ilk()
-    '''
-    return {
-        { op='model_const', args={ «FOR kk:constPoses SEPARATOR","»'«kk.name»'«ENDFOR»} },
-        «FOR c : jointPoses SEPARATOR"," AFTER","»
-            { op='model_T_joint_local', name='«c.name()»', jtype='«c.joint.typeString»', dir='«directionTag(c)»', input=«c.joint.arrayIdx» }
-        «ENDFOR»
-
-        «FOR c : composes SEPARATOR ","AFTER","»
-            { op='compose', args={ '«c.arg1.name»', '«c.arg2.name»', '«c.result.name»' } }
-        «ENDFOR»
-
-        «FOR c : outputs SEPARATOR ","»
-            { op='output', '«c.name»' }
-        «ENDFOR»
-    }
-    '''
-
-    def private directionTag(JointSuccessorPose pose) {
-        val targetKind = pose.target().role()
-        if( targetKind == AttachedFrame.FrameRole.link ) {
-            return "a_x_b"
-        } else {
-            return "b_x_a"
-        }
-    }
-
 
     def private addParentChildComposes(List<RobotPoseUtils$PoseInfo> desires)
     {
